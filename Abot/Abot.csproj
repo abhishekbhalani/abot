@@ -40,6 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CrawlerBasic.cs" />
+    <Compile Include="CrawlerMef.cs" />
+    <Compile Include="CrawlerBase.cs" />
+    <Compile Include="CrawlerUnity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
