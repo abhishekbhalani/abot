@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Abot
 {
-    public class CrawlerUnity : CrawlerBasic
+    public class CrawlerUnity // : CrawlerBasic
     {
         public CrawlerUnity()
         {

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Abot
 {
-    public class CrawlerMef : CrawlerBasic
+    public class CrawlerMef //: CrawlerBasic
     {
         public CrawlerMef()
         {

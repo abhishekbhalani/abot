@@ -1,30 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Abot.Core;
+using System;
 
 namespace Abot
 {
     public interface ICrawler
     {
+        int MaxPagesToCrawl { get; set; }
+        string  UserAgentString { get; set; }
         void Crawl(Uri uri);
     }
 
-    public abstract class CrawlerBase
+    public abstract class CrawlerBase : ICrawler
     {
-        public CrawlerBase()
+        public int MaxPagesToCrawl { get; set; }
+        public string UserAgentString { get; set; }
+
+        public CrawlerBase(IThreadManager threadManager, IScheduler scheduler, IHyperLinkParser hyperLinkParser, IHttpRequester httpRequester)
         {
             //set all default components
         }
+        
         //TODO Where do rules go?
         //TODO Where do events go?
-        public abstract void BeforeCall();
-        public abstract void AfterCall();
 
-        public abstract void BeforeDownloadPageContent();
-        public abstract void AfterDownloadPageContent();
+        public void Crawl(Uri uri)
+        {
 
-        public abstract bool ShouldMakeCall();//PageToCrawl
-        public abstract bool ShouldDownloadPageContent();//RequestedPage
+        }
+
+        protected abstract void BeforeCall();
+        protected abstract bool ShouldMakeCall(PageToCrawl pageToCrawl);
+        protected abstract void AfterCall();
+
+        protected abstract void BeforeDownloadPageContent();
+        protected abstract bool ShouldDownloadPageContent(CrawledPage crawledPage);
+        protected abstract void AfterDownloadPageContent();
     }
 }
