@@ -46,15 +46,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PluggableWebCrawler.cs" />
     <Compile Include="CrawlResult.cs" />
     <Compile Include="FifoScheduler.cs" />
     <Compile Include="HtmlParser.cs" />
     <Compile Include="HttpRequester.cs" />
+    <Compile Include="PoliteWebCrawler.cs" />
     <Compile Include="ThreadManager.cs" />
     <Compile Include="CrawledPage.cs" />
-    <Compile Include="CrawlerMef.cs" />
-    <Compile Include="CrawlerBase.cs" />
-    <Compile Include="CrawlerUnity.cs" />
+    <Compile Include="WebCrawler.cs" />
     <Compile Include="PageToCrawl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

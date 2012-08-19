@@ -74,7 +74,7 @@ namespace Abot
                     {
                         string rawHtml = GetRawHtml(response, uri);
                         if (!string.IsNullOrWhiteSpace(rawHtml))
-                            crawledPage.Content = rawHtml;
+                            crawledPage.RawContent = rawHtml;
                     }
                     else
                     {

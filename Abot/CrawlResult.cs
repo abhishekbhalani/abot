@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CheetahBot.Crawler
+namespace Abot
 {
     public class CrawlResult
     {
@@ -8,6 +8,8 @@ namespace CheetahBot.Crawler
         {
             ErrorMessage = "";
         }
+
+        public Uri RootUri { get; set; }
 
         public TimeSpan Elapsed { get; set; }
 

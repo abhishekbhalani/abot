@@ -27,27 +27,27 @@ namespace Abot
         /// </summary>
         public bool IsRetry { get; set; }
 
-        /// <summary>
-        /// Returns the root Uri of this page
-        /// </summary>
-        public Uri GetDomainUri()
-        {
-            string root = string.Format("{0}://{1}{2}",
-                                        Uri.Scheme,
-                                        Uri.Host,
-                                        Uri.Port == 80
-                                            ? string.Empty
-                                            : ":" + Uri.Port);
+        ///// <summary>
+        ///// Returns the root Uri of this page
+        ///// </summary>
+        //public Uri GetDomainUri()
+        //{
+        //    string root = string.Format("{0}://{1}{2}",
+        //                                Uri.Scheme,
+        //                                Uri.Host,
+        //                                Uri.Port == 80
+        //                                    ? string.Empty
+        //                                    : ":" + Uri.Port);
 
-            if (!root.EndsWith("/"))
-                root += "/";
+        //    if (!root.EndsWith("/"))
+        //        root += "/";
 
-            return new Uri(root);
-        }
+        //    return new Uri(root);
+        //}
 
-        public override string ToString()
-        {
-            return Uri.AbsoluteUri;
-        }
+        //public override string ToString()
+        //{
+        //    return Uri.AbsoluteUri;
+        //}
     }
 }

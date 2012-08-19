@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 
 namespace Abot
@@ -8,13 +9,13 @@ namespace Abot
         public CrawledPage(Uri uri)
             : base(uri)
         {
-            Content = "";
+            RawContent = "";
         }
 
         /// <summary>
         /// The raw content of the request
         /// </summary>
-        public string Content { get; set; }
+        public string RawContent { get; set; }
 
         /// <summary>
         /// Web request sent to the server
@@ -32,13 +33,8 @@ namespace Abot
         public WebException WebException { get; set; }
 
         ///// <summary>
-        ///// Html parser that is loaded with this page's content.
+        ///// Links found on the page
         ///// </summary>
-        //public IHtmlParser HtmlParser { get; set; }
-
-        ///// <summary>
-        ///// Http requester used to make the http request for this page.
-        ///// </summary>
-        //public IHttpRequester HttpRequester { get; set; }
+        //public IEnumerable<Uri> HyperLinks { get; set; }
     }
 }
