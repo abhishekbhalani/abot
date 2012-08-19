@@ -10,7 +10,7 @@ namespace Abot
         CrawlResult Crawl(Uri uri);
     }
 
-    public abstract class WebCrawler : IWebCrawler
+    public class WebCrawler : IWebCrawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
