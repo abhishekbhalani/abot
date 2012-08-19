@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using log4net;
 
-namespace Abot.Core
+namespace Abot
 {
     public interface IScheduler
     {

@@ -2,7 +2,7 @@
 using System.Threading;
 using log4net;
 
-namespace Abot.Core
+namespace Abot
 {
     public interface IThreadManager
     {

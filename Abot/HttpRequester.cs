@@ -3,7 +3,7 @@ using System.IO;
 using System.Net;
 using log4net;
 
-namespace Abot.Core
+namespace Abot
 {
     public interface IHttpRequester
     {

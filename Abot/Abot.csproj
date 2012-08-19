@@ -46,12 +46,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\FifoScheduler.cs" />
-    <Compile Include="Core\HyperLinkParser.cs" />
-    <Compile Include="Core\HttpRequester.cs" />
-    <Compile Include="Core\ThreadManager.cs" />
+    <Compile Include="CrawlResult.cs" />
+    <Compile Include="FifoScheduler.cs" />
+    <Compile Include="HtmlParser.cs" />
+    <Compile Include="HttpRequester.cs" />
+    <Compile Include="ThreadManager.cs" />
     <Compile Include="CrawledPage.cs" />
-    <Compile Include="CrawlerBasic.cs" />
     <Compile Include="CrawlerMef.cs" />
     <Compile Include="CrawlerBase.cs" />
     <Compile Include="CrawlerUnity.cs" />

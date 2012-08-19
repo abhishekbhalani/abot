@@ -30,5 +30,15 @@ namespace Abot
         /// The web exception that occurred during the crawl
         /// </summary>
         public WebException WebException { get; set; }
+
+        ///// <summary>
+        ///// Html parser that is loaded with this page's content.
+        ///// </summary>
+        //public IHtmlParser HtmlParser { get; set; }
+
+        ///// <summary>
+        ///// Http requester used to make the http request for this page.
+        ///// </summary>
+        //public IHttpRequester HttpRequester { get; set; }
     }
 }
