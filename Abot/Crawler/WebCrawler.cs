@@ -9,6 +9,16 @@ namespace Abot.Crawler
 {
     public interface IWebCrawler
     {
+        /// <summary>
+        /// Asynchronous event that is fired before a page is crawled.
+        /// </summary>
+        event EventHandler<PageCrawlStartingArgs> PageCrawlStarting;
+
+        /// <summary>
+        /// Asynchronous event that is fired when an individual page has been crawled.
+        /// </summary>
+        event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;  
+
         CrawlResult Crawl(Uri uri);
     }
 
@@ -23,6 +33,18 @@ namespace Abot.Crawler
         IScheduler _scheduler;
         IPageRequester _httpRequester; 
         IHyperLinkParser _hyperLinkParser;
+
+
+        /// <summary>
+        /// Asynchronous event that is fired before a page is crawled.
+        /// </summary>
+        public event EventHandler<PageCrawlStartingArgs> PageCrawlStarting;
+
+        /// <summary>
+        /// Asynchronous event that is fired when an individual page has been crawled.
+        /// </summary>
+        public event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;
+
 
         public WebCrawler()
             :this(null, null, null, null)
@@ -102,12 +124,14 @@ namespace Abot.Crawler
                 return;
 
             BeforePageCrawl(pageToCrawl);
+            FirePageCrawlStartingEvent(pageToCrawl);
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri);
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 
             AfterPageCrawl(crawledPage);
+            FirePageCrawlCompletedEvent(crawledPage);
 
             if (ShouldSchedulePageLinksToBeCrawled(crawledPage))
             {
@@ -153,6 +177,57 @@ namespace Abot.Crawler
         protected virtual bool ShouldSchedulePageLinksToBeCrawled(CrawledPage crawledPage)
         {
             return (crawledPage != null && !string.IsNullOrWhiteSpace(crawledPage.RawContent));
+        }
+
+
+        private void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
+        {
+            try
+            {
+                OnPageCrawlStarting(new PageCrawlStartingArgs(pageToCrawl));
+            }
+            catch (Exception e)
+            {
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+            }
+        }
+
+        private void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
+        {
+            try
+            {
+                OnPageCrawlCompleted(new PageCrawlCompletedArgs(crawledPage));
+            }
+            catch (Exception e)
+            {
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
+            }
+        }
+
+        private void OnPageCrawlStarting(PageCrawlStartingArgs e)
+        {
+            EventHandler<PageCrawlStartingArgs> threadSafeEvent = PageCrawlStarting;
+            if (threadSafeEvent != null)
+            {
+                //Fire each subscribers delegate async
+                foreach (EventHandler<PageCrawlStartingArgs> del in threadSafeEvent.GetInvocationList())
+                {
+                    del.BeginInvoke(this, e, null, null);
+                }
+            }
+        }
+
+        private void OnPageCrawlCompleted(PageCrawlCompletedArgs e)
+        {
+            EventHandler<PageCrawlCompletedArgs> threadSafeEvent = PageCrawlCompleted;
+            if (threadSafeEvent != null)
+            {
+                //Fire each subscribers delegate async
+                foreach (EventHandler<PageCrawlCompletedArgs> del in threadSafeEvent.GetInvocationList())
+                {
+                    del.BeginInvoke(this, e, null, null);
+                }
+            }
         }
     }
 }
