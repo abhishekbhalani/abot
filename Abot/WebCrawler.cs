@@ -12,6 +12,7 @@ namespace Abot
 
     public class WebCrawler : IWebCrawler
     {
+        //TODO add licensing info to every page
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
         CrawlResult _crawlResult = null;
