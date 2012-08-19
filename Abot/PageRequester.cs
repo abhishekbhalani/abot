@@ -1,11 +1,11 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.IO;
 using System.Net;
-using log4net;
 
 namespace Abot
 {
-    public interface IHttpRequester
+    public interface IPageRequester
     {
         /// <summary>
         /// User agent string used when making the http request
@@ -18,13 +18,13 @@ namespace Abot
         CrawledPage MakeHttpWebRequest(Uri uri);
     }
 
-    public class HttpRequester : IHttpRequester
+    public class PageRequester : IPageRequester
     {
-        ILog _logger = LogManager.GetLogger(typeof(HttpRequester).FullName);
+        ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
         public string UserAgentString { get; set; }
 
-        public HttpRequester()
+        public PageRequester()
         {
             UserAgentString = "";
         }

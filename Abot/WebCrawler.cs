@@ -18,7 +18,7 @@ namespace Abot
 
         IThreadManager _threadManager;
         IScheduler _scheduler;
-        IHttpRequester _httpRequester; 
+        IPageRequester _httpRequester; 
         IHyperLinkParser _hyperLinkParser;
 
         public WebCrawler()
@@ -26,7 +26,7 @@ namespace Abot
         {
         }
 
-        public WebCrawler(IThreadManager threadManager, IScheduler scheduler, IHttpRequester httpRequester, IHyperLinkParser hyperLinkParser)
+        public WebCrawler(IThreadManager threadManager, IScheduler scheduler, IPageRequester httpRequester, IHyperLinkParser hyperLinkParser)
         {
             if(threadManager ==null)
                 throw new ArgumentNullException("threadManager");
@@ -42,7 +42,7 @@ namespace Abot
 
             _threadManager = threadManager ?? new ThreadManager(10);
             _scheduler = scheduler ?? new FifoScheduler();
-            _httpRequester = httpRequester ?? new HttpRequester { UserAgentString = "abot v1.0 http://code.google.com/p/abot" };
+            _httpRequester = httpRequester ?? new PageRequester { UserAgentString = "abot v1.0 http://code.google.com/p/abot" };
             _hyperLinkParser = hyperLinkParser ?? null; //TODO Implement HyperLinkParser();
         }
 

@@ -7,6 +7,5 @@ namespace Abot
         //ToDo Add BeforeSchedulePageLinksRules
         //ToDo Add BeforeCrawlPageActions
         //ToDo Add AfterCrawlPageActions
-        //ToDo Add respect meta robots no index no follow
     }
 }

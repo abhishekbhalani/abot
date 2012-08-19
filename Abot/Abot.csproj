@@ -49,8 +49,8 @@
     <Compile Include="PluggableWebCrawler.cs" />
     <Compile Include="CrawlResult.cs" />
     <Compile Include="FifoScheduler.cs" />
-    <Compile Include="HtmlParser.cs" />
-    <Compile Include="HttpRequester.cs" />
+    <Compile Include="HyperLinkParser.cs" />
+    <Compile Include="PageRequester.cs" />
     <Compile Include="PoliteWebCrawler.cs" />
     <Compile Include="ThreadManager.cs" />
     <Compile Include="CrawledPage.cs" />

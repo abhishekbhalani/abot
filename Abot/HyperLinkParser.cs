@@ -7,6 +7,7 @@ namespace Abot
 {
     public interface IHyperLinkParser
     {
+        //TODO make this impl
         IEnumerable<Uri> GetHyperLinks(Uri pageUri, string pageHtml);
     }
 
@@ -23,13 +24,13 @@ namespace Abot
         string GetMetaRobotsTag();
     }
 
-    public class HtmlParser : IHtmlParser
+    public class HyperLinkParser : IHtmlParser
     {
-        ILog _logger = LogManager.GetLogger(typeof(HtmlParser));
+        ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
         HtmlDocument _htmlDoc;
         Uri _pageUri;
 
-        public HtmlParser(Uri pageUri, string html)
+        public HyperLinkParser(Uri pageUri, string html)
         {
             if (pageUri == null)
                 throw new ArgumentNullException("uri");
