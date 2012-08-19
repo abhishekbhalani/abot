@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HtmlAgilityPack;
 using log4net;
 
-namespace Abot
+namespace Abot.Core
 {
     public interface IHyperLinkParser
     {

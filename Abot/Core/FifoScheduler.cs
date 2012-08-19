@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using Abot.Poco;
 using log4net;
+using System;
+using System.Collections.Concurrent;
 
-namespace Abot
+namespace Abot.Core
 {
     public interface IScheduler
     {

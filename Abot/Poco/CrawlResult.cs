@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Abot
+namespace Abot.Poco
 {
     public class CrawlResult
     {

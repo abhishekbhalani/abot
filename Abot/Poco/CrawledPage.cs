@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 
-namespace Abot
+namespace Abot.Poco
 {
     public class CrawledPage : PageToCrawl
     {

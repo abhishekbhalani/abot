@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using Abot.Poco;
+using log4net;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,7 +44,7 @@ namespace Abot.Crawler
 
             _threadManager = threadManager ?? new ThreadManager(10);
             _scheduler = scheduler ?? new FifoScheduler();
-            _httpRequester = httpRequester ?? new PageRequester { UserAgentString = "abot v1.0 http://code.google.com/p/abot" };
+            _httpRequester = httpRequester ?? new PageRequester("abot v1.0 http://code.google.com/p/abot");
             _hyperLinkParser = hyperLinkParser ?? null; //TODO Implement HyperLinkParser();
         }
 
@@ -101,7 +102,7 @@ namespace Abot.Crawler
 
             BeforePageCrawl(pageToCrawl);
 
-            CrawledPage crawledPage = _httpRequester.MakeHttpWebRequest(pageToCrawl.Uri);
+            CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri);
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 

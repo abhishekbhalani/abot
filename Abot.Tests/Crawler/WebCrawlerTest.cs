@@ -1,9 +1,9 @@
-﻿using Abot;
+﻿using Abot.Crawler;
 using Moq;
 using NUnit.Framework;
 using System;
 
-namespace Abot.Tests
+namespace Abot.Tests.Crawler
 {
     [TestFixture]
     public class CrawlerBasicTest

@@ -1,8 +1,8 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Threading;
-using log4net;
 
-namespace Abot
+namespace Abot.Core
 {
     public interface IThreadManager
     {

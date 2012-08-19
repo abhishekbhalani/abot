@@ -1,35 +1,34 @@
-﻿using log4net;
+﻿using Abot.Poco;
+using log4net;
 using System;
 using System.IO;
 using System.Net;
 
-namespace Abot
+namespace Abot.Core
 {
     public interface IPageRequester
     {
         /// <summary>
-        /// User agent string used when making the http request
-        /// </summary>
-        string UserAgentString { get; set;  }
-
-        /// <summary>
         /// Make an http web request to the url
         /// </summary>
-        CrawledPage MakeHttpWebRequest(Uri uri);
+        CrawledPage MakeRequest(Uri uri);
     }
 
     public class PageRequester : IPageRequester
     {
         ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
-        public string UserAgentString { get; set; }
+        string _userAgentString;
 
-        public PageRequester()
+        public PageRequester(string userAgent)
         {
-            UserAgentString = "";
+            if (string.IsNullOrWhiteSpace(userAgent))
+                throw new ArgumentNullException("userAgent");
+
+            _userAgentString = userAgent;
         }
 
-        public virtual CrawledPage MakeHttpWebRequest(Uri uri)
+        public virtual CrawledPage MakeRequest(Uri uri)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -46,7 +45,7 @@ namespace Abot
                 request = (HttpWebRequest)WebRequest.Create(uri);
                 request.AllowAutoRedirect = true;
                 request.MaximumAutomaticRedirections = 7;
-                request.UserAgent = UserAgentString;
+                request.UserAgent = _userAgentString;
                 request.Accept = "*/*";
 
                 response = (HttpWebResponse)request.GetResponse();
