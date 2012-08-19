@@ -18,14 +18,15 @@ namespace Abot
 
         IThreadManager _threadManager;
         IScheduler _scheduler;
-        Func<IHttpRequester> _httpRequesterFactory;        //used by Unity to create instances of IHttpRequester without us having to directly call/rely on the unity container
-        Func<IHyperLinkParser> _hyperLinkParserFactory;    //used by Unity to create instances of IHyperLinkParser without us having to directly call/rely on the unity container
+        IHttpRequester _httpRequester; 
+        IHyperLinkParser _hyperLinkParser;
 
-        public WebCrawler(
-            IThreadManager threadManager,
-            IScheduler scheduler,
-            Func<IHttpRequester> httpRequesterFactory,   
-            Func<IHyperLinkParser> hyperLinkParserFactory)
+        public WebCrawler()
+            :this(null, null, null, null)
+        {
+        }
+
+        public WebCrawler(IThreadManager threadManager, IScheduler scheduler, IHttpRequester httpRequester, IHyperLinkParser hyperLinkParser)
         {
             if(threadManager ==null)
                 throw new ArgumentNullException("threadManager");
@@ -33,16 +34,16 @@ namespace Abot
             if(scheduler == null)
                 throw new ArgumentNullException("scheduler");
 
-            if (httpRequesterFactory == null)
-                throw new ArgumentNullException("pageCrawlerFactory");
+            if (httpRequester == null)
+                throw new ArgumentNullException("httpRequester");
 
-            if (hyperLinkParserFactory == null)
-                throw new ArgumentNullException("hyperLinkParserFactory");
+            if (hyperLinkParser == null)
+                throw new ArgumentNullException("hyperLinkParser");
 
-            _threadManager = threadManager;
-            _scheduler = scheduler;
-            _httpRequesterFactory = httpRequesterFactory;
-            _hyperLinkParserFactory = hyperLinkParserFactory;
+            _threadManager = threadManager ?? new ThreadManager(10);
+            _scheduler = scheduler ?? new FifoScheduler();
+            _httpRequester = httpRequester ?? new HttpRequester { UserAgentString = "abot v1.0 http://code.google.com/p/abot" };
+            _hyperLinkParser = hyperLinkParser ?? null; //TODO Implement HyperLinkParser();
         }
 
 
@@ -56,16 +57,12 @@ namespace Abot
                 throw new ArgumentNullException("uri");
 
             BeforeSiteCrawl(uri);
-
             _scheduler.Add(new PageToCrawl(uri){ParentUri = uri});
-            //ConfigureCrawlDelay();
-            //LogCrawlSettings();
-            //LogCrawlRules();
 
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
+            Stopwatch timer = Stopwatch.StartNew();
             CrawlSite();
             timer.Stop();
+
             _crawlResult.Elapsed = timer.Elapsed;
             AfterSiteCrawl(_crawlResult);
 
@@ -103,7 +100,7 @@ namespace Abot
 
             BeforePageCrawl(pageToCrawl);
 
-            CrawledPage crawledPage = _httpRequesterFactory().MakeHttpWebRequest(pageToCrawl.Uri);
+            CrawledPage crawledPage = _httpRequester.MakeHttpWebRequest(pageToCrawl.Uri);
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 
@@ -111,8 +108,7 @@ namespace Abot
 
             if (ShouldSchedulePageLinksToBeCrawled(crawledPage))
             {
-                IHyperLinkParser linkParser = _hyperLinkParserFactory();
-                IEnumerable<Uri> crawledPageLinks = linkParser.GetHyperLinks(crawledPage.Uri, crawledPage.RawContent);
+                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetHyperLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
