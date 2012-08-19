@@ -1,4 +1,6 @@
-﻿using Abot.Crawler;
+﻿using Abot.Core;
+using Abot.Crawler;
+using Abot.Poco;
 using Moq;
 using NUnit.Framework;
 using System;

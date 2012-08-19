@@ -1,4 +1,5 @@
-﻿using Abot.Poco;
+﻿using Abot.Core;
+using Abot.Poco;
 using log4net;
 using System;
 using System.Collections.Generic;
