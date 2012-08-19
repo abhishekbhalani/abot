@@ -24,6 +24,7 @@ namespace Abot.Crawler
 
     public class WebCrawler : IWebCrawler
     {
+        //TODO if someone uses this crawler directly it will crawl the same link over and over!!!!!!!!
         //TODO add licensing info to every page
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
