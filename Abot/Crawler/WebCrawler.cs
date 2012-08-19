@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Abot
+namespace Abot.Crawler
 {
     public interface IWebCrawler
     {

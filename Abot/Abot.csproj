@@ -46,25 +46,23 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="WebCrawlerEventFiring.cs" />
-    <Compile Include="WebCrawlerPluggable.cs" />
+    <Compile Include="Crawler\EventFiringWebCrawler.cs" />
+    <Compile Include="Crawler\PluggableWebCrawler.cs" />
     <Compile Include="CrawlResult.cs" />
     <Compile Include="FifoScheduler.cs" />
     <Compile Include="HyperLinkParser.cs" />
     <Compile Include="PageRequester.cs" />
-    <Compile Include="WebCrawlerPolite.cs" />
+    <Compile Include="Crawler\PoliteWebCrawler.cs" />
     <Compile Include="ThreadManager.cs" />
     <Compile Include="CrawledPage.cs" />
-    <Compile Include="WebCrawler.cs" />
+    <Compile Include="Crawler\WebCrawler.cs" />
     <Compile Include="PageToCrawl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Crawler\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

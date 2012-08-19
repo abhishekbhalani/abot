@@ -1,7 +1,7 @@
 ﻿
-namespace Abot
+namespace Abot.Crawler
 {
-    public class WebCrawlerPolite : WebCrawlerPluggable
+    public class WebCrawlerPolite : WebCrawler
     {
         //ToDo Add throttling
         //ToDo Add manual crawl delay

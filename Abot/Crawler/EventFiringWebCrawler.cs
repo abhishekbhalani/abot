@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Abot
+﻿
+namespace Abot.Crawler
 {
-    public interface IWebCrawlerEventFiring : IWebCrawler
-    {
-        
-    }
-
-    class WebCrawlerEventFiring : IWebCrawlerEventFiring
+    public class WebCrawlerEventFiring : WebCrawler
     {
         ///// <summary>
         ///// Asynchronous event that is fired before a page is crawled.
@@ -20,6 +11,6 @@ namespace Abot
         ///// <summary>
         ///// Asynchronous event that is fired when an individual page has been crawled.
         ///// </summary>
-        //event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;
+        //event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;        
     }
 }
