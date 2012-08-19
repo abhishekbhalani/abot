@@ -1,7 +1,7 @@
 ﻿
 namespace Abot
 {
-    public class PluggableWebCrawler : WebCrawler
+    public class WebCrawlerPluggable : WebCrawler
     {
         //ToDo Add BeforeCrawlPageRules
         //ToDo Add BeforeSchedulePageLinksRules
