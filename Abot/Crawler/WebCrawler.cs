@@ -55,18 +55,6 @@ namespace Abot.Crawler
 
         public WebCrawler(IThreadManager threadManager, IScheduler scheduler, IPageRequester httpRequester, IHyperLinkParser hyperLinkParser)
         {
-            if(threadManager ==null)
-                throw new ArgumentNullException("threadManager");
-
-            if(scheduler == null)
-                throw new ArgumentNullException("scheduler");
-
-            if (httpRequester == null)
-                throw new ArgumentNullException("httpRequester");
-
-            if (hyperLinkParser == null)
-                throw new ArgumentNullException("hyperLinkParser");
-
             _threadManager = threadManager ?? new ThreadManager(10);
             _scheduler = scheduler ?? new FifoScheduler();
             _httpRequester = httpRequester ?? new PageRequester("abot v1.0 http://code.google.com/p/abot");
