@@ -161,7 +161,7 @@ namespace Abot.Crawler
 
         protected virtual bool ShouldCrawlPage(PageToCrawl pageToCrawl)
         {
-            return (pageToCrawl != null);
+            return true;
         }
 
         protected virtual bool ShouldSchedulePageLinksToBeCrawled(CrawledPage crawledPage)
@@ -178,6 +178,7 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
+                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
                 _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
             }
         }
@@ -190,6 +191,7 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
+                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
                 _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
             }
         }

@@ -33,9 +33,6 @@ namespace Abot.Core
             if (uri == null)
                 throw new ArgumentNullException("uri");
 
-            if(!IsValidScheme(uri))
-                throw new ArgumentException("Invalid uri scheme, must be http or https");
-
             CrawledPage crawledPage = new CrawledPage(uri);
 
             HttpWebRequest request = null;
@@ -107,11 +104,6 @@ namespace Abot.Core
             }
 
             return rawHtml;
-        }
-
-        protected virtual bool IsValidScheme(Uri uri)
-        {
-            return uri.Scheme.StartsWith("http");
         }
 
         protected virtual bool IsContentDownloadable(HttpWebResponse response)
