@@ -19,6 +19,20 @@ namespace Abot.Tests.Core
         }
 
         [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetHyperlinks_NullUri()
+        {
+            _unitUnderTest.GetHyperLinks(null, "");
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetHyperlinks_NullHtml()
+        {
+            _unitUnderTest.GetHyperLinks(_uri, null);
+        }
+
+        [Test]
         public void GetHyperlinks_AnchorTags_ReturnsLinks()
         {
             string html = "<a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";

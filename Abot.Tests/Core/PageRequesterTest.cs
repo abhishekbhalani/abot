@@ -1,7 +1,7 @@
-﻿using System;
-using NUnit.Framework;
-using Abot.Core;
+﻿using Abot.Core;
 using Abot.Poco;
+using NUnit.Framework;
+using System;
 
 
 namespace Abot.Tests.Core
@@ -25,6 +25,13 @@ namespace Abot.Tests.Core
         public void SetUp()
         {
             _unitUnderTest = new PageRequester(_userAgent);
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void Constructor_NullUserAgent()
+        {
+            new PageRequester(null);
         }
 
         [Test]
