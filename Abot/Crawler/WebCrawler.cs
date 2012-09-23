@@ -33,7 +33,7 @@ namespace Abot.Crawler
 
         IThreadManager _threadManager;
         IScheduler _scheduler;
-        IPageRequester _httpRequester; 
+        IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
 
 

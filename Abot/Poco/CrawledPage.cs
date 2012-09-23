@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 
 namespace Abot.Poco
@@ -31,10 +30,5 @@ namespace Abot.Poco
         /// The web exception that occurred during the crawl
         /// </summary>
         public WebException WebException { get; set; }
-
-        ///// <summary>
-        ///// Links found on the page
-        ///// </summary>
-        //public IEnumerable<Uri> HyperLinks { get; set; }
     }
 }
