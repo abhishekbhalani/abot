@@ -46,7 +46,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Crawler\PluggableWebCrawler.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
