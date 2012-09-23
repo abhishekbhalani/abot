@@ -1,92 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using HtmlAgilityPack;
+﻿using HtmlAgilityPack;
 using log4net;
+using System;
+using System.Collections.Generic;
 
 namespace Abot.Core
 {
     public interface IHyperLinkParser
     {
-        //TODO make this impl
         IEnumerable<Uri> GetHyperLinks(Uri pageUri, string pageHtml);
     }
 
-    public interface IHtmlParser
-    {
-        /// <summary>
-        /// Retrieves the pages links
-        /// </summary>
-        IList<Uri> GetHyperLinks();
-
-        /// <summary>
-        /// Retrieves the meta robots tags value
-        /// </summary>
-        string GetMetaRobotsTag();
-    }
-
-    public class HyperLinkParser : IHtmlParser
+    public class HyperLinkParser : IHyperLinkParser
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
-        HtmlDocument _htmlDoc;
-        Uri _pageUri;
 
-        public HyperLinkParser(Uri pageUri, string html)
+
+        public IEnumerable<Uri> GetHyperLinks(Uri pageUri, string pageHtml)
         {
             if (pageUri == null)
-                throw new ArgumentNullException("uri");
+                throw new ArgumentNullException("pageUri");
 
-            if (html == null)
-                throw new ArgumentNullException("html");
+            if (pageHtml == null)
+                throw new ArgumentNullException("pageHtml");
 
-            _htmlDoc = new HtmlDocument();
-            _htmlDoc.LoadHtml(html);
-            _pageUri = pageUri;
-        }
+            HtmlDocument htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml(pageHtml);
 
-        public IList<Uri> GetHyperLinks()
-        {
-            HtmlNodeCollection anchorTags;
-            HtmlNodeCollection areaTags;
-
-            anchorTags = _htmlDoc.DocumentNode.SelectNodes("//a[@href]");
-            areaTags = _htmlDoc.DocumentNode.SelectNodes("//area[@href]");
+            HtmlNodeCollection anchorTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
+            HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
 
             IList<Uri> hyperlinks = new List<Uri>();
-            AddToHyperLinks(anchorTags, ref hyperlinks, _pageUri);
-            AddToHyperLinks(areaTags, ref hyperlinks, _pageUri);
+            AddToHyperLinks(anchorTags, ref hyperlinks, pageUri);
+            AddToHyperLinks(areaTags, ref hyperlinks, pageUri);
 
             return hyperlinks;
         }
 
-        public string GetMetaRobotsTag()
-        {
-            return GetMetaTagValue("name", "robots");
-        }
-
-        private string GetMetaTagValue(string attributeName, string attributeValue)
-        {
-            string value = "";
-
-            HtmlNode node = GetMetaTag(attributeName, attributeValue);
-            if (node != null)
-            {
-                value = node.GetAttributeValue("content", "");
-            }
-
-            return value.Trim();
-        }
-
-        private HtmlNode GetMetaTag(string attributeName, string attributeValue)
-        {
-            return GetTag(string.Format("meta[translate(@{0}, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = '{1}']", attributeName, attributeValue));
-        }
-
-        private HtmlNode GetTag(string tagName)
-        {
-            HtmlNode node = _htmlDoc.DocumentNode.SelectSingleNode("//" + tagName);
-
-            return node;
-        }
 
         private void AddToHyperLinks(HtmlNodeCollection nodes, ref IList<Uri> hyperlinks, Uri page)
         {

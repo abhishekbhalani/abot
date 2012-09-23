@@ -145,6 +145,7 @@ namespace Abot.Crawler
             _logger.DebugFormat("Crawl complete for site [{0}]: [{1}]", crawlResult.RootUri.AbsoluteUri, crawlResult.Elapsed);
         }
 
+
         protected virtual void BeforePageCrawl(PageToCrawl pageToCrawl)
         {
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);

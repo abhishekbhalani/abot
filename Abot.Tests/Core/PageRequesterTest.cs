@@ -144,13 +144,6 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        [ExpectedException(typeof(ArgumentException))]
-        public void MakeRequest_InvalidSchemeUri()
-        {
-            _unitUnderTest.MakeRequest(new Uri("mailto:ssss@yahoo.com"));
-        }
-
-        [Test]
         public void MakeRequest_NonTextHtmlContentType_CrawlsPageButDoesNotDowloadContent()
         {
             CrawledPage result = _unitUnderTest.MakeRequest(_imageUrl);
