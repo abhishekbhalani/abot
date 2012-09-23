@@ -19,9 +19,13 @@ namespace Abot.Crawler
         /// </summary>
         event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;  
 
+        /// <summary>
+        /// Begins a crawl using the uri param
+        /// </summary>
         CrawlResult Crawl(Uri uri);
     }
 
+    //TODO: Consider making this an abstract class
     public class WebCrawler : IWebCrawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
