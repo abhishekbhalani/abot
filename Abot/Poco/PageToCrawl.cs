@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Abot.Poco
 {
+    [ExcludeFromCodeCoverage]
     public class PageToCrawl
     {
         public PageToCrawl(Uri uri)
