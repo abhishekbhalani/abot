@@ -2,6 +2,7 @@
 using log4net;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Abot.Core
 {
@@ -14,7 +15,6 @@ namespace Abot.Core
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
 
-
         public IEnumerable<Uri> GetHyperLinks(Uri pageUri, string pageHtml)
         {
             if (pageUri == null)
@@ -26,46 +26,35 @@ namespace Abot.Core
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(pageHtml);
 
-            HtmlNodeCollection anchorTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
-            HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
+            IEnumerable<HtmlNode> anchorTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]").Concat(htmlDoc.DocumentNode.SelectNodes("//area[@href]"));
 
-            IList<Uri> hyperlinks = new List<Uri>();
-            AddToHyperLinks(anchorTags, ref hyperlinks, pageUri);
-            AddToHyperLinks(areaTags, ref hyperlinks, pageUri);
+            List<Uri> hyperlinks = new List<Uri>();
+
+            if (anchorTags == null)
+                return hyperlinks;
+
+            string hrefValue = "";
+            foreach (HtmlNode node in anchorTags)
+            {
+                hrefValue = node.Attributes["href"].Value;
+                try
+                {
+                    Uri newUri = new Uri(pageUri, hrefValue.Split('#')[0]);
+                    if (IsUriValid(newUri) && (!hyperlinks.Contains(newUri)))
+                        hyperlinks.Add(newUri);
+                }
+                catch (Exception e)
+                {
+                    _logger.DebugFormat("Error parsing the link [{0}] on page [{1}]", hrefValue, pageUri.AbsoluteUri, e);
+                }
+            }
 
             return hyperlinks;
         }
 
-
-        private void AddToHyperLinks(HtmlNodeCollection nodes, ref IList<Uri> hyperlinks, Uri page)
+        protected virtual bool IsUriValid(Uri uri)
         {
-            if (nodes == null)
-                return;
-            
-            string hrefValue = "";
-            foreach (HtmlNode node in nodes)
-            {
-                hrefValue = node.Attributes["href"].Value;
-
-                try
-                {
-                    Uri newUri = new Uri(page, hrefValue.Split('#')[0]);
-                    if ( IsSchemeAllowed(newUri) && (!hyperlinks.Contains(newUri)) )
-                        hyperlinks.Add(newUri);
-                }
-                catch(Exception e)
-                {
-                    _logger.DebugFormat("Error parsing the link [{0}] on page [{1}]", hrefValue, page.AbsoluteUri, e);
-                }
-            }
-        }
-
-        private bool IsSchemeAllowed(Uri uri)
-        {
-            if ((uri.Scheme == "http") || (uri.Scheme == "https"))
-                return true;
-
-            return false;
+            return ((uri.Scheme == "http") || (uri.Scheme == "https"));
         }
     }
 }

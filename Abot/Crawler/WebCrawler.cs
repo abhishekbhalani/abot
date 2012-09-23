@@ -25,7 +25,6 @@ namespace Abot.Crawler
         CrawlResult Crawl(Uri uri);
     }
 
-    //TODO: Consider making this an abstract class
     public class WebCrawler : IWebCrawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
@@ -36,6 +35,7 @@ namespace Abot.Crawler
         IScheduler _scheduler;
         IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
+        ICrawlDecisionMaker _crawlDecisionMaker;
 
 
         /// <summary>
@@ -50,16 +50,21 @@ namespace Abot.Crawler
 
 
         public WebCrawler()
-            :this(null, null, null, null)
+            :this(null, null, null, null, null)
         {
         }
 
-        public WebCrawler(IThreadManager threadManager, IScheduler scheduler, IPageRequester httpRequester, IHyperLinkParser hyperLinkParser)
+        public WebCrawler(IThreadManager threadManager, 
+            IScheduler scheduler, 
+            IPageRequester httpRequester, 
+            IHyperLinkParser hyperLinkParser, 
+            ICrawlDecisionMaker crawlDecisionMaker)
         {
             _threadManager = threadManager ?? new ThreadManager(10);
             _scheduler = scheduler ?? new FifoScheduler();
             _httpRequester = httpRequester ?? new PageRequester("abot v1.0 http://code.google.com/p/abot");
-            _hyperLinkParser = hyperLinkParser ?? null; //TODO Implement HyperLinkParser();
+            _hyperLinkParser = hyperLinkParser ?? null;
+            _crawlDecisionMaker = crawlDecisionMaker ?? null;
         }
 
 
@@ -72,7 +77,7 @@ namespace Abot.Crawler
             if(uri == null)
                 throw new ArgumentNullException("uri");
 
-            BeforeSiteCrawl(uri);
+            _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
             _scheduler.Add(new PageToCrawl(uri){ParentUri = uri});
 
             Stopwatch timer = Stopwatch.StartNew();
@@ -80,13 +85,13 @@ namespace Abot.Crawler
             timer.Stop();
 
             _crawlResult.Elapsed = timer.Elapsed;
-            AfterSiteCrawl(_crawlResult);
+            _logger.DebugFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
             return new CrawlResult { Elapsed = timer.Elapsed };
         }
 
 
-        protected virtual void CrawlSite()
+        private void CrawlSite()
         {
             while (!_crawlComplete)
             {
@@ -111,20 +116,25 @@ namespace Abot.Crawler
             if (pageToCrawl == null)
                 return;
 
-            if (!ShouldCrawlPage(pageToCrawl))
+            if (!_crawlDecisionMaker.ShouldCrawl(pageToCrawl))
                 return;
 
-            BeforePageCrawl(pageToCrawl);
+            _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
 
+            //Crawl page
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri);
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 
-            AfterPageCrawl(crawledPage);
+            if (crawledPage.HttpWebResponse == null)
+                _logger.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Parent:[{1}]", crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
+            else
+                _logger.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Parent:[{2}]", Convert.ToInt32(crawledPage.HttpWebResponse.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
             FirePageCrawlCompletedEvent(crawledPage);
 
-            if (ShouldSchedulePageLinksToBeCrawled(crawledPage))
+            //Crawl page's links
+            if (_crawlDecisionMaker.ShouldCrawlLinks(crawledPage))
             {
                 IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetHyperLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)
@@ -133,42 +143,6 @@ namespace Abot.Crawler
                     _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri });
                 }
             }
-        }
-
-
-        protected virtual void BeforeSiteCrawl(Uri uri)
-        {
-            _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
-        }
-
-        protected virtual void AfterSiteCrawl(CrawlResult crawlResult)
-        {
-            _logger.DebugFormat("Crawl complete for site [{0}]: [{1}]", crawlResult.RootUri.AbsoluteUri, crawlResult.Elapsed);
-        }
-
-
-        protected virtual void BeforePageCrawl(PageToCrawl pageToCrawl)
-        {
-            _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
-        }
-
-        protected virtual void AfterPageCrawl(CrawledPage crawledPage)
-        {
-            if (crawledPage.HttpWebResponse == null)
-                _logger.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Parent:[{1}]", crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
-            else
-                _logger.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Parent:[{2}]", Convert.ToInt32(crawledPage.HttpWebResponse.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
-        }
-
-
-        protected virtual bool ShouldCrawlPage(PageToCrawl pageToCrawl)
-        {
-            return true;
-        }
-
-        protected virtual bool ShouldSchedulePageLinksToBeCrawled(CrawledPage crawledPage)
-        {
-            return (crawledPage != null && !string.IsNullOrWhiteSpace(crawledPage.RawContent));
         }
 
 

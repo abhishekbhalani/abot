@@ -15,6 +15,7 @@ namespace Abot.Tests.Crawler
         WebCrawler _unitUnderTest;
         Mock<IPageRequester> _fakeHttpRequester;
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
+        Mock<ICrawlDecisionMaker> _mockCrawlDecisionMaker;
         FifoScheduler _dummyScheduler;
         ThreadManager _dummyThreadManager;
         Uri _rootUri;
@@ -24,11 +25,12 @@ namespace Abot.Tests.Crawler
         {
             _fakeHyperLinkParser = new Mock<IHyperLinkParser>();
             _fakeHttpRequester = new Mock<IPageRequester>();
+            _mockCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
 
             _dummyScheduler = new FifoScheduler();
             _dummyThreadManager = new ThreadManager(1);
 
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _mockCrawlDecisionMaker.Object);
 
             _rootUri = new Uri("http://a.com/");
         }
@@ -55,13 +57,17 @@ namespace Abot.Tests.Crawler
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri1)).Returns(page1);
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri2)).Returns(page2);
             _fakeHyperLinkParser.Setup(f => f.GetHyperLinks(_rootUri, It.IsAny<string>())).Returns(links);
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawl(It.IsAny<PageToCrawl>())).Returns(true);
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>())).Returns(true);
 
             _unitUnderTest.Crawl(_rootUri);
 
-            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri));
-            _fakeHttpRequester.Verify(f => f.MakeRequest(uri1));
-            _fakeHttpRequester.Verify(f => f.MakeRequest(uri2));
-            _fakeHyperLinkParser.Verify(f => f.GetHyperLinks(_rootUri, It.IsAny<string>()));
+            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri), Times.Once());
+            _fakeHttpRequester.Verify(f => f.MakeRequest(uri1), Times.Once());
+            _fakeHttpRequester.Verify(f => f.MakeRequest(uri2), Times.Once());
+            _fakeHyperLinkParser.Verify(f => f.GetHyperLinks(_rootUri, It.IsAny<string>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawl(It.IsAny<PageToCrawl>()), Times.Exactly(3));
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>()), Times.Exactly(3));
         }
 
         [Test]
@@ -77,6 +83,8 @@ namespace Abot.Tests.Crawler
         {
             _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>())).Returns(new CrawledPage(_rootUri));
             _fakeHyperLinkParser.Setup(f => f.GetHyperLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawl(It.IsAny<PageToCrawl>())).Returns(true);
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>())).Returns(true);
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
@@ -85,6 +93,11 @@ namespace Abot.Tests.Crawler
             
             _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
+
+            _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>()), Times.Once());
+            _fakeHyperLinkParser.Verify(f => f.GetHyperLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawl(It.IsAny<PageToCrawl>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>()), Times.Once());
 
             Assert.AreEqual(1, _pageCrawlStartingCount);
             Assert.AreEqual(1, _pageCrawlCompletedCount);
@@ -95,10 +108,12 @@ namespace Abot.Tests.Crawler
         {
             _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>())).Returns(new CrawledPage(_rootUri));
             _fakeHyperLinkParser.Setup(f => f.GetHyperLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawl(It.IsAny<PageToCrawl>())).Returns(true);
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>())).Returns(true);
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
             ThreadManager _dummyThreadManager = new ThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _mockCrawlDecisionMaker.Object);
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
@@ -109,6 +124,11 @@ namespace Abot.Tests.Crawler
             
             _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(1000);//sleep since the events are async and may not complete
+
+            _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>()), Times.Once());
+            _fakeHyperLinkParser.Verify(f => f.GetHyperLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawl(It.IsAny<PageToCrawl>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>()), Times.Once());
 
             Assert.AreEqual(1, _pageCrawlStartingCount);
             Assert.AreEqual(1, _pageCrawlCompletedCount);
@@ -148,18 +168,22 @@ namespace Abot.Tests.Crawler
 
 
         [Test]
-        public void Crawl_ShouldCrawlPageReturnsFalse_DoesNotFireEvents()
+        public void Crawl_ShouldCrawlReturnsFalse_DoesNotFireEvents()
         {
-            //Have to use a stub inheriting from WebCrawler and override
-            WebCrawlerTestWrapper testWrapper = new WebCrawlerTestWrapper();
+            _mockCrawlDecisionMaker.Setup(f => f.ShouldCrawl(It.IsAny<PageToCrawl>())).Returns(false);
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
-            testWrapper.PageCrawlCompleted += (s, e) => ++_pageCrawlCompletedCount;
-            testWrapper.PageCrawlStarting += (s, e) => ++_pageCrawlStartingCount;
+            _unitUnderTest.PageCrawlCompleted += (s, e) => ++_pageCrawlCompletedCount;
+            _unitUnderTest.PageCrawlStarting += (s, e) => ++_pageCrawlStartingCount;
 
-            testWrapper.Crawl(_rootUri);
+            _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
+
+            _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>()), Times.Never());
+            _fakeHyperLinkParser.Verify(f => f.GetHyperLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawl(It.IsAny<PageToCrawl>()), Times.Once());
+            _mockCrawlDecisionMaker.Verify(f => f.ShouldCrawlLinks(It.IsAny<CrawledPage>()), Times.Never());
 
             Assert.AreEqual(0, _pageCrawlStartingCount);
             Assert.AreEqual(0, _pageCrawlCompletedCount);
@@ -174,18 +198,6 @@ namespace Abot.Tests.Crawler
         private void ThrowExceptionWhen_PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
         {
             throw new Exception("Oh No!");
-        }
-    }
-
-    internal class WebCrawlerTestWrapper : WebCrawler
-    {
-        public WebCrawlerTestWrapper()
-        {
-        }
-
-        protected override bool ShouldCrawlPage(PageToCrawl pageToCrawl)
-        {
-            return false;
         }
     }
 }

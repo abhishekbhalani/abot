@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\CrawlDecisionMaker.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
