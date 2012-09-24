@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Abot.Core;
 using NUnit.Framework;
-using Abot.Core;
+using System;
 
 namespace Abot.Tests.Core
 {

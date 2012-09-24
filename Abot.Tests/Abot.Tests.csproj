@@ -38,6 +38,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -55,11 +57,19 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SiteSimulator\Controllers\HomeControllerTest.cs" />
+    <Compile Include="SiteSimulator\Controllers\HttpResponseControllerTest.cs" />
+    <Compile Include="SiteSimulator\Controllers\PageGeneratorControllerTest.cs" />
+    <Compile Include="SiteSimulator\Controllers\ThrottlingControllerTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Abot.SiteSimulator\Abot.SiteSimulator.csproj">
+      <Project>{7c71f273-d40a-432c-9fc0-a40530f1ade6}</Project>
+      <Name>Abot.SiteSimulator</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Abot\Abot.csproj">
       <Project>{0cdcd537-4b0e-4514-966f-f425cdc92ba4}</Project>
       <Name>Abot</Name>

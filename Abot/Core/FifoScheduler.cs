@@ -1,5 +1,4 @@
-﻿using Abot.Crawler;
-using Abot.Poco;
+﻿using Abot.Poco;
 using log4net;
 using System;
 using System.Collections.Concurrent;
