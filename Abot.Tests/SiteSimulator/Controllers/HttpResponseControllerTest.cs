@@ -98,7 +98,7 @@ namespace Abot.SiteSimulator.Test.Unit.Controllers
         {
             RedirectResult result = _unitUnderTest.Redirect(301, 200) as RedirectResult;
             Assert.IsTrue(result.Permanent);
-            Assert.AreEqual("../../Status200", result.Url);
+            Assert.AreEqual("/HttpResponse/Status200", result.Url);
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace Abot.SiteSimulator.Test.Unit.Controllers
         {
             RedirectResult result = _unitUnderTest.Redirect(302, 200) as RedirectResult;
             Assert.IsFalse(result.Permanent);
-            Assert.AreEqual("../../Status200", result.Url);
+            Assert.AreEqual("/HttpResponse/Status200", result.Url);
         }
 
         [Test]
@@ -114,7 +114,7 @@ namespace Abot.SiteSimulator.Test.Unit.Controllers
         {
             RedirectResult result = _unitUnderTest.Redirect(302, 404) as RedirectResult;
             Assert.IsFalse(result.Permanent);
-            Assert.AreEqual("../../Status404", result.Url);
+            Assert.AreEqual("/HttpResponse/Status404", result.Url);
         }
 
         [Test]

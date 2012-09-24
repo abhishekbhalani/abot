@@ -16,8 +16,8 @@ namespace Abot.Tests.Core
         Uri _500ErrorUri = new Uri("http://localhost:1111/HttpResponse/Status500");
         Uri _502ErrorUri = new Uri("http://www.lakkjfkasdfjhqlkfj.com");//non resolvable
         Uri _503ErrorUri = new Uri("http://localhost:1111/HttpResponse/Status503");
-        Uri _301To200Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/301/200");
-        Uri _301To404Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/301/404");
+        Uri _301To200Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=200");
+        Uri _301To404Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=404");
         Uri _imageUrl = new Uri("http://localhost:1111/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png");
         string _userAgent = "someuseragentstringhere";
 

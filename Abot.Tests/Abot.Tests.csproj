@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\CrawlDecisionMakerTest.cs" />
     <Compile Include="Core\FifoSchedulerTest.cs" />
     <Compile Include="Core\HyperlinkParserTest.cs" />
     <Compile Include="Core\PageRequesterTest.cs" />

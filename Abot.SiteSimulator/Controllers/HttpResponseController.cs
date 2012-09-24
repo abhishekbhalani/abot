@@ -47,7 +47,7 @@ namespace Abot.SiteSimulator.Controllers
             if (!IsValidDestinationStatus(destinationHttpStatus))
                 throw new ArgumentException("destinationHttpStatus is invalid");
 
-            return new RedirectResult("../../Status" + destinationHttpStatus, (redirectHttpStatus == 301));
+            return new RedirectResult("/HttpResponse/Status" + destinationHttpStatus, (redirectHttpStatus == 301));
         }
 
         private bool IsValidRedirectStatus(int status)
