@@ -28,13 +28,13 @@ namespace Abot.Core
             HtmlNodeCollection aTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
             HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
 
-            List<Uri> hyperlinks = GetHyperLinks(aTags, pageUri);
-            hyperlinks.AddRange(GetHyperLinks(areaTags, pageUri));
+            List<Uri> hyperlinks = GetLinks(aTags, pageUri);
+            hyperlinks.AddRange(GetLinks(areaTags, pageUri));
 
             return hyperlinks;
         }
 
-        private List<Uri> GetHyperLinks(HtmlNodeCollection nodes, Uri page)
+        private List<Uri> GetLinks(HtmlNodeCollection nodes, Uri page)
         {
             List<Uri> uris = new List<Uri>();
 
