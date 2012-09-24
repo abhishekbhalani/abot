@@ -20,24 +20,24 @@ namespace Abot.Tests.Core
 
         [Test]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void GetHyperlinks_NullUri()
+        public void GetLinks_NullUri()
         {
-            _unitUnderTest.GetHyperLinks(null, "");
+            _unitUnderTest.GetLinks(null, "");
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentNullException))]
-        public void GetHyperlinks_NullHtml()
+        public void GetLinks_NullHtml()
         {
-            _unitUnderTest.GetHyperLinks(_uri, null);
+            _unitUnderTest.GetLinks(_uri, null);
         }
 
         [Test]
-        public void GetHyperlinks_AnchorTags_ReturnsLinks()
+        public void GetLinks_AnchorTags_ReturnsLinks()
         {
             string html = "<a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
@@ -45,11 +45,11 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void GetHyperlinks_AreaTags_ReturnsLinks()
+        public void GetLinks_AreaTags_ReturnsLinks()
         {
             string html = "<area href=\"http://bbb.com\" /><area href=\"bbb/b.html\" />";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual("http://bbb.com/", result.ElementAt(0).AbsoluteUri);
@@ -57,37 +57,37 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void GetHyperlinks_NoLinks_NotReturned()
+        public void GetLinks_NoLinks_NotReturned()
         {
             string html = "<html></html>";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_BadScheme_NotReturned()
+        public void GetLinks_BadScheme_NotReturned()
         {
             string html = "<a href=\"mailto:aaa@gmail.com\" />";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_InvalidFormatUrl_NotReturned()
+        public void GetLinks_InvalidFormatUrl_NotReturned()
         {
             string html = "<a href=\"http://////\" />";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_LinksInComments_NotReturned()
+        public void GetLinks_LinksInComments_NotReturned()
         {
             string html = @"<html>
                     <head>
@@ -104,13 +104,13 @@ namespace Abot.Tests.Core
                     </body>
                 </html";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_LinksInScript_NotReturned()
+        public void GetLinks_LinksInScript_NotReturned()
         {
             string html = @"<html>
                     <head>
@@ -127,13 +127,13 @@ namespace Abot.Tests.Core
                     </body>
                 </html";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_LinksInStyleTag_NotReturned()
+        public void GetLinks_LinksInStyleTag_NotReturned()
         {
             string html = @"<html>
                     <head>
@@ -150,55 +150,55 @@ namespace Abot.Tests.Core
                     </body>
                 </html";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_DuplicateLinks_ReturnsOnlyOne()
+        public void GetLinks_DuplicateLinks_ReturnsOnlyOne()
         {
             string html = "<a href=\"/aaa/a.html\" ></a><a href=\"/aaa/a.html\" /></a>";
             
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(1, result.Count());
             Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(0).AbsoluteUri);
         }
 
         [Test]
-        public void GetHyperlinks_NamedAnchors_Ignores()
+        public void GetLinks_NamedAnchors_Ignores()
         {
             string html = "<a href=\"/aaa/a.html\" ></a><a href=\"/aaa/a.html#top\" ></a><a href=\"/aaa/a.html#bottom\" /></a>";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, html);
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
             Assert.AreEqual(1, result.Count());
             Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(0).AbsoluteUri);
         }
 
         [Test]
-        public void GetHyperlinks_EmptyHtml()
+        public void GetLinks_EmptyHtml()
         {
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, "");
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, "");
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_WhiteSpaceHtml()
+        public void GetLinks_WhiteSpaceHtml()
         {
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, "      ");
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, "      ");
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count());
         }
 
         [Test]
-        public void GetHyperlinks_NoLinks_ReturnsEmptyCollection()
+        public void GetLinks_NoLinks_ReturnsEmptyCollection()
         {
-            IEnumerable<Uri> result = _unitUnderTest.GetHyperLinks(_uri, "<html></html>");
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, "<html></html>");
 
             Assert.IsNotNull(result);
             Assert.AreEqual(0, result.Count());

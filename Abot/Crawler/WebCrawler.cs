@@ -136,7 +136,7 @@ namespace Abot.Crawler
             //Crawl page's links
             if (_crawlDecisionMaker.ShouldCrawlLinks(crawledPage))
             {
-                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetHyperLinks(crawledPage.Uri, crawledPage.RawContent);
+                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
