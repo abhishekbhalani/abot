@@ -22,7 +22,7 @@ namespace Abot.Core
 
         public PageRequester(string userAgent)
         {
-            if (string.IsNullOrWhiteSpace(userAgent))
+            if (string.IsNullOrEmpty(userAgent) || userAgent.Trim().Length == 0)
                 throw new ArgumentNullException("userAgent");
 
             _userAgentString = userAgent;
@@ -69,7 +69,7 @@ namespace Abot.Core
                     if (IsContentDownloadable(response))
                     {
                         string rawHtml = GetRawHtml(response, uri);
-                        if (!string.IsNullOrWhiteSpace(rawHtml))
+                        if (!string.IsNullOrEmpty(rawHtml) && !(rawHtml.Trim().Length == 0))
                             crawledPage.RawContent = rawHtml;
                     }
                     else

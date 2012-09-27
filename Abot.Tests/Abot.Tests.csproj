@@ -59,6 +59,9 @@
     <Compile Include="Crawler\WebCrawlerTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Poco\PageToCrawlTest.cs" />
+    <Compile Include="Poco\CrawlResultTest.cs" />
+    <Compile Include="Poco\CrawledPageTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SiteSimulator\Controllers\HomeControllerTest.cs" />
     <Compile Include="SiteSimulator\Controllers\HttpResponseControllerTest.cs" />

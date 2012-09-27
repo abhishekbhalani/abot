@@ -17,7 +17,7 @@ namespace Abot.Core
 
         public bool ShouldCrawlLinks(CrawledPage crawledPage)
         {
-            return (crawledPage != null && !string.IsNullOrWhiteSpace(crawledPage.RawContent));
+            return (crawledPage != null && !string.IsNullOrEmpty(crawledPage.RawContent) && !(crawledPage.RawContent.Trim().Length == 0));
         }
     }
 }

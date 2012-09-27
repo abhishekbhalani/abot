@@ -1,7 +1,7 @@
 ﻿using Abot.Poco;
 using log4net;
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Abot.Core
 {
@@ -26,11 +26,18 @@ namespace Abot.Core
     public class FifoScheduler : IScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
-        ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
+        Queue<PageToCrawl> _pagesToCrawl = new Queue<PageToCrawl>();
+        Object locker = new Object();
 
         public int Count
         {
-            get { return _pagesToCrawl.Count; }
+            get
+            {
+                lock (locker)
+                {
+                    return _pagesToCrawl.Count;
+                }
+            }
         }
 
         public void Add(PageToCrawl page)
@@ -40,13 +47,19 @@ namespace Abot.Core
 
             _logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
 
-            _pagesToCrawl.Enqueue(page);
+            lock (locker)
+            {
+                _pagesToCrawl.Enqueue(page);
+            }
         }
 
         public PageToCrawl GetNext()
         {
             PageToCrawl nextItem = null;
-            _pagesToCrawl.TryDequeue(out nextItem);
+            lock (locker)
+            {
+                nextItem = _pagesToCrawl.Dequeue();
+            }
 
             return nextItem;
         }
