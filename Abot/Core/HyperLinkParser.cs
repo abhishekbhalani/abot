@@ -28,8 +28,21 @@ namespace Abot.Core
             HtmlNodeCollection aTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
             HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
 
-            List<Uri> hyperlinks = GetLinks(aTags, pageUri);
-            hyperlinks.AddRange(GetLinks(areaTags, pageUri));
+            Uri uriToUse = pageUri;
+
+            //If html base tag exists use it instead of page uri for relative links
+            string baseHref = GetBaseTagHref(htmlDoc);
+            if (!string.IsNullOrEmpty(baseHref))
+            {
+                try
+                {
+                    uriToUse = new Uri(baseHref);
+                }
+                catch { }
+            }
+
+            List<Uri> hyperlinks = GetLinks(aTags, uriToUse);
+            hyperlinks.AddRange(GetLinks(areaTags, uriToUse));
 
             return hyperlinks;
         }
@@ -64,6 +77,18 @@ namespace Abot.Core
         protected virtual bool ShouldIncludedLink(Uri uri)
         {
             return ((uri.Scheme == "http") || (uri.Scheme == "https"));
+        }
+
+        private string GetBaseTagHref(HtmlDocument doc)
+        {
+            string hrefValue = "";
+            HtmlNode node = doc.DocumentNode.SelectSingleNode("//base");
+
+            //Must use node.InnerHtml instead of node.InnerText since "aaa<br />bbb" will be returned as "aaabbb"
+            if (node != null)
+                hrefValue = node.GetAttributeValue("href", "").Trim();
+
+            return hrefValue;
         }
     }
 }
