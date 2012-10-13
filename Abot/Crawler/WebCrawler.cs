@@ -63,8 +63,8 @@ namespace Abot.Crawler
             _threadManager = threadManager ?? new ThreadManager(10);
             _scheduler = scheduler ?? new FifoScheduler();
             _httpRequester = httpRequester ?? new PageRequester("abot v1.0 http://code.google.com/p/abot");
-            _hyperLinkParser = hyperLinkParser ?? null;
-            _crawlDecisionMaker = crawlDecisionMaker ?? null;
+            _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
+            _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
         }
 
 
