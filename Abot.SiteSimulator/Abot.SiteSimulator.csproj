@@ -221,6 +221,7 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\PageGenerator\GeneratedPage.cshtml" />
     <Content Include="Views\Throttling\Index.cshtml" />
+    <Content Include="Views\Shared\BlankPage.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
