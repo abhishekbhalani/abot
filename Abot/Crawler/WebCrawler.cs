@@ -40,6 +40,7 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
         CrawlResult _crawlResult = null;
+        Uri _rootUri = null;
 
         IThreadManager _threadManager;
         IScheduler _scheduler;
@@ -97,8 +98,9 @@ namespace Abot.Crawler
             if(uri == null)
                 throw new ArgumentNullException("uri");
 
+            _rootUri = uri;
             _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
-            _scheduler.Add(new PageToCrawl(uri){ParentUri = uri});
+            _scheduler.Add(new PageToCrawl(uri){ParentUri = uri, RootUri = _rootUri});
 
             Stopwatch timer = Stopwatch.StartNew();
             CrawlSite();
@@ -164,7 +166,7 @@ namespace Abot.Crawler
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri });
+                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, RootUri = _rootUri});
                 }
             }
             else

@@ -14,6 +14,7 @@ namespace Abot.Tests.Poco
             Assert.AreEqual(false, unitUnderTest.IsRetry);
             Assert.AreEqual(null, unitUnderTest.ParentUri);
             Assert.AreEqual("http://a.com/", unitUnderTest.Uri.AbsoluteUri);
+            Assert.AreEqual(null, unitUnderTest.RootUri);
         }
 
         [Test]

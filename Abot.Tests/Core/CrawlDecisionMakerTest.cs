@@ -23,12 +23,6 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void ShouldCrawlLinks_HasHtmlContent_ReturnsTrue()
-        {
-            Assert.IsTrue(_unitUnderTest.ShouldCrawlLinks(new CrawledPage(new Uri("http://a.com/")){ RawContent = "aaaa" }));
-        }
-
-        [Test]
         public void ShouldCrawlLinks_NullHtmlContent_ReturnsFalse()
         {
             Assert.IsFalse(_unitUnderTest.ShouldCrawlLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }));
@@ -44,6 +38,29 @@ namespace Abot.Tests.Core
         public void ShouldCrawlLinks_EmptyHtmlContent_ReturnsFalse()
         {
             Assert.IsFalse(_unitUnderTest.ShouldCrawlLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }));
+        }
+
+        [Test]
+        public void ShouldCrawlLinks_InternalLink_ReturnsTrue()
+        {
+            bool shouldCrawlLinks = _unitUnderTest.ShouldCrawlLinks(
+                new CrawledPage(new Uri("http://a.com/a.html")) { 
+                    RawContent = "aaaa", 
+                    RootUri = new Uri("http://a.com/ ")
+                });
+            Assert.AreEqual(true, shouldCrawlLinks);
+        }
+
+        [Test]
+        public void ShouldCrawlLinks_ExternalLink_ReturnsFalse()
+        {
+            bool shouldCrawlLinks = _unitUnderTest.ShouldCrawlLinks(
+                new CrawledPage(new Uri("http://b.com/a.html"))
+                {
+                    RawContent = "aaaa",
+                    RootUri = new Uri("http://a.com/ ")
+                });
+            Assert.AreEqual(false, shouldCrawlLinks);
         }
     }
 }
