@@ -56,6 +56,8 @@ namespace Abot.Core
                     freeThreadIndex = GetFreeThreadIndex();
                 }
 
+                _logger.DebugFormat("Free thread [{0}] available", freeThreadIndex);
+
                 if (MaxThreads > 1)
                 {
                     _threads[freeThreadIndex] = new Thread(new ThreadStart(action));

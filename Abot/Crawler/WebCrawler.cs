@@ -91,14 +91,15 @@ namespace Abot.Crawler
 
         public CrawlResult Crawl(Uri uri)
         {
-            _crawlResult = new CrawlResult();
-            _crawlResult.RootUri = uri;
-            _crawlComplete = false;
-
             if(uri == null)
                 throw new ArgumentNullException("uri");
 
             _rootUri = uri;
+
+            _crawlResult = new CrawlResult();
+            _crawlResult.RootUri = _rootUri;
+            _crawlComplete = false;
+
             _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
             _scheduler.Add(new PageToCrawl(uri){ParentUri = uri, RootUri = _rootUri});
 
@@ -109,7 +110,7 @@ namespace Abot.Crawler
             _crawlResult.Elapsed = timer.Elapsed;
             _logger.DebugFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
-            return new CrawlResult { Elapsed = timer.Elapsed };
+            return _crawlResult;
         }
 
 
@@ -140,6 +141,7 @@ namespace Abot.Crawler
 
             if (!_crawlDecisionMaker.ShouldCrawl(pageToCrawl))
             {
+                _logger.DebugFormat("Page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, "ADD REASON HERE");
                 FirePageCrawlDisallowedEvent(pageToCrawl, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
                 return;
             }
@@ -167,11 +169,12 @@ namespace Abot.Crawler
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, RootUri = _rootUri});
+                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, RootUri = _rootUri });
                 }
             }
             else
             {
+                _logger.DebugFormat("Links on page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, "ADD REASON HERE");
                 FirePageLinksCrawlDisallowedEvent(crawledPage, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
             }
         }

@@ -58,7 +58,8 @@ namespace Abot.Core
             PageToCrawl nextItem = null;
             lock (locker)
             {
-                nextItem = _pagesToCrawl.Dequeue();
+                if(_pagesToCrawl.Count > 0)//issue 14: have to check this again since it may have changed since calling this method
+                    nextItem = _pagesToCrawl.Dequeue();
             }
 
             return nextItem;

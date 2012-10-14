@@ -33,3 +33,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+//[assembly: log4net.Config.XmlConfigurator()]//doesn't seem to work, still need to call XmlConfigurator.Configure() in code, not sure why

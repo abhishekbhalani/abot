@@ -1,6 +1,7 @@
 ﻿
 using Abot.Crawler;
 using Abot.Poco;
+using log4net.Config;
 using System;
 using System.Net;
 
@@ -10,6 +11,8 @@ namespace Abot.Demo
     {
         static void Main(string[] args)
         {
+            XmlConfigurator.Configure();
+
             //Initialize the crawler
             WebCrawler crawler = new WebCrawler();
 
