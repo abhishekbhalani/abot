@@ -17,7 +17,17 @@ namespace Abot.Crawler
         /// <summary>
         /// Asynchronous event that is fired when an individual page has been crawled.
         /// </summary>
-        event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;  
+        event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;
+
+        /// <summary>
+        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawl impl returned false. This means the page or its links were not crawled.
+        /// </summary>
+        event EventHandler<PageCrawlDisallowedArgs> PageCrawlDisallowed;
+
+        /// <summary>
+        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
+        /// </summary>
+        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;  
 
         /// <summary>
         /// Begins a crawl using the uri param
@@ -47,6 +57,16 @@ namespace Abot.Crawler
         /// Asynchronous event that is fired when an individual page has been crawled.
         /// </summary>
         public event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;
+
+        /// <summary>
+        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawl impl returned false. This means the page or its links were not crawled.
+        /// </summary>
+        public event EventHandler<PageCrawlDisallowedArgs> PageCrawlDisallowed;
+
+        /// <summary>
+        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
+        /// </summary>
+        public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
 
 
         public WebCrawler()
@@ -117,7 +137,10 @@ namespace Abot.Crawler
                 return;
 
             if (!_crawlDecisionMaker.ShouldCrawl(pageToCrawl))
+            {
+                FirePageCrawlDisallowedEvent(pageToCrawl, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
                 return;
+            }
 
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
@@ -131,6 +154,7 @@ namespace Abot.Crawler
                 _logger.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Parent:[{1}]", crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
             else
                 _logger.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Parent:[{2}]", Convert.ToInt32(crawledPage.HttpWebResponse.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
+            
             FirePageCrawlCompletedEvent(crawledPage);
 
             //Crawl page's links
@@ -142,6 +166,10 @@ namespace Abot.Crawler
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
                     _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri });
                 }
+            }
+            else
+            {
+                FirePageLinksCrawlDisallowedEvent(crawledPage, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
             }
         }
 
@@ -172,6 +200,32 @@ namespace Abot.Crawler
             }
         }
 
+        private void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
+        {
+            try
+            {
+                OnPageCrawlDisallowed(new PageCrawlDisallowedArgs(pageToCrawl, reason));
+            }
+            catch (Exception e)
+            {
+                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+            }
+        }
+
+        private void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
+        {
+            try
+            {
+                OnPageLinksCrawlDisallowed(new PageLinksCrawlDisallowedArgs(crawledPage, reason));
+            }
+            catch (Exception e)
+            {
+                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri, e);
+            }
+        }
+
         private void OnPageCrawlStarting(PageCrawlStartingArgs e)
         {
             EventHandler<PageCrawlStartingArgs> threadSafeEvent = PageCrawlStarting;
@@ -192,6 +246,32 @@ namespace Abot.Crawler
             {
                 //Fire each subscribers delegate async
                 foreach (EventHandler<PageCrawlCompletedArgs> del in threadSafeEvent.GetInvocationList())
+                {
+                    del.BeginInvoke(this, e, null, null);
+                }
+            }
+        }
+
+        private void OnPageCrawlDisallowed(PageCrawlDisallowedArgs e)
+        {
+            EventHandler<PageCrawlDisallowedArgs> threadSafeEvent = PageCrawlDisallowed;
+            if (threadSafeEvent != null)
+            {
+                //Fire each subscribers delegate async
+                foreach (EventHandler<PageCrawlDisallowedArgs> del in threadSafeEvent.GetInvocationList())
+                {
+                    del.BeginInvoke(this, e, null, null);
+                }
+            }
+        }
+
+        private void OnPageLinksCrawlDisallowed(PageLinksCrawlDisallowedArgs e)
+        {
+            EventHandler<PageLinksCrawlDisallowedArgs> threadSafeEvent = PageLinksCrawlDisallowed;
+            if (threadSafeEvent != null)
+            {
+                //Fire each subscribers delegate async
+                foreach (EventHandler<PageLinksCrawlDisallowedArgs> del in threadSafeEvent.GetInvocationList())
                 {
                     del.BeginInvoke(this, e, null, null);
                 }

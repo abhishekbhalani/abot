@@ -54,6 +54,8 @@
     <Compile Include="Core\HyperlinkParserTest.cs" />
     <Compile Include="Core\PageRequesterTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />
+    <Compile Include="Crawler\PageLinksCrawlDisallowedArgsTest.cs" />
+    <Compile Include="Crawler\PageCrawlDisallowedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgsTest.cs" />
     <Compile Include="Crawler\WebCrawlerTest.cs">

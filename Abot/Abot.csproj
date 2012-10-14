@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\CrawlDecisionMaker.cs" />
+    <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
+    <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
