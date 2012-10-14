@@ -17,10 +17,18 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void ShouldCrawl_AnyParam_ReturnsTrue()
+        public void ShouldCrawl_NonDuplicate_ReturnsTrue()
         {
-            Assert.IsTrue(_unitUnderTest.ShouldCrawl(null));
+            Assert.IsTrue(_unitUnderTest.ShouldCrawl(new PageToCrawl(new Uri("http://a.com/"))));
         }
+
+        [Test]
+        public void ShouldCrawl_Duplicate_ReturnsFalse()
+        {
+            _unitUnderTest.ShouldCrawl(new PageToCrawl(new Uri("http://a.com/")));
+            Assert.IsFalse(_unitUnderTest.ShouldCrawl(new PageToCrawl(new Uri("http://a.com/"))));
+        }
+
 
         [Test]
         public void ShouldCrawlLinks_NullHtmlContent_ReturnsFalse()

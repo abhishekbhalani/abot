@@ -149,6 +149,7 @@ namespace Abot.Crawler
 
             //Crawl page
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri);
+            crawledPage.RootUri = _rootUri;
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 

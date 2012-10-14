@@ -1,4 +1,5 @@
 ﻿using Abot.Poco;
+using System.Collections.Generic;
 
 namespace Abot.Core
 {
@@ -10,8 +11,17 @@ namespace Abot.Core
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
+        List<string> crawledUrls = new List<string>();
+
         public bool ShouldCrawl(PageToCrawl pageToCrawl)
         {
+            lock (crawledUrls)
+            {
+                if (crawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+                    return false;
+                else
+                    crawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+            }
             return true;
         }
 
