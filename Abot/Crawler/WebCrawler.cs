@@ -108,7 +108,7 @@ namespace Abot.Crawler
             timer.Stop();
 
             _crawlResult.Elapsed = timer.Elapsed;
-            _logger.DebugFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
+            _logger.InfoFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
             return _crawlResult;
         }
