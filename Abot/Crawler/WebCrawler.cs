@@ -139,10 +139,11 @@ namespace Abot.Crawler
             if (pageToCrawl == null)
                 return;
 
-            if (!_crawlDecisionMaker.ShouldCrawl(pageToCrawl))
+            CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawl(pageToCrawl);
+            if (!shouldCrawlPageDecision.Should)
             {
-                _logger.DebugFormat("Page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, "ADD REASON HERE");
-                FirePageCrawlDisallowedEvent(pageToCrawl, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
+                _logger.DebugFormat("Page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
+                FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
                 return;
             }
 
@@ -163,7 +164,8 @@ namespace Abot.Crawler
             FirePageCrawlCompletedEvent(crawledPage);
 
             //Crawl page's links
-            if (_crawlDecisionMaker.ShouldCrawlLinks(crawledPage))
+            CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlLinks(crawledPage);
+            if (shouldCrawlPageLinksDecision.Should)
             {
                 IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)
@@ -174,8 +176,8 @@ namespace Abot.Crawler
             }
             else
             {
-                _logger.DebugFormat("Links on page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, "ADD REASON HERE");
-                FirePageLinksCrawlDisallowedEvent(crawledPage, "Need to add reason here");//TODO GET REASON HERE, add _crawlDescisionMake.Reason????
+                _logger.DebugFormat("Links on page [{0}] not crawled, ", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageLinksDecision.Should);
+                FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
             }
         }
 

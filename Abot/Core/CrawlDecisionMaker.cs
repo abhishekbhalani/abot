@@ -5,33 +5,36 @@ namespace Abot.Core
 {
     public interface ICrawlDecisionMaker
     {
-        bool ShouldCrawl(PageToCrawl pageToCrawl);
-        bool ShouldCrawlLinks(CrawledPage crawledPage);
+        CrawlDecision ShouldCrawl(PageToCrawl pageToCrawl);
+        CrawlDecision ShouldCrawlLinks(CrawledPage crawledPage);
     }
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
         List<string> crawledUrls = new List<string>();
 
-        public bool ShouldCrawl(PageToCrawl pageToCrawl)
+        public CrawlDecision ShouldCrawl(PageToCrawl pageToCrawl)
         {
             lock (crawledUrls)
             {
                 if (crawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
-                    return false;
+                    return new CrawlDecision { Should = false, Reason = "Link already crawled" };
                 else
                     crawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
             }
-            return true;
+            return new CrawlDecision { Should = true }; ;
         }
 
-        public bool ShouldCrawlLinks(CrawledPage crawledPage)
+        public CrawlDecision ShouldCrawlLinks(CrawledPage crawledPage)
         {
-            return (crawledPage != null 
-                && !string.IsNullOrEmpty(crawledPage.RawContent) 
-                && !(crawledPage.RawContent.Trim().Length == 0))
-                && crawledPage.RootUri != null
-                && crawledPage.RootUri.IsBaseOf(crawledPage.Uri);
+            if (crawledPage == null)
+                return new CrawlDecision{Should = false, Reason = "Null crawled page"};
+            else if(string.IsNullOrEmpty(crawledPage.RawContent) || (crawledPage.RawContent.Trim().Length == 0))
+                return new CrawlDecision { Should = false, Reason = "Page has no links" };
+            else if(crawledPage.RootUri == null || !crawledPage.RootUri.IsBaseOf(crawledPage.Uri))
+                return new CrawlDecision { Should = false, Reason = "Link is external" };
+            else
+                return new CrawlDecision{Should = true};
         }
     }
 }

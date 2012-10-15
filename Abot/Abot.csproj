@@ -53,6 +53,7 @@
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
+    <Compile Include="Poco\CrawlDecision.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
     <Compile Include="Core\FifoScheduler.cs" />
     <Compile Include="Core\HyperLinkParser.cs" />
