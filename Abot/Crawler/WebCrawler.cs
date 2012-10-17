@@ -47,6 +47,8 @@ namespace Abot.Crawler
         IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
         ICrawlDecisionMaker _crawlDecisionMaker;
+        ICrawlConfigurationProvider _crawlConfigurationProvider;
+        CrawlConfiguration _crawlConfiguration;
 
 
         /// <summary>
@@ -69,21 +71,43 @@ namespace Abot.Crawler
         /// </summary>
         public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
 
-
+        /// <summary>
+        /// Creates a crawler instance with the default settings and implementations.
+        /// </summary>
         public WebCrawler()
-            :this(null, null, null, null, null)
+            :this(null, null, null, null, null, null)
         {
         }
 
+        /// <summary>
+        /// Creates a crawler instance with the default settings and implementations.
+        /// </summary>
+        public WebCrawler(CrawlConfiguration crawlConfiguration)
+            : this(null, null, null, null, null, crawlConfiguration)
+        {
+        }
+
+        /// <summary>
+        /// Creates a crawler instance with custom settings or implementation. Passing in null for all params is the equivalent of the empty constructor.
+        /// </summary>
+        /// <param name="threadManager">Distributes http requests over multiple threads</param>
+        /// <param name="scheduler">Decides what link should be crawled next</param>
+        /// <param name="httpRequester">Makes the raw http requests</param>
+        /// <param name="hyperLinkParser">Parses a crawled page for it's hyperlinks</param>
+        /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
+        /// <param name="crawlConfiguration">Configurable crawl values</param>
         public WebCrawler(IThreadManager threadManager, 
             IScheduler scheduler, 
             IPageRequester httpRequester, 
             IHyperLinkParser hyperLinkParser, 
-            ICrawlDecisionMaker crawlDecisionMaker)
+            ICrawlDecisionMaker crawlDecisionMaker,
+            CrawlConfiguration crawlConfiguration)
         {
-            _threadManager = threadManager ?? new ThreadManager(10);
+            _crawlConfiguration = crawlConfiguration ?? new CrawlConfigurationProvider().GetConfiguration();
+
+            _threadManager = threadManager ?? new ThreadManager(_crawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
-            _httpRequester = httpRequester ?? new PageRequester("abot v1.0 http://code.google.com/p/abot");
+            _httpRequester = httpRequester ?? new PageRequester(_crawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
         }

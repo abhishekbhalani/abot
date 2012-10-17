@@ -30,7 +30,7 @@ namespace Abot.Tests.Crawler
             _dummyScheduler = new FifoScheduler();
             _dummyThreadManager = new ThreadManager(1);
 
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             _rootUri = new Uri("http://a.com/");
         }
@@ -39,6 +39,12 @@ namespace Abot.Tests.Crawler
         public void Constructor_Empty()
         {
             Assert.IsNotNull(new WebCrawler());
+        }
+
+        [Test]
+        public void Constructor_WithConfiguration()
+        {
+            Assert.IsNotNull(new WebCrawler(new CrawlConfiguration()));
         }
 
         [Test]
@@ -179,7 +185,7 @@ namespace Abot.Tests.Crawler
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
             ThreadManager _dummyThreadManager = new ThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
@@ -243,7 +249,7 @@ namespace Abot.Tests.Crawler
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
             ThreadManager _dummyThreadManager = new ThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;

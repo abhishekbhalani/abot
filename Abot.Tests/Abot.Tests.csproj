@@ -53,6 +53,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\CrawlConfigurationProviderTest.cs" />
     <Compile Include="Core\CrawlDecisionMakerTest.cs" />
     <Compile Include="Core\FifoSchedulerTest.cs" />
     <Compile Include="Core\HyperlinkParserTest.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Crawler\WebCrawlerTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Poco\CrawlConfigurationTest.cs" />
     <Compile Include="Poco\CrawlDecisionTest.cs" />
     <Compile Include="Poco\PageToCrawlTest.cs" />
     <Compile Include="Poco\CrawlResultTest.cs" />
