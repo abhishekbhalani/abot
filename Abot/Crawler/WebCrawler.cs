@@ -40,7 +40,6 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
         CrawlResult _crawlResult = null;
-        CrawlConfiguration _crawlConfiguration;
         CrawlContext _crawlContext;
         IThreadManager _threadManager;
         IScheduler _scheduler;
@@ -102,11 +101,12 @@ namespace Abot.Crawler
             ICrawlDecisionMaker crawlDecisionMaker,
             CrawlConfiguration crawlConfiguration)
         {
-            _crawlConfiguration = crawlConfiguration ?? new CrawlConfigurationProvider().GetConfiguration();
+            _crawlContext = new CrawlContext();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? new CrawlConfigurationProvider().GetConfiguration();
 
-            _threadManager = threadManager ?? new ThreadManager(_crawlConfiguration.MaxConcurrentThreads);
+            _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
-            _httpRequester = httpRequester ?? new PageRequester(_crawlConfiguration.UserAgentString);
+            _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
         }
@@ -120,7 +120,6 @@ namespace Abot.Crawler
             if(uri == null)
                 throw new ArgumentNullException("uri");
 
-            _crawlContext = new CrawlContext();
             _crawlContext.RootUri = uri;
 
             _crawlResult = new CrawlResult();
@@ -178,6 +177,11 @@ namespace Abot.Crawler
 
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
+
+            lock (_crawlContext.CrawledUrls)
+            {
+                _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+            }
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             crawledPage.IsRetry = pageToCrawl.IsRetry;

@@ -1,5 +1,4 @@
 ﻿using Abot.Poco;
-using System.Collections.Generic;
 using System.Net;
 
 namespace Abot.Core
@@ -24,8 +23,6 @@ namespace Abot.Core
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
-        List<string> crawledUrls = new List<string>();
-
         /// <summary>
         /// Will allow any page to be crawled that has not already been crawled
         /// </summary>
@@ -40,12 +37,10 @@ namespace Abot.Core
             if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
                 return new CrawlDecision { Allow = false, Reason = "Invalid scheme" };
 
-            lock (crawledUrls)
+            lock (crawlContext.CrawledUrls)
             {
-                if (crawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+                if (crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
                     return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
-                else
-                    crawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
             }
 
             return new CrawlDecision { Allow = true }; ;

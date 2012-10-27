@@ -2,6 +2,7 @@
 using Abot.Poco;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace Abot.Tests.Core
 {
@@ -44,9 +45,13 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
-            _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
-
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(
+                    new Uri("http://a.com/")),
+                    new CrawlContext()
+                    {
+                        CrawledUrls = new List<string> { "http://a.com/" }
+                    });
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link already crawled", result.Reason);
         }
