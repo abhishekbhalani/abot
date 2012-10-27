@@ -69,12 +69,16 @@ namespace Abot.Tests.Core
         [Test]
         public void GetLinks_AnyScheme_Returned()
         {
-            string html = "<a href=\"mailto:aaa@gmail.com\" />";
+            string html = "<a href=\"mailto:aaa@gmail.com\" /><a href=\"tel:+123456789\" /><a href=\"callto:+123456789\" /><a href=\"ftp://user@yourdomainname.com/\" /><a href=\"file:///C:/Users/\" />";
 
             IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
-            Assert.AreEqual(1, result.Count());
+            Assert.AreEqual(5, result.Count());
             Assert.AreEqual("mailto:aaa@gmail.com", result.ElementAt(0).AbsoluteUri);
+            Assert.AreEqual("tel:+123456789", result.ElementAt(1).AbsoluteUri);
+            Assert.AreEqual("callto:+123456789", result.ElementAt(2).AbsoluteUri);
+            Assert.AreEqual("ftp://user@yourdomainname.com/", result.ElementAt(3).AbsoluteUri);
+            Assert.AreEqual("file:///C:/Users/", result.ElementAt(4).AbsoluteUri);
         }
 
         [Test]
