@@ -7,6 +7,9 @@ namespace Abot.Core
 {
     public interface IHyperLinkParser
     {
+        /// <summary>
+        /// Parses html to extract hyperlinks, converts each into an absolute url
+        /// </summary>
         IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml);
     }
 
@@ -14,6 +17,9 @@ namespace Abot.Core
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
 
+        /// <summary>
+        /// Parses html to extract anchor and area tag href values
+        /// </summary>
         public IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml)
         {
             if (pageUri == null)

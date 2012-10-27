@@ -112,6 +112,9 @@ namespace Abot.Crawler
         }
 
 
+        /// <summary>
+        /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
+        /// </summary>
         public CrawlResult Crawl(Uri uri)
         {
             if(uri == null)
@@ -162,8 +165,10 @@ namespace Abot.Crawler
             if (pageToCrawl == null)
                 return;
 
+
+            //Crawl the page
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl);
-            if (!shouldCrawlPageDecision.Should)
+            if (!shouldCrawlPageDecision.Allow)
             {
                 _logger.DebugFormat("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
                 FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
@@ -173,7 +178,6 @@ namespace Abot.Crawler
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
 
-            //Crawl page
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x));
             crawledPage.RootUri = _rootUri;
             crawledPage.IsRetry = pageToCrawl.IsRetry;
@@ -186,9 +190,10 @@ namespace Abot.Crawler
             
             FirePageCrawlCompletedEvent(crawledPage);
 
-            //Crawl page's links
+
+            //Crawl the page's links
             CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage);
-            if (shouldCrawlPageLinksDecision.Should)
+            if (shouldCrawlPageLinksDecision.Allow)
             {
                 IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)

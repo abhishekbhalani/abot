@@ -11,7 +11,7 @@ namespace Abot.Tests.Poco
         public void Constructor_ValidUri_CreatesInstance()
         {
             CrawlDecision unitUnderTest = new CrawlDecision();
-            Assert.AreEqual(false, unitUnderTest.Should);
+            Assert.AreEqual(false, unitUnderTest.Allow);
             Assert.AreEqual("", unitUnderTest.Reason);
         }
     }

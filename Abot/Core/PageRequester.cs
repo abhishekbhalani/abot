@@ -33,11 +33,17 @@ namespace Abot.Core
             _userAgentString = userAgent;
         }
 
+        /// <summary>
+        /// Make an http web request to the url and download its content
+        /// </summary>
         public virtual CrawledPage MakeRequest(Uri uri)
         {
-            return MakeRequest(uri, (x) => new CrawlDecision { Should = true });
+            return MakeRequest(uri, (x) => new CrawlDecision { Allow = true });
         }
 
+        /// <summary>
+        /// Make an http web request to the url and download its content based on the param func decision
+        /// </summary>
         public virtual CrawledPage MakeRequest(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent)
         {
             if (uri == null)
@@ -78,7 +84,7 @@ namespace Abot.Core
                 {
                     crawledPage.HttpWebResponse = response;
                     CrawlDecision shouldDownloadContentDecision = shouldDownloadContent(crawledPage);
-                    if (shouldDownloadContentDecision.Should)
+                    if (shouldDownloadContentDecision.Allow)
                     {
                         string rawHtml = GetRawHtml(response, uri);
                         if (!string.IsNullOrEmpty(rawHtml) && !(rawHtml.Trim().Length == 0))

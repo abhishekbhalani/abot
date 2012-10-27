@@ -13,12 +13,12 @@ namespace Abot.Core
         int Count { get; }
 
         /// <summary>
-        /// Schedule the param
+        /// Schedules the param to be crawled
         /// </summary>
         void Add(PageToCrawl page);
 
         /// <summary>
-        /// Retrieve the next scheduled type
+        /// Gets the next page to crawl
         /// </summary>
         PageToCrawl GetNext();
     }
@@ -29,6 +29,9 @@ namespace Abot.Core
         Queue<PageToCrawl> _pagesToCrawl = new Queue<PageToCrawl>();
         Object locker = new Object();
 
+        /// <summary>
+        /// Count of remaining items that are currently scheduled
+        /// </summary>
         public int Count
         {
             get
@@ -40,6 +43,9 @@ namespace Abot.Core
             }
         }
 
+        /// <summary>
+        /// Schedules the param to be crawled in a FIFO fashion
+        /// </summary>
         public void Add(PageToCrawl page)
         {
             if (page == null)
@@ -53,6 +59,9 @@ namespace Abot.Core
             }
         }
 
+        /// <summary>
+        /// Gets the next page to crawl
+        /// </summary>
         public PageToCrawl GetNext()
         {
             PageToCrawl nextItem = null;

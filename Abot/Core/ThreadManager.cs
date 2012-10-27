@@ -36,6 +36,9 @@ namespace Abot.Core
                 _threads = new Thread[maxThreads];
         }
 
+        /// <summary>
+        /// Max number of threads to use
+        /// </summary>
         public int MaxThreads
         {
             get
@@ -44,6 +47,9 @@ namespace Abot.Core
             }
         }
 
+        /// <summary>
+        /// Will perform the action asynchrously on a seperate thread
+        /// </summary>
         public void DoWork(Action action)
         {
             lock (_lock)
@@ -70,6 +76,9 @@ namespace Abot.Core
             }
         }
 
+        /// <summary>
+        /// Whether there are running threads
+        /// </summary>
         public bool HasRunningThreads()
         {
             lock (_lock)

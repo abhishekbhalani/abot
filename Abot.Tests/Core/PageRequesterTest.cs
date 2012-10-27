@@ -152,7 +152,7 @@ namespace Abot.Tests.Core
         [Test]
         public void MakeRequest_CrawlDecisionReturnsFalse_CrawlsPageButDoesNotDowloadContent()
         {
-            CrawledPage result = _unitUnderTest.MakeRequest(_validUri, (x) => new CrawlDecision { Should = false });
+            CrawledPage result = _unitUnderTest.MakeRequest(_validUri, (x) => new CrawlDecision { Allow = false });
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.HttpWebRequest);
