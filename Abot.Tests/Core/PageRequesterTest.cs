@@ -36,7 +36,6 @@ namespace Abot.Tests.Core
         [Test]
         public void MakeRequest_200_ReturnsValidResponse()
         {
-
             CrawledPage result = _unitUnderTest.MakeRequest(_validUri);
 
             Assert.IsNotNull(result);
