@@ -60,7 +60,6 @@
     <Compile Include="Core\FifoScheduler.cs" />
     <Compile Include="Core\HyperLinkParser.cs" />
     <Compile Include="Core\PageRequester.cs" />
-    <Compile Include="Crawler\PoliteWebCrawler.cs" />
     <Compile Include="Core\ThreadManager.cs" />
     <Compile Include="Poco\CrawledPage.cs" />
     <Compile Include="Crawler\WebCrawler.cs" />
