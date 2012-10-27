@@ -1,19 +1,21 @@
 ﻿using Abot.Poco;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Abot.Core
 {
     public interface ICrawlDecisionMaker
     {
-        CrawlDecision ShouldCrawl(PageToCrawl pageToCrawl);
-        CrawlDecision ShouldCrawlLinks(CrawledPage crawledPage);
+        CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl);
+        CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage);
+        CrawlDecision ShouldDownloadPageContent(CrawledPage crawledPage);
     }
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
         List<string> crawledUrls = new List<string>();
 
-        public CrawlDecision ShouldCrawl(PageToCrawl pageToCrawl)
+        public CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl)
         {
             lock (crawledUrls)
             {
@@ -25,7 +27,7 @@ namespace Abot.Core
             return new CrawlDecision { Should = true }; ;
         }
 
-        public CrawlDecision ShouldCrawlLinks(CrawledPage crawledPage)
+        public CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage)
         {
             if (crawledPage == null)
                 return new CrawlDecision{Should = false, Reason = "Null crawled page"};
@@ -35,6 +37,20 @@ namespace Abot.Core
                 return new CrawlDecision { Should = false, Reason = "Link is external" };
             else
                 return new CrawlDecision{Should = true};
+        }
+
+        public CrawlDecision ShouldDownloadPageContent(CrawledPage crawledPage)
+        {
+            if (crawledPage == null)
+                return new CrawlDecision { Should = false, Reason = "Null crawled page" };
+            else if (crawledPage.HttpWebResponse == null)
+                return new CrawlDecision { Should = false, Reason = "Null HttpWebResponse" };
+            else if (crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
+                return new CrawlDecision { Should = false, Reason = "HttpStatusCode is not 200" };
+            else if (!crawledPage.HttpWebResponse.ContentType.ToLower().Contains("text/html"))
+                return new CrawlDecision { Should = false, Reason = "Content type is not text/html" };
+            else
+                return new CrawlDecision { Should = true };            
         }
     }
 }

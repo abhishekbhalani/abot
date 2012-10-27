@@ -9,9 +9,14 @@ namespace Abot.Core
     public interface IPageRequester
     {
         /// <summary>
-        /// Make an http web request to the url
+        /// Make an http web request to the url and download its content
         /// </summary>
         CrawledPage MakeRequest(Uri uri);
+
+        /// <summary>
+        /// Make an http web request to the url and download its content based on the param func decision
+        /// </summary>
+        CrawledPage MakeRequest(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent);
     }
 
     public class PageRequester : IPageRequester
@@ -29,6 +34,11 @@ namespace Abot.Core
         }
 
         public virtual CrawledPage MakeRequest(Uri uri)
+        {
+            return MakeRequest(uri, (x) => new CrawlDecision { Should = true });
+        }
+
+        public virtual CrawledPage MakeRequest(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -66,7 +76,9 @@ namespace Abot.Core
 
                 if (response != null)
                 {
-                    if (IsContentDownloadable(response))
+                    crawledPage.HttpWebResponse = response;
+                    CrawlDecision shouldDownloadContentDecision = shouldDownloadContent(crawledPage);
+                    if (shouldDownloadContentDecision.Should)
                     {
                         string rawHtml = GetRawHtml(response, uri);
                         if (!string.IsNullOrEmpty(rawHtml) && !(rawHtml.Trim().Length == 0))
@@ -74,9 +86,8 @@ namespace Abot.Core
                     }
                     else
                     {
-                        _logger.DebugFormat("Did not download page content for [{0}]", uri.AbsoluteUri);
+                        _logger.DebugFormat("Links on page [{0}] not crawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldDownloadContentDecision.Reason);
                     }
-                    crawledPage.HttpWebResponse = response;
                     response.Close();
                 }
             }
@@ -86,9 +97,6 @@ namespace Abot.Core
 
         protected virtual string GetRawHtml(HttpWebResponse response, Uri requestUri)
         {
-            if (!IsContentDownloadable(response))
-                return "";
-
             string rawHtml = "";
             try
             {
@@ -104,11 +112,6 @@ namespace Abot.Core
             }
 
             return rawHtml;
-        }
-
-        protected virtual bool IsContentDownloadable(HttpWebResponse response)
-        {
-            return response.ContentType.ToLower().Contains("text/html");
         }
     }
 }

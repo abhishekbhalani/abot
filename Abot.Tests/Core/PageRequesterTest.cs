@@ -18,7 +18,6 @@ namespace Abot.Tests.Core
         Uri _503ErrorUri = new Uri("http://localhost:1111/HttpResponse/Status503");
         Uri _301To200Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=200");
         Uri _301To404Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=404");
-        Uri _imageUrl = new Uri("http://localhost:1111/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png");
         string _userAgent = "someuseragentstringhere";
 
         [SetUp]
@@ -151,9 +150,9 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void MakeRequest_NonTextHtmlContentType_CrawlsPageButDoesNotDowloadContent()
+        public void MakeRequest_CrawlDecisionReturnsFalse_CrawlsPageButDoesNotDowloadContent()
         {
-            CrawledPage result = _unitUnderTest.MakeRequest(_imageUrl);
+            CrawledPage result = _unitUnderTest.MakeRequest(_validUri, (x) => new CrawlDecision { Should = false });
 
             Assert.IsNotNull(result);
             Assert.IsNotNull(result.HttpWebRequest);
