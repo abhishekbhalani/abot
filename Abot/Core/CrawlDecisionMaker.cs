@@ -38,6 +38,10 @@ namespace Abot.Core
                 else
                     crawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
             }
+
+            if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
+                return new CrawlDecision { Allow = false, Reason = "Invalid scheme" };
+
             return new CrawlDecision { Allow = true }; ;
         }
 

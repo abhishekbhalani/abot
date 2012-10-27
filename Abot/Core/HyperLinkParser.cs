@@ -68,7 +68,7 @@ namespace Abot.Core
                 try
                 {
                     Uri newUri = new Uri(page, hrefValue.Split('#')[0]);
-                    if (ShouldIncludedLink(newUri) && (!uris.Contains(newUri)))
+                    if (!uris.Contains(newUri))
                         uris.Add(newUri);
                 }
                 catch (Exception e)
@@ -78,11 +78,6 @@ namespace Abot.Core
             }
 
             return uris;
-        }
-
-        protected virtual bool ShouldIncludedLink(Uri uri)
-        {
-            return ((uri.Scheme == "http") || (uri.Scheme == "https"));
         }
 
         private string GetBaseTagHref(HtmlDocument doc)

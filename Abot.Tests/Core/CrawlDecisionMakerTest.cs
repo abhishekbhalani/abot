@@ -2,7 +2,6 @@
 using Abot.Poco;
 using NUnit.Framework;
 using System;
-using System.Net;
 
 namespace Abot.Tests.Core
 {
@@ -33,6 +32,30 @@ namespace Abot.Tests.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")));
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link already crawled", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_NonHttpOrHttpsSchemes_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")));
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Invalid scheme", result.Reason);
+
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")));
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Invalid scheme", result.Reason);
+
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")));
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Invalid scheme", result.Reason);
+
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")));
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Invalid scheme", result.Reason);
+
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")));
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Invalid scheme", result.Reason);
         }
 
 

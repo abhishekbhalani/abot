@@ -67,13 +67,14 @@ namespace Abot.Tests.Core
         }
 
         [Test]
-        public void GetLinks_BadScheme_NotReturned()
+        public void GetLinks_AnyScheme_Returned()
         {
             string html = "<a href=\"mailto:aaa@gmail.com\" />";
 
             IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
-            Assert.AreEqual(0, result.Count());
+            Assert.AreEqual(1, result.Count());
+            Assert.AreEqual("mailto:aaa@gmail.com", result.ElementAt(0).AbsoluteUri);
         }
 
         [Test]
