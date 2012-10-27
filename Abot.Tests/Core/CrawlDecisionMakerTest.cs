@@ -16,10 +16,27 @@ namespace Abot.Tests.Core
             _unitUnderTest = new CrawlDecisionMaker();
         }
 
+
+        [Test]
+        public void ShouldCrawlPage_NullPageToCrawl_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(null, new CrawlContext());
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Null page to crawl", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_NullCrawlContext_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), null);
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Null crawl context", result.Reason);
+        }
+
         [Test]
         public void ShouldCrawlPage_NonDuplicate_ReturnsTrue()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")));
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
         }
@@ -27,9 +44,9 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
-            _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
 
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")));
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link already crawled", result.Reason);
         }
@@ -37,23 +54,23 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPage_NonHttpOrHttpsSchemes_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")));
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")));
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")));
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")));
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")));
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
         }
@@ -62,15 +79,24 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPageLinks_NullCrawledPage_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(null);
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(null, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null crawled page", result.Reason);
         }
 
         [Test]
+        public void ShouldCrawlPageLinks_NullCrawlContext_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/a.html")){ RawContent = "aaaa" }, null);
+
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Null crawl context", result.Reason);
+        }
+
+        [Test]
         public void ShouldCrawlPageLinks_NullHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null });
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no links", result.Reason);
         }
@@ -78,7 +104,7 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPageLinks_WhitespaceHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " });
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no links", result.Reason);
         }
@@ -86,7 +112,7 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldCrawlPageLinks_EmptyHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" });
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no links", result.Reason);            
         }
@@ -95,8 +121,12 @@ namespace Abot.Tests.Core
         public void ShouldCrawlPageLinks_InternalLink_ReturnsTrue()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
-                new CrawledPage(new Uri("http://a.com/a.html")) { 
-                    RawContent = "aaaa", 
+                new CrawledPage(new Uri("http://a.com/a.html"))
+                {
+                    RawContent = "aaaa"
+                }, 
+                new CrawlContext 
+                {
                     RootUri = new Uri("http://a.com/ ")
                 });
             Assert.AreEqual(true, result.Allow);
@@ -110,6 +140,9 @@ namespace Abot.Tests.Core
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
                     RawContent = "aaaa",
+                },
+                new CrawlContext
+                {
                     RootUri = new Uri("http://a.com/ ")
                 });
             Assert.AreEqual(false, result.Allow);
@@ -122,7 +155,7 @@ namespace Abot.Tests.Core
         {
             Uri valid200StatusUri = new Uri("http://localhost:1111/");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri));
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), new CrawlContext());
 
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
@@ -131,9 +164,18 @@ namespace Abot.Tests.Core
         [Test]
         public void ShouldDownloadPageContent_NullCrawledPage_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(null);
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(null, new CrawlContext());
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Null crawled page", result.Reason);
+        }
+
+        [Test]
+        public void ShouldDownloadPageContent_NullCrawlContext_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new CrawledPage(new Uri("http://a.com/a.html")), null);
+
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Null crawl context", result.Reason);
         }
 
         [Test]
@@ -143,6 +185,10 @@ namespace Abot.Tests.Core
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
                     HttpWebResponse = null
+                },
+                new CrawlContext
+                {
+                    RootUri = new Uri("http://a.com/ ")
                 });
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Null HttpWebResponse", result.Reason);
@@ -153,7 +199,7 @@ namespace Abot.Tests.Core
         {
             Uri non200Uri = new Uri("http://localhost:1111/HttpResponse/Status403");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(non200Uri));
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(non200Uri), new CrawlContext());
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("HttpStatusCode is not 200", result.Reason);
@@ -164,7 +210,7 @@ namespace Abot.Tests.Core
         {
             Uri imageUrl = new Uri("http://localhost:1111/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(imageUrl));
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(imageUrl), new CrawlContext());
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Content type is not text/html", result.Reason);

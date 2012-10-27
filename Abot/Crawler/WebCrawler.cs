@@ -40,14 +40,14 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
         CrawlResult _crawlResult = null;
-        Uri _rootUri = null;
-
+        CrawlConfiguration _crawlConfiguration;
+        CrawlContext _crawlContext;
         IThreadManager _threadManager;
         IScheduler _scheduler;
         IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
         ICrawlDecisionMaker _crawlDecisionMaker;
-        CrawlConfiguration _crawlConfiguration;
+
 
 
         /// <summary>
@@ -120,14 +120,15 @@ namespace Abot.Crawler
             if(uri == null)
                 throw new ArgumentNullException("uri");
 
-            _rootUri = uri;
+            _crawlContext = new CrawlContext();
+            _crawlContext.RootUri = uri;
 
             _crawlResult = new CrawlResult();
-            _crawlResult.RootUri = _rootUri;
+            _crawlResult.RootUri = _crawlContext.RootUri;
             _crawlComplete = false;
 
             _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
-            _scheduler.Add(new PageToCrawl(uri){ParentUri = uri, RootUri = _rootUri});
+            _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri });
 
             Stopwatch timer = Stopwatch.StartNew();
             CrawlSite();
@@ -167,7 +168,7 @@ namespace Abot.Crawler
 
 
             //Crawl the page
-            CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl);
+            CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
             if (!shouldCrawlPageDecision.Allow)
             {
                 _logger.DebugFormat("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
@@ -178,8 +179,7 @@ namespace Abot.Crawler
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEvent(pageToCrawl);
 
-            CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x));
-            crawledPage.RootUri = _rootUri;
+            CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
 
@@ -192,14 +192,14 @@ namespace Abot.Crawler
 
 
             //Crawl the page's links
-            CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage);
+            CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
             if (shouldCrawlPageLinksDecision.Allow)
             {
                 IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage.Uri, crawledPage.RawContent);
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, RootUri = _rootUri });
+                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri });
                 }
             }
             else

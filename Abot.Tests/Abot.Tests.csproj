@@ -66,6 +66,7 @@
     <Compile Include="Crawler\WebCrawlerTest.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Poco\CrawlContextTest.cs" />
     <Compile Include="Poco\CrawlConfigurationTest.cs" />
     <Compile Include="Poco\CrawlDecisionTest.cs" />
     <Compile Include="Poco\PageToCrawlTest.cs" />
