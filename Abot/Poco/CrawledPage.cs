@@ -30,5 +30,13 @@ namespace Abot.Poco
         /// The web exception that occurred during the crawl
         /// </summary>
         public WebException WebException { get; set; }
+
+        public override string ToString()
+        {
+            if(HttpWebResponse == null)
+                return Uri.AbsoluteUri;
+            else
+                return string.Format("{0}[{1}]", Uri.AbsoluteUri, (int)HttpWebResponse.StatusCode);
+        }
     }
 }

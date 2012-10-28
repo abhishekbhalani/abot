@@ -103,7 +103,7 @@ namespace Abot.Tests.Unit.Core
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }, new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Page has no links", result.Reason);
+            Assert.AreEqual("Page has no content", result.Reason);
         }
 
         [Test]
@@ -111,7 +111,7 @@ namespace Abot.Tests.Unit.Core
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " }, new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Page has no links", result.Reason);
+            Assert.AreEqual("Page has no content", result.Reason);
         }
 
         [Test]
@@ -119,7 +119,7 @@ namespace Abot.Tests.Unit.Core
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }, new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Page has no links", result.Reason);            
+            Assert.AreEqual("Page has no content", result.Reason);            
         }
 
         [Test]

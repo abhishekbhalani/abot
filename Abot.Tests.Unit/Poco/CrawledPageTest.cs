@@ -1,4 +1,5 @@
-﻿using Abot.Poco;
+﻿using Abot.Core;
+using Abot.Poco;
 using NUnit.Framework;
 using System;
 
@@ -25,6 +26,18 @@ namespace Abot.Tests.Unit.Poco
         public void Constructor_InvalidUri()
         {
             new CrawledPage(null);
+        }
+
+        [Test]
+        public void ToString_HttpResponseDoesNotExists_MessageHasUri()
+        {
+            Assert.AreEqual("http://localhost:1111/", new CrawledPage(new Uri("http://localhost:1111/")).ToString());
+        }
+
+        [Test]
+        public void ToString_HttpResponseExists_MessageHasUriAndStatus()
+        {
+            Assert.AreEqual("http://localhost:1111/[200]", new PageRequester("someuseragent").MakeRequest(new Uri("http://localhost:1111/")).ToString());
         }
     }
 }

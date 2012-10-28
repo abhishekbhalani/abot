@@ -26,5 +26,10 @@ namespace Abot.Poco
         /// Whether http requests had to be retried more than once. This could be due to throttling or politeness.
         /// </summary>
         public bool IsRetry { get; set; }
+
+        public override string ToString()
+        {
+            return Uri.AbsoluteUri;
+        }
     }
 }

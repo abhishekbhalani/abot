@@ -22,3 +22,7 @@
 {
   @Html.ActionLink("Click me to see a 500 status", "Status500/Page" + (i + Model.Status500StartingIndex), "HttpResponse", null, null)<br />        
 }    
+@for (int i = 0; i < Model.Status503Count; i++)
+{
+  @Html.ActionLink("Click me to see a 503 status", "Status503/Page" + (i + Model.Status503StartingIndex), "HttpResponse", null, null)<br />        
+}  
