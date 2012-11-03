@@ -35,20 +35,10 @@ namespace Abot.Tests.Integration
             Assert.AreEqual("", result.ErrorMessage);
             Assert.IsFalse(result.ErrorOccurred);
             Assert.AreSame(rootUri, result.RootUri);
-            //PrintCrawlResult(crawledPages);
+            
             Assert.AreEqual(297, crawledPages.Where(c => c.HttpWebResponse != null && c.HttpWebResponse.StatusCode == HttpStatusCode.OK).Count());
             Assert.AreEqual(440, crawledPages.Where(c => c.HttpWebResponse == null || c.HttpWebResponse.StatusCode != HttpStatusCode.OK).Count());
             Assert.IsTrue(result.Elapsed.TotalSeconds < 20, string.Format("Elapsed Time to crawl {0}, over 30 second threshold", result.Elapsed.TotalSeconds));
-        }
-
-        private void PrintCrawlResult(List<CrawledPage> crawledPages)
-        {
-            var workingPages = crawledPages.Where(c => c.HttpWebResponse != null && c.HttpWebResponse.StatusCode == HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
-            var brokenPages = crawledPages.Where(c => c.HttpWebResponse == null || c.HttpWebResponse.StatusCode != HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
-
-            _logger.DebugFormat("Total Crawled Pages: [{0}]", crawledPages.Count());
-            PrintCollection("Working Pages", workingPages);
-            PrintCollection("Broken Pages", brokenPages);
         }
 
         private void PrintCollection(string p, IOrderedEnumerable<CrawledPage> workingPages)

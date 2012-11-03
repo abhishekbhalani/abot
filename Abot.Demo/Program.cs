@@ -32,6 +32,19 @@ namespace Abot.Demo
             Console.WriteLine("Completed in {0}", result.Elapsed);
         }
 
+        //TODO print crawl results here
+        //PrintCrawlResult(crawledPages);
+        //private void PrintCrawlResult(List<CrawledPage> crawledPages)
+        //{
+        //    var workingPages = crawledPages.Where(c => c.HttpWebResponse != null && c.HttpWebResponse.StatusCode == HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
+        //    var brokenPages = crawledPages.Where(c => c.HttpWebResponse == null || c.HttpWebResponse.StatusCode != HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
+
+        //    _logger.DebugFormat("Total Crawled Pages: [{0}]", crawledPages.Count());
+        //    PrintCollection("Working Pages", workingPages);
+        //    PrintCollection("Broken Pages", brokenPages);
+        //}
+
+
         //Event handler for when the Async PageCrawlStarting event fires
         private static void ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
         {
