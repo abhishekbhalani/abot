@@ -57,8 +57,8 @@ namespace Abot.Core
                 int freeThreadIndex = GetFreeThreadIndex();
                 while (freeThreadIndex < 0)
                 {
-                    _logger.Debug("Waiting for a free thread to do work, sleeping 1 sec");
-                    System.Threading.Thread.Sleep(1000);
+                    _logger.Debug("Waiting for a free thread to do work, sleeping 100 millisec");
+                    System.Threading.Thread.Sleep(100);
                     freeThreadIndex = GetFreeThreadIndex();
                 }
 

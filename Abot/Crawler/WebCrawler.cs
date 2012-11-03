@@ -104,7 +104,7 @@ namespace Abot.Crawler
             _crawlContext = new CrawlContext();
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? new CrawlConfigurationProvider().GetConfiguration();
 
-            _threadManager = threadManager ?? new ThreadManager(1);//_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
