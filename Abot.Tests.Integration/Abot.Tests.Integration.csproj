@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="CrawlSethGodin.cs" />
     <Compile Include="CrawlSiteSimulator.cs" />
+    <Compile Include="CrawlTestBase.cs" />
     <Compile Include="CrawlWvtesting.cs" />
     <Compile Include="CrawlWvtesting2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -35,10 +35,24 @@ namespace Abot.Tests.Integration
             Assert.AreEqual("", result.ErrorMessage);
             Assert.IsFalse(result.ErrorOccurred);
             Assert.AreSame(rootUri, result.RootUri);
-            
+
+            //TODO add a test that prints all missing pages that were expected and any unexpected pages
+            //TODO only is consistent when the crawl is recorded (need the todo above to see what is changing)
+            PrintMissingExpectedUrls(crawledPages);
+            PrintUnexpectedUrls(crawledPages);
             Assert.AreEqual(297, crawledPages.Where(c => c.HttpWebResponse != null && c.HttpWebResponse.StatusCode == HttpStatusCode.OK).Count());
             Assert.AreEqual(440, crawledPages.Where(c => c.HttpWebResponse == null || c.HttpWebResponse.StatusCode != HttpStatusCode.OK).Count());
-            Assert.IsTrue(result.Elapsed.TotalSeconds < 20, string.Format("Elapsed Time to crawl {0}, over 30 second threshold", result.Elapsed.TotalSeconds));
+            Assert.IsTrue(result.Elapsed.TotalSeconds < 20, string.Format("Elapsed Time to crawl {0}, over 20 second threshold", result.Elapsed.TotalSeconds));
+        }
+
+        private void PrintUnexpectedUrls(List<CrawledPage> crawledPages)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void PrintMissingExpectedUrls(List<CrawledPage> crawledPages)
+        {
+            throw new NotImplementedException();
         }
 
         private void PrintCollection(string p, IOrderedEnumerable<CrawledPage> workingPages)
