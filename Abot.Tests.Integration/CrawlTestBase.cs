@@ -1,17 +1,55 @@
-﻿using log4net;
+﻿using Abot.Crawler;
+using Abot.Poco;
+using log4net;
+using log4net.Config;
+using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Abot.Tests.Integration
 {
+    [TestFixture]
     public abstract class CrawlTestBase
     {
-        private static ILog _logger = LogManager.GetLogger(typeof(CrawlTestBase).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(CrawlTestBase).FullName);
+        List<PageResult> _actualCrawledPages = new List<PageResult>();
+        int _maxSecondsToCrawl;
+        Uri _rootUri;
+
+        static CrawlTestBase()
+        {
+            XmlConfigurator.Configure();
+        }
+
+        public CrawlTestBase(Uri rootUri, int maxSecondsToCrawl)
+        {
+            _rootUri = rootUri;
+            _maxSecondsToCrawl = maxSecondsToCrawl;
+        }
+
+
         protected abstract List<PageResult> GetExpectedCrawlResult();
 
-        protected void PrintDescrepancies(List<PageResult> actualCrawlResult)
+        public void CrawlAndAssert(IWebCrawler crawler)
         {
-            List<Discrepancy> allDescrepancies = GetDescrepancies(actualCrawlResult);
+            crawler.PageCrawlCompleted += crawler_PageCrawlCompleted;
+
+            CrawlResult result = crawler.Crawl(_rootUri);
+
+            Assert.AreEqual("", result.ErrorMessage);
+            Assert.IsFalse(result.ErrorOccurred);
+            Assert.AreSame(_rootUri, result.RootUri);
+
+            List<Discrepancy> descrepancies = GetDescrepancies();
+            PrintDescrepancies(descrepancies);
+
+            Assert.AreEqual(0, descrepancies.Count, "There were discrepancies between expected and actual crawl results. See ouput window for details.");
+            Assert.IsTrue(result.Elapsed.TotalSeconds < _maxSecondsToCrawl, string.Format("Elapsed Time to crawl {0}, over {1} second threshold", result.Elapsed.TotalSeconds, _maxSecondsToCrawl));
+        }
+
+        private void PrintDescrepancies(List<Discrepancy> allDescrepancies)
+        {
             if (allDescrepancies.Count < 1)
             {
                 _logger.Info("No discrepancies between expected and actual results");
@@ -22,32 +60,51 @@ namespace Abot.Tests.Integration
             IEnumerable<Discrepancy> unexpectedPages = allDescrepancies.Where(d => d.DiscrepencyType == DiscrepencyType.UnexpectedPageInResult);
             IEnumerable<Discrepancy> unexpectedHttpStatusPages = allDescrepancies.Where(d => d.DiscrepencyType == DiscrepencyType.UnexpectedHttpStatus);
 
-            foreach(Discrepancy descrepancy in missingPages)
-                _logger.InfoFormat("Missing:[0][1]", descrepancy.Expected.Url, descrepancy.Expected.HttpStatusCode);
-            foreach(Discrepancy descrepancy in unexpectedHttpStatusPages)
-                _logger.InfoFormat("Unexpected Http Status: [0] Expected:[1] Actual:[2]", descrepancy.Expected.Url, descrepancy.Expected.HttpStatusCode, descrepancy.Actual.HttpStatusCode);
-            foreach(Discrepancy descrepancy in unexpectedPages)
-                _logger.InfoFormat("Unexpected Page:[0][1]", descrepancy.Actual.Url, descrepancy.Actual.HttpStatusCode);
+            foreach (Discrepancy discrepancy in missingPages)
+            {
+                _logger.InfoFormat("Missing:[{0}][{1}]", discrepancy.Expected.Url, discrepancy.Expected.HttpStatusCode);
+            }
+            foreach (Discrepancy discrepancy in unexpectedHttpStatusPages)
+            {
+                _logger.InfoFormat("Unexpected Http Status: [{0}] Expected:[{1}] Actual:[{2}]", discrepancy.Actual.Url, discrepancy.Expected.HttpStatusCode, discrepancy.Actual.HttpStatusCode);
+            }
+            foreach(Discrepancy discrepancy in unexpectedPages)
+            {
+                _logger.InfoFormat("Unexpected Page:[{0}][{1}]", discrepancy.Actual.Url, discrepancy.Actual.HttpStatusCode);
+            }
         }
 
-        private List<Discrepancy> GetDescrepancies(List<PageResult> actualCrawlResult)
+        private void crawler_PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        {
+            lock (_actualCrawledPages)
+            {
+                PageResult pageResult = new PageResult();
+                pageResult.Url = e.CrawledPage.Uri.AbsoluteUri;
+                if(e.CrawledPage.HttpWebResponse != null)
+                    pageResult.HttpStatusCode = Convert.ToInt32(e.CrawledPage.HttpWebResponse.StatusCode);
+
+                _actualCrawledPages.Add(pageResult);
+            }
+        }
+
+        private List<Discrepancy> GetDescrepancies()
         {
             List<Discrepancy> discrepancies = new List<Discrepancy>();
             List<PageResult> expectedCrawlResult = GetExpectedCrawlResult();
 
-            foreach (PageResult actualPage in actualCrawlResult)
+            foreach (PageResult actualPage in _actualCrawledPages)
             {
                 Discrepancy discrepancy = ReturnIfIsADiscrepency(expectedCrawlResult.FirstOrDefault(p => p.Url == actualPage.Url), actualPage);
                 if (discrepancy != null)
                     discrepancies.Add(discrepancy);
             }
 
-            if (expectedCrawlResult.Count != actualCrawlResult.Count)
+            if (expectedCrawlResult.Count != _actualCrawledPages.Count)
             {
                 foreach (PageResult expectedPage in expectedCrawlResult)
                 {
-                    PageResult missingPage = actualCrawlResult.FirstOrDefault(a => a.Url == expectedPage.Url);
-                    if (missingPage != null)
+                    PageResult expectedPageInActualResult = _actualCrawledPages.FirstOrDefault(a => a.Url == expectedPage.Url);
+                    if (expectedPageInActualResult == null)
                         discrepancies.Add(new Discrepancy { Actual = null, Expected = expectedPage, DiscrepencyType = DiscrepencyType.MissingPageFromResult });
                 }
             }
@@ -73,7 +130,7 @@ namespace Abot.Tests.Integration
         }
     }
 
-    internal class PageResult
+    public class PageResult
     {
         public string Url { get; set; }
 
@@ -93,11 +150,11 @@ namespace Abot.Tests.Integration
 
         public override string ToString()
         {
-            return Url + HttpStatusCode;
+            return Url + " " + HttpStatusCode;
         }
     }
 
-    internal class Discrepancy
+    public class Discrepancy
     {
         public PageResult Expected { get; set; }
 
@@ -106,7 +163,7 @@ namespace Abot.Tests.Integration
         public DiscrepencyType DiscrepencyType { get; set; }
     }
 
-    internal enum DiscrepencyType
+    public enum DiscrepencyType
     {
         UnexpectedPageInResult,
         UnexpectedHttpStatus,

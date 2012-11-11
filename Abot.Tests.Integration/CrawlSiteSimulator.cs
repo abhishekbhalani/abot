@@ -1,56 +1,101 @@
 ﻿using Abot.Core;
 using Abot.Crawler;
-using Abot.Poco;
-using log4net.Config;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 
 namespace Abot.Tests.Integration
 {
     [TestFixture]
-    public class CrawlSiteSimulator
+    public class CrawlSiteSimulator : CrawlTestBase
     {
-        List<CrawledPage> crawledPages = new List<CrawledPage>();
-
-        [TestFixtureSetUp]
-        public void TestFixtureSetup()
+        public CrawlSiteSimulator()
+            :base(new Uri("http://localhost:1111/"), 10)
         {
-            XmlConfigurator.Configure();
-        }
 
-        [SetUp]
-        public void SetUp()
-        {
-            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
         }
 
         [Test]
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
-            Uri rootUri = new Uri("http://localhost:1111/");
-
-            WebCrawler crawler = new WebCrawler();
-            crawler.PageCrawlCompleted += crawler_PageCrawlCompleted;
-
-            CrawlResult result = crawler.Crawl(rootUri);
-
-            Assert.AreEqual("", result.ErrorMessage);
-            Assert.IsFalse(result.ErrorOccurred);
-            Assert.AreSame(rootUri, result.RootUri);
-            Assert.AreEqual(27, crawledPages.Where(c => c.HttpWebResponse.StatusCode == HttpStatusCode.OK).Count());
-            Assert.AreEqual(40, crawledPages.Where(c => c.HttpWebResponse.StatusCode != HttpStatusCode.OK).Count());
-            Assert.IsTrue(result.Elapsed.TotalSeconds < 10, string.Format("Elapsed Time to crawl {0}, over 10 second threshold", result.Elapsed.TotalSeconds));
+            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+            base.CrawlAndAssert(new WebCrawler());
         }
 
-        void crawler_PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        protected override List<PageResult> GetExpectedCrawlResult()
         {
-            lock (crawledPages)
+            List<PageResult> expectedCrawlResult = new List<PageResult>
             {
-                crawledPages.Add(e.CrawledPage);
-            }
+                new PageResult { Url = "http://localhost:1111/", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=1", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=3", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=2", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=4", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page1", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page3", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page2", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page4", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page5", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status403/Page1", HttpStatusCode = 403},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page2", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page1", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page1", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page3", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page2", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page2", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page1", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page12", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page11", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page3", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page4", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page13", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page14", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page15", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status403/Page3", HttpStatusCode = 403},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page5", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page6", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page7", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page8", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page6", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page9", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page9", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page7", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page12", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page10", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page11", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page8", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page9", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page10", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status403/Page2", HttpStatusCode = 403},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page3", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page4", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page4", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page5", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page16", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page6", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page6", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page5", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page17", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page18", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page19", HttpStatusCode = 200},
+                new PageResult { Url = "http://yahoo.com/", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page8", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status200/Page20", HttpStatusCode = 200},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page7", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status403/Page4", HttpStatusCode = 403},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page7", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page11", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page10", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status404/Page8", HttpStatusCode = 404},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page13", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status500/Page12", HttpStatusCode = 500},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page14", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page15", HttpStatusCode = 503},
+                new PageResult { Url = "http://localhost:1111/HttpResponse/Status503/Page16", HttpStatusCode = 503},
+                new PageResult { Url = "http://zoogle.com/", HttpStatusCode = 200}
+            };
+
+            return expectedCrawlResult;
         }
     }
 }

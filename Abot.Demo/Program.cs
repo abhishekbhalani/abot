@@ -21,7 +21,7 @@ namespace Abot.Demo
             crawler.PageCrawlCompleted += new EventHandler<PageCrawlCompletedArgs>(ProcessPageCrawlCompleted);
 
             //Start the crawl
-            CrawlResult result = crawler.Crawl(new Uri("http://wvtesting2.com/"));
+            CrawlResult result = crawler.Crawl(new Uri("http://localhost:1111/"));
 
             //Print some result data
             if (result.ErrorOccurred)
