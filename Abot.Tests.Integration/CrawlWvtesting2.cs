@@ -9,7 +9,7 @@ namespace Abot.Tests.Integration
     public class CrawlWvtesting2 : CrawlTestBase
     {
         public CrawlWvtesting2()
-            : base(new Uri("http://wvtesting2.com/"), 20)
+            : base(new Uri("http://wvtesting2.com/"), 30)
         {
         }
 

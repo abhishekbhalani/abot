@@ -83,7 +83,6 @@ namespace Abot.Core
         {
             lock (_lock)
             {
-                int threadIndex = 0;
                 foreach (Thread thread in _threads)
                 {
                     if (thread != null)
@@ -91,7 +90,6 @@ namespace Abot.Core
                         if ((thread.ThreadState == ThreadState.Running) || (thread.ThreadState == ThreadState.WaitSleepJoin))
                             return true;
                     }
-                    threadIndex++;
                 }
             }
 

@@ -31,6 +31,7 @@ namespace Abot.Tests.Integration
 
         protected abstract List<PageResult> GetExpectedCrawlResult();
 
+
         public void CrawlAndAssert(IWebCrawler crawler)
         {
             crawler.PageCrawlCompleted += crawler_PageCrawlCompleted;
@@ -121,12 +122,30 @@ namespace Abot.Tests.Integration
             }
             else
             {
-                if(expectedPage.HttpStatusCode != actualPage.HttpStatusCode)
-                    discrepancy = new Discrepancy { Actual = actualPage, Expected = null, DiscrepencyType = DiscrepencyType.UnexpectedHttpStatus };
+                if (expectedPage.HttpStatusCode != actualPage.HttpStatusCode && 
+                    (!IsServerUnavailable(expectedPage) &&
+                    !IsServerUnavailable(actualPage)) )
+                {
+                    discrepancy = new Discrepancy { Actual = actualPage, Expected = expectedPage, DiscrepencyType = DiscrepencyType.UnexpectedHttpStatus };
+                }
                 
             }
 
             return discrepancy;
+        }
+
+        private bool IsServerUnavailable(PageResult page)
+        {
+            bool isUnavailable = false;
+
+            if (page.HttpStatusCode == 0 ||
+                page.HttpStatusCode == 502 ||
+                page.HttpStatusCode == 504)
+            {
+                isUnavailable = true;
+            }
+
+            return isUnavailable;
         }
     }
 
