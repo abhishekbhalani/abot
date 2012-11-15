@@ -62,11 +62,10 @@ namespace Abot.Core
                     freeThreadIndex = GetFreeThreadIndex();
                 }
 
-                _logger.DebugFormat("Free thread [{0}] available", freeThreadIndex);
-
                 if (MaxThreads > 1)
                 {
                     _threads[freeThreadIndex] = new Thread(new ThreadStart(action));
+                    _logger.DebugFormat("Doing work on thread Index:[{0}] Id[{1}]", freeThreadIndex, _threads[freeThreadIndex].ManagedThreadId);
                     _threads[freeThreadIndex].Start();
                 }
                 else
@@ -83,16 +82,25 @@ namespace Abot.Core
         {
             lock (_lock)
             {
-                foreach (Thread thread in _threads)
+                for(int i = 0; i < _threads.Length; i++)
                 {
-                    if (thread != null)
+                    if (_threads[i] == null)
                     {
-                        if ((thread.ThreadState == ThreadState.Running) || (thread.ThreadState == ThreadState.WaitSleepJoin))
-                            return true;
+                        _logger.DebugFormat("Thread Null Index:[{0}]", i);
+                    }
+                    else if (_threads[i].IsAlive)
+                    {
+                        _logger.DebugFormat("Thread Is Running Index:[{0}] Id:[{1}] State:[{2}]", i, _threads[i].ManagedThreadId, _threads[i].ThreadState);
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.DebugFormat("Thread Not Running Index:[{0}] Id:[{1}] State:[{2}]", i, _threads[i].ManagedThreadId, _threads[i].ThreadState);
                     }
                 }
             }
 
+            _logger.DebugFormat("No Threads Running!!");
             return false;
         }
 
@@ -104,7 +112,7 @@ namespace Abot.Core
             {
                 foreach (Thread thread in _threads)
                 {
-                    if ((thread == null) || thread.ThreadState != ThreadState.Running)
+                    if ((thread == null) || !thread.IsAlive)
                     {
                         freeThreadIndex = currentIndex;
                         break;

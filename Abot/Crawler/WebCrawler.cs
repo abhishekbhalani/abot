@@ -165,7 +165,6 @@ namespace Abot.Crawler
             if (pageToCrawl == null)
                 return;
 
-
             //Crawl the page
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
             if (!shouldCrawlPageDecision.Allow)
