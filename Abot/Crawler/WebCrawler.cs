@@ -4,6 +4,7 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Abot.Crawler
 {
@@ -126,7 +127,9 @@ namespace Abot.Crawler
             _crawlResult.RootUri = _crawlContext.RootUri;
             _crawlComplete = false;
 
-            _logger.DebugFormat("About to crawl site [{0}]", uri.AbsoluteUri);
+            _logger.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
+            PrintConfigValues(_crawlContext.CrawlConfiguration);
+
             _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri });
 
             Stopwatch timer = Stopwatch.StartNew();
@@ -154,13 +157,13 @@ namespace Abot.Crawler
                 }
                 else
                 {
-                    _logger.InfoFormat("Waiting for links to be scheduled...");
+                    _logger.DebugFormat("Waiting for links to be scheduled...");
                     System.Threading.Thread.Sleep(2500);
                 }
             }
         }
 
-        protected virtual void CrawlPage(PageToCrawl pageToCrawl)
+        private void CrawlPage(PageToCrawl pageToCrawl)
         {
             if (pageToCrawl == null)
                 return;
@@ -212,6 +215,22 @@ namespace Abot.Crawler
             }
         }
 
+        private void PrintConfigValues(CrawlConfiguration config)
+        {
+            _logger.Info("Configuration Values:");
+
+            string indentString = new string(' ', 2);
+            foreach (PropertyInfo property in config.GetType().GetProperties())
+            {
+                if (property.Name != "Data")
+                    _logger.InfoFormat("{0}{1}: {2}", indentString, property.Name, property.GetValue(config, null));
+            }
+
+            foreach (string key in config.Data.Keys)
+            {
+                _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.Data[key]);
+            }
+        }
 
         private void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
         {

@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 namespace Abot.Poco
 {
     public class CrawlConfiguration
@@ -8,6 +9,7 @@ namespace Abot.Poco
             MaxConcurrentThreads = 10;
             UserAgentString = "abot v1.0 http://code.google.com/p/abot";
             MaxPagesToCrawl = 1000;
+            Data = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -24,5 +26,10 @@ namespace Abot.Poco
         /// Maximum number of pages to crawl
         /// </summary>
         public long MaxPagesToCrawl { get; set; }
+
+        /// <summary>
+        /// Dictionary that stores additional keyvalue pairs that can be accessed throught the crawl pipeline
+        /// </summary>
+        public Dictionary<string, string> Data { get; set; }
     }
 }
