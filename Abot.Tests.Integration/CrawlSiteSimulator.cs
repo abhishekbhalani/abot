@@ -1,5 +1,6 @@
 ﻿using Abot.Core;
 using Abot.Crawler;
+using Abot.Poco;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,24 @@ namespace Abot.Tests.Integration
         {
             new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
             base.CrawlAndAssert(new WebCrawler());
+        }
+
+        [Test]
+        public void Crawl_MaxPagesTo5_OnlyCrawls5Pages()
+        {
+            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+            
+            CrawlConfiguration configuration = new CrawlConfiguration();
+            configuration.MaxPagesToCrawl = 5;
+
+            int pagesCrawledCount = 0;
+
+            WebCrawler crawler = new WebCrawler(configuration);
+            crawler.PageCrawlCompleted += (a, b) => pagesCrawledCount++;
+
+            crawler.Crawl(new Uri("http://localhost:1111/"));
+
+            Assert.AreEqual(5, pagesCrawledCount);
         }
 
         protected override List<PageResult> GetExpectedCrawlResult()
