@@ -13,6 +13,7 @@ namespace Abot.Tests.Unit.Poco
 
             Assert.AreEqual(10, unitUnderTest.MaxConcurrentThreads);
             Assert.AreEqual("abot v1.0 http://code.google.com/p/abot", unitUnderTest.UserAgentString);
+            Assert.AreEqual(1000, unitUnderTest.MaxPagesToCrawl);
         }
     }
 }

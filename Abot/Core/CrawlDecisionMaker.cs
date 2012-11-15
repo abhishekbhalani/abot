@@ -41,6 +41,9 @@ namespace Abot.Core
             {
                 if (crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
                     return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
+
+                if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
+                    return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
             }
 
             return new CrawlDecision { Allow = true }; ;

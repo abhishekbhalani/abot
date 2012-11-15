@@ -37,7 +37,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_NonDuplicate_ReturnsTrue()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext { CrawlConfiguration = new CrawlConfiguration() });
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
         }
@@ -78,6 +78,22 @@ namespace Abot.Tests.Unit.Core
             result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")), new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Invalid scheme", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_OverMaxPageToCrawlLimit_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/")),
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        MaxPagesToCrawl = 0
+                    }
+                });
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("MaxPagesToCrawl limit of [0] has been reached", result.Reason);
         }
 
 

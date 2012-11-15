@@ -7,6 +7,7 @@ namespace Abot.Poco
         {
             MaxConcurrentThreads = 10;
             UserAgentString = "abot v1.0 http://code.google.com/p/abot";
+            MaxPagesToCrawl = 1000;
         }
 
         /// <summary>
@@ -18,5 +19,10 @@ namespace Abot.Poco
         /// The user agent string to use for http requests
         /// </summary>
         public string UserAgentString { get; set; }
+
+        /// <summary>
+        /// Maximum number of pages to crawl
+        /// </summary>
+        public long MaxPagesToCrawl { get; set; }
     }
 }

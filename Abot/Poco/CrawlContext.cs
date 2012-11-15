@@ -31,7 +31,7 @@ namespace Abot.Poco
         //public TimeSpan TimeSinceLastUnsuccessfulHttpRequest { get; set; }
 
         /// <summary>
-        /// Urls that have been crawled
+        /// Urls that have been crawled. NOTE: Use lock when accessing this property since multiple threads are reading/writing to it
         /// </summary>
         public List<string> CrawledUrls { get; set; }
 
