@@ -1,4 +1,5 @@
 ﻿using Abot.Poco;
+using System;
 using System.Net;
 
 namespace Abot.Core
@@ -44,6 +45,13 @@ namespace Abot.Core
 
                 if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
                     return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
+            }
+
+            if (crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
+            {
+                double elapsedCrawlSeconds = (DateTime.Now - crawlContext.CrawlStartDate).TotalSeconds;
+                if (elapsedCrawlSeconds > crawlContext.CrawlConfiguration.CrawlTimeoutSeconds)
+                    return new CrawlDecision { Allow = false, Reason = string.Format("Crawl timedout of [{0}] seconds has been reached", crawlContext.CrawlConfiguration.CrawlTimeoutSeconds) };
             }
 
             return new CrawlDecision { Allow = true }; ;

@@ -28,6 +28,11 @@ namespace Abot.Poco
         public long MaxPagesToCrawl { get; set; }
 
         /// <summary>
+        /// Maximum seconds before the crawl times out and stops. A value of zero means no timeout
+        /// </summary>
+        public long CrawlTimeoutSeconds { get; set; }
+
+        /// <summary>
         /// Dictionary that stores additional keyvalue pairs that can be accessed throught the crawl pipeline
         /// </summary>
         public Dictionary<string, string> Data { get; set; }

@@ -15,20 +15,20 @@ namespace Abot.Poco
         /// </summary>
         public Uri RootUri { get; set; }
 
-        ///// <summary>
-        ///// How long the crawl has been crawling
-        ///// </summary>
-        //public TimeSpan CrawlRunTime { get; set; }
+        /// <summary>
+        /// The datetime of the last unsuccessful http status (non 200) was requested
+        /// </summary>
+        public DateTime CrawlStartDate { get; set; }
 
         ///// <summary>
-        ///// How long ago the last successful http status (200) was requested
+        ///// The datetime of the last successful http status (200) was requested
         ///// </summary>
-        //public TimeSpan TimeSinceLastSuccessfulHttpRequest { get; set; }
+        //public DateTime LastSuccessfulHttpRequestDate { get; set; }
 
         ///// <summary>
-        ///// How long ago the last unsuccessful http status (non 200) was requested
+        ///// The datetime of the last unsuccessful http status (non 200) was requested
         ///// </summary>
-        //public TimeSpan TimeSinceLastUnsuccessfulHttpRequest { get; set; }
+        //public DateTime LastUnsuccessfulHttpRequestDate { get; set; }
 
         /// <summary>
         /// Urls that have been crawled. NOTE: Use lock when accessing this property since multiple threads are reading/writing to it

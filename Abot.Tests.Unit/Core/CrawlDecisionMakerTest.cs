@@ -37,7 +37,13 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_NonDuplicate_ReturnsTrue()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), new CrawlContext { CrawlConfiguration = new CrawlConfiguration() });
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/")),
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration(),
+                    CrawlStartDate = DateTime.Now
+                });
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
         }
@@ -94,6 +100,40 @@ namespace Abot.Tests.Unit.Core
                 });
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("MaxPagesToCrawl limit of [0] has been reached", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_OverCrawlTimeoutSeconds_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/")),
+                new CrawlContext
+                {
+                    CrawlStartDate = DateTime.Now.AddSeconds(-100),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        CrawlTimeoutSeconds = 99
+                    }
+                });
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Crawl timedout of [99] seconds has been reached", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_CrawlTimeoutSecondsZero_ReturnsTrue()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/")),
+                new CrawlContext
+                {
+                    CrawlStartDate = DateTime.Now.AddSeconds(-100),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        CrawlTimeoutSeconds = 0 //equivalent to infinity
+                    }
+                });
+            Assert.IsTrue(result.Allow);
+            Assert.AreEqual("", result.Reason);
         }
 
 

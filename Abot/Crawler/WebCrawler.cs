@@ -122,7 +122,7 @@ namespace Abot.Crawler
                 throw new ArgumentNullException("uri");
 
             _crawlContext.RootUri = uri;
-
+            
             _crawlResult = new CrawlResult();
             _crawlResult.RootUri = _crawlContext.RootUri;
             _crawlComplete = false;
@@ -132,6 +132,7 @@ namespace Abot.Crawler
 
             _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri });
 
+            _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
             CrawlSite();
             timer.Stop();
