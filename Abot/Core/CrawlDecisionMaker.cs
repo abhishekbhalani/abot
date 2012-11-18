@@ -51,7 +51,7 @@ namespace Abot.Core
             {
                 double elapsedCrawlSeconds = (DateTime.Now - crawlContext.CrawlStartDate).TotalSeconds;
                 if (elapsedCrawlSeconds > crawlContext.CrawlConfiguration.CrawlTimeoutSeconds)
-                    return new CrawlDecision { Allow = false, Reason = string.Format("Crawl timedout of [{0}] seconds has been reached", crawlContext.CrawlConfiguration.CrawlTimeoutSeconds) };
+                    return new CrawlDecision { Allow = false, Reason = string.Format("Crawl timeout of [{0}] seconds has been reached", crawlContext.CrawlConfiguration.CrawlTimeoutSeconds) };
             }
 
             return new CrawlDecision { Allow = true }; ;
