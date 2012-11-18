@@ -1,7 +1,6 @@
 ﻿
 using Abot.Crawler;
 using Abot.Poco;
-using log4net.Config;
 using System;
 using System.Net;
 
@@ -11,14 +10,16 @@ namespace Abot.Demo
     {
         static void Main(string[] args)
         {
-            XmlConfigurator.Configure();
+            //XmlConfigurator.Configure();
 
             //Initialize the crawler
             WebCrawler crawler = new WebCrawler();
 
-            //Subscribe to page events
-            crawler.PageCrawlStarting += new EventHandler<PageCrawlStartingArgs>(ProcessPageCrawlStarting);
-            crawler.PageCrawlCompleted += new EventHandler<PageCrawlCompletedArgs>(ProcessPageCrawlCompleted);
+            //Subscribe to any of these asynchronous events
+            crawler.PageCrawlStarting += crawler_ProcessPageCrawlStarting;
+            crawler.PageCrawlCompleted += crawler_ProcessPageCrawlCompleted;
+            crawler.PageCrawlDisallowed += crawler_PageCrawlDisallowed;
+            crawler.PageLinksCrawlDisallowed += crawler_PageLinksCrawlDisallowed;
 
             //Start the crawl
             CrawlResult result = crawler.Crawl(new Uri("http://localhost:1111/"));
@@ -32,38 +33,35 @@ namespace Abot.Demo
             Console.WriteLine("Completed in {0}", result.Elapsed);
         }
 
-        //TODO print crawl results here
-        //PrintCrawlResult(crawledPages);
-        //private void PrintCrawlResult(List<CrawledPage> crawledPages)
-        //{
-        //    var workingPages = crawledPages.Where(c => c.HttpWebResponse != null && c.HttpWebResponse.StatusCode == HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
-        //    var brokenPages = crawledPages.Where(c => c.HttpWebResponse == null || c.HttpWebResponse.StatusCode != HttpStatusCode.OK).OrderBy(o => o.Uri.AbsoluteUri);
-
-        //    _logger.DebugFormat("Total Crawled Pages: [{0}]", crawledPages.Count());
-        //    PrintCollection("Working Pages", workingPages);
-        //    PrintCollection("Broken Pages", brokenPages);
-        //}
-
-
-        //Event handler for when the Async PageCrawlStarting event fires
-        private static void ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
+        static void crawler_ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
         {
             PageToCrawl pageToCrawl = e.PageToCrawl;
             Console.WriteLine("About to crawl link {0} which was found on page {1}", pageToCrawl.Uri.AbsoluteUri, pageToCrawl.ParentUri.AbsoluteUri);
         }
 
-        //Event handler for when the Async PageCrawlCompleted event fires
-        private static void ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        static void crawler_ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
         {
             CrawledPage crawledPage = e.CrawledPage;
 
             if (crawledPage.WebException != null || crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
-                Console.WriteLine("Crawl of page failed!!");
+                Console.WriteLine("Crawl of page failed {0}", crawledPage.Uri.AbsoluteUri);
             else
-                Console.WriteLine("Crawl of page succeeded!!");
+                Console.WriteLine("Crawl of page succeeded {0}", crawledPage.Uri.AbsoluteUri);
 
             if (string.IsNullOrEmpty(crawledPage.RawContent))
-                Console.WriteLine("Page returned no html content");
+                Console.WriteLine("Page had no content {0}", crawledPage.Uri.AbsoluteUri);
+        }
+
+        static void crawler_PageLinksCrawlDisallowed(object sender, PageLinksCrawlDisallowedArgs e)
+        {
+            CrawledPage crawledPage = e.CrawledPage;
+            Console.WriteLine("Did not crawl the links on page {0} due to {1}", crawledPage.Uri.AbsoluteUri, e.DisallowedReason);
+        }
+
+        static void crawler_PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
+        {
+            PageToCrawl pageToCrawl = e.PageToCrawl;
+            Console.WriteLine("Did not crawl page {0} due to {1}", pageToCrawl.Uri.AbsoluteUri, e.DisallowedReason);
         }
     }
 }
