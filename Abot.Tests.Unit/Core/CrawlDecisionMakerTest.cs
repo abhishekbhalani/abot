@@ -116,7 +116,7 @@ namespace Abot.Tests.Unit.Core
                     }
                 });
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Crawl timedout of [99] seconds has been reached", result.Reason);
+            Assert.AreEqual("Crawl timeout of [99] seconds has been reached", result.Reason);
         }
 
         [Test]

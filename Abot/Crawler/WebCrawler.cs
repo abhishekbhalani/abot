@@ -103,7 +103,7 @@ namespace Abot.Crawler
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = crawlConfiguration ?? new CrawlConfigurationProvider().GetConfiguration();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? new CrawlConfiguration();
 
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();

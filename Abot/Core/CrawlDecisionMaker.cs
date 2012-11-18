@@ -7,7 +7,7 @@ namespace Abot.Core
     public interface ICrawlDecisionMaker
     {
         /// <summary>
-        /// Decides whether the page param should be crawled
+        /// Decides whether the page should be crawled
         /// </summary>
         CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl, CrawlContext crawlContext);
 
