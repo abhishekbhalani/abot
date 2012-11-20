@@ -9,7 +9,7 @@ namespace Abot.Poco
             MaxConcurrentThreads = 10;
             UserAgentString = "abot v1.0 http://code.google.com/p/abot";
             MaxPagesToCrawl = 1000;
-            Data = new Dictionary<string, string>();
+            ConfigurationExtensions = new Dictionary<string, string>();
         }
 
         /// <summary>
@@ -35,19 +35,28 @@ namespace Abot.Poco
         /// <summary>
         /// Dictionary that stores additional keyvalue pairs that can be accessed throught the crawl pipeline
         /// </summary>
-        public Dictionary<string, string> Data { get; set; }
+        //TODO Fill this from... 
+        //<ConfigurationExtensions />
+        //  <ConfigurationExtension key="key1" value="value1" />
+        //  <ConfigurationExtension key="key2" value="value2" />
+        //<//ConfigurationExtensions>
+        public Dictionary<string, string> ConfigurationExtensions { get; set; }
+        
 
-//IsThrottlingEnabled
-//IsUriRecrawlingEnabled
-//ManualCrawlDelay (per domain)
-//DownloadableContentTypes = text/html,application/xyz
-//MaxDomainDiscoveryLevel
-//    0 = internal links only, 
-//    1 = internal + external, 
-//    2 = internal + external + external
-//    IsWwwSameAsNonWww
-//    IsSubdomainSameAsRoot
-//    IsHttpSameAsHttps
-	
+        public bool IsThrottlingEnabled { get; set; }
+
+        public bool IsUriRecrawlingEnabled { get; set; }
+
+        public long ManualCrawlDelayMilliSeconds { get; set; }
+
+        public int MaxDomainDiscoveryLevel { get; set; }
+        //    0 = internal links only, 
+        //    1 = internal + external, 
+        //    2 = internal + external + external
+        //    IsWwwSameAsNonWww
+        //    IsSubdomainSameAsRoot
+        //    IsHttpSameAsHttps
+
+        public string DownloadableContentTypes { get; set; }//text/html,application/xyz	
     }
 }

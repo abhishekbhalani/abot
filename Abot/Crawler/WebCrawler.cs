@@ -227,9 +227,9 @@ namespace Abot.Crawler
                     _logger.InfoFormat("{0}{1}: {2}", indentString, property.Name, property.GetValue(config, null));
             }
 
-            foreach (string key in config.Data.Keys)
+            foreach (string key in config.ConfigurationExtensions.Keys)
             {
-                _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.Data[key]);
+                _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
             }
         }
 
