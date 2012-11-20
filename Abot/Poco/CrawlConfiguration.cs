@@ -36,5 +36,18 @@ namespace Abot.Poco
         /// Dictionary that stores additional keyvalue pairs that can be accessed throught the crawl pipeline
         /// </summary>
         public Dictionary<string, string> Data { get; set; }
+
+//IsThrottlingEnabled
+//IsUriRecrawlingEnabled
+//ManualCrawlDelay (per domain)
+//DownloadableContentTypes = text/html,application/xyz
+//MaxDomainDiscoveryLevel
+//    0 = internal links only, 
+//    1 = internal + external, 
+//    2 = internal + external + external
+//    IsWwwSameAsNonWww
+//    IsSubdomainSameAsRoot
+//    IsHttpSameAsHttps
+	
     }
 }
