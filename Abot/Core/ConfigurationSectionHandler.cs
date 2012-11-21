@@ -1,7 +1,9 @@
 ﻿using System.Configuration;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Abot.Core
 {
+    [ExcludeFromCodeCoverage]
     public class ConfigurationSectionHandler : ConfigurationSection
     {
         public ConfigurationSectionHandler()
@@ -43,6 +45,7 @@ namespace Abot.Core
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class PolitenessElement : ConfigurationElement
     {
         [ConfigurationProperty("isThrottlingEnabled", IsRequired = true)]
@@ -61,6 +64,7 @@ namespace Abot.Core
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class CrawlBehaviorElement : ConfigurationElement
     {
         [ConfigurationProperty("maxConcurrentThreads", IsRequired = true)]
@@ -115,6 +119,7 @@ namespace Abot.Core
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class ExtensionValueElement : ConfigurationElement
     {
         [ConfigurationProperty("key", IsRequired = true, IsKey = true)]
@@ -133,6 +138,7 @@ namespace Abot.Core
 
     }
 
+    [ExcludeFromCodeCoverage]
     public class ExtensionValueCollection : ConfigurationElementCollection
     {
         public ExtensionValueElement this[int index]

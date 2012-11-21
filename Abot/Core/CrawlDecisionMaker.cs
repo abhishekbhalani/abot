@@ -68,7 +68,7 @@ namespace Abot.Core
             if (crawlContext == null)
                 return new CrawlDecision { Allow = false, Reason = "Null crawl context" };            
 
-            if(string.IsNullOrEmpty(crawledPage.RawContent) || (crawledPage.RawContent.Trim().Length == 0))
+            if(string.IsNullOrWhiteSpace(crawledPage.RawContent))
                 return new CrawlDecision { Allow = false, Reason = "Page has no content" };
 
             if(crawlContext.RootUri == null || !crawlContext.RootUri.IsBaseOf(crawledPage.Uri))

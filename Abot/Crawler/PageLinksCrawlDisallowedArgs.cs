@@ -10,7 +10,7 @@ namespace Abot.Crawler
         public PageLinksCrawlDisallowedArgs(CrawledPage crawledPage, string disallowedReason)
             : base(crawledPage)
         {
-            if (string.IsNullOrEmpty(disallowedReason) || disallowedReason.Trim().Length == 0)
+            if (string.IsNullOrWhiteSpace(disallowedReason))
                 throw new ArgumentNullException("disallowedReason");
 
             DisallowedReason = disallowedReason;
