@@ -103,7 +103,7 @@ namespace Abot.Crawler
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = crawlConfiguration ?? new CrawlConfiguration();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
 
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
@@ -143,6 +143,14 @@ namespace Abot.Crawler
             return _crawlResult;
         }
 
+        private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
+        {
+            ConfigurationSectionHandler configFromFile = ((ConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
+            if (configFromFile == null)
+                throw new InvalidOperationException("CrawlConfiguration must either be supplied to constructor or there must be an <abot> config section in the app/web.config file.");
+
+            return configFromFile.Convert();
+        }
 
         private void CrawlSite()
         {
@@ -235,54 +243,54 @@ namespace Abot.Crawler
 
         private void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
         {
-            try
-            {
+            //try
+            //{
                 OnPageCrawlStarting(new PageCrawlStartingArgs(pageToCrawl));
-            }
-            catch (Exception e)
-            {
-                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+            //    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+            //}
         }
 
         private void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
         {
-            try
-            {
+            //try
+            //{
                 OnPageCrawlCompleted(new PageCrawlCompletedArgs(crawledPage));
-            }
-            catch (Exception e)
-            {
-                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+            //    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
+            //}
         }
 
         private void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
         {
-            try
-            {
+            //try
+            //{
                 OnPageCrawlDisallowed(new PageCrawlDisallowedArgs(pageToCrawl, reason));
-            }
-            catch (Exception e)
-            {
-                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+            //    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+            //}
         }
 
         private void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
         {
-            try
-            {
+            //try
+            //{
                 OnPageLinksCrawlDisallowed(new PageLinksCrawlDisallowedArgs(crawledPage, reason));
-            }
-            catch (Exception e)
-            {
-                //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri, e);
-            }
+            //}
+            //catch (Exception e)
+            //{
+            //    //Since the implementation of OnPageCrawlStarting() is async this should never happen, however leaving this try catch in case the impl changes
+            //    _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri, e);
+            //}
         }
 
         private void OnPageCrawlStarting(PageCrawlStartingArgs e)

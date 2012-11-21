@@ -18,6 +18,7 @@ namespace Abot.Tests.Unit.Crawler
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
         FifoScheduler _dummyScheduler;
         ThreadManager _dummyThreadManager;
+        CrawlConfiguration _dummyConfiguration;
         Uri _rootUri;
 
         [SetUp]
@@ -29,8 +30,10 @@ namespace Abot.Tests.Unit.Crawler
 
             _dummyScheduler = new FifoScheduler();
             _dummyThreadManager = new ThreadManager(1);
+            _dummyConfiguration = new CrawlConfiguration();
+            _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
 
             _rootUri = new Uri("http://a.com/");
         }

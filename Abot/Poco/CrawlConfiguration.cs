@@ -1,6 +1,5 @@
-﻿
-using Abot.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+
 namespace Abot.Poco
 {
     public class CrawlConfiguration
@@ -11,13 +10,6 @@ namespace Abot.Poco
             UserAgentString = "abot v1.0 http://code.google.com/p/abot";
             MaxPagesToCrawl = 1000;
             ConfigurationExtensions = new Dictionary<string, string>();
-        }
-
-        public CrawlConfiguration(ConfigurationSectionHandler section)
-        {
-            //TODO convert section to this
-            //TODO use automapper to copy the properties
-            //TODO also see if anything else is manually mapping values
         }
 
         #region crawlBehavior
