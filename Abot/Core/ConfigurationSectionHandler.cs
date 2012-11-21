@@ -45,14 +45,14 @@ namespace Abot.Core
 
     public class PolitenessElement : ConfigurationElement
     {
-        [ConfigurationProperty("isThrottlingEnabled", DefaultValue = "false", IsRequired = true)]
+        [ConfigurationProperty("isThrottlingEnabled", IsRequired = true)]
         public bool IsThrottlingEnabled
         {
             get { return (bool)this["isThrottlingEnabled"]; }
             set { this["isThrottlingEnabled"] = value; }
         }
 
-        [ConfigurationProperty("manualCrawlDelayMilliSeconds", DefaultValue = "0", IsRequired = true)]
+        [ConfigurationProperty("manualCrawlDelayMilliSeconds", IsRequired = true)]
         [LongValidator]
         public long ManualCrawlDelayMilliSeconds
         {
@@ -63,15 +63,14 @@ namespace Abot.Core
 
     public class CrawlBehaviorElement : ConfigurationElement
     {
-        [ConfigurationProperty("maxConcurrentThreads", DefaultValue = "10", IsRequired = true)]
-        [IntegerValidator(MinValue = 1, MaxValue = 100)]
+        [ConfigurationProperty("maxConcurrentThreads", IsRequired = true)]
         public int MaxConcurrentThreads
         {
             get { return (int)this["maxConcurrentThreads"]; }
             set { this["maxConcurrentThreads"] = value; }
         }
 
-        [ConfigurationProperty("maxDomainDiscoveryLevel", DefaultValue = "0", IsRequired = true)]
+        [ConfigurationProperty("maxDomainDiscoveryLevel", IsRequired = true)]
         [IntegerValidator]
         public int MaxDomainDiscoveryLevel
         {
@@ -79,7 +78,7 @@ namespace Abot.Core
             set { this["maxDomainDiscoveryLevel"] = value; }
         }
 
-        [ConfigurationProperty("maxPagesToCrawl", DefaultValue = "1000", IsRequired = true)]
+        [ConfigurationProperty("maxPagesToCrawl", IsRequired = true)]
         [IntegerValidator]
         public int MaxPagesToCrawl
         {
@@ -87,28 +86,28 @@ namespace Abot.Core
             set { this["maxPagesToCrawl"] = value; }
         }
 
-        [ConfigurationProperty("userAgentString", DefaultValue = "", IsRequired = true)]
+        [ConfigurationProperty("userAgentString", IsRequired = true)]
         public string UserAgentString
         {
             get { return (string)this["userAgentString"]; }
             set { this["userAgentString"] = value; }
         }
 
-        [ConfigurationProperty("crawlTimeoutSeconds", DefaultValue = "0", IsRequired = true)]
+        [ConfigurationProperty("crawlTimeoutSeconds", IsRequired = true)]
         public int CrawlTimeoutSeconds
         {
             get { return (int)this["crawlTimeoutSeconds"]; }
             set { this["crawlTimeoutSeconds"] = value; }
         }
 
-        [ConfigurationProperty("downloadableContentTypes", DefaultValue = "text/html", IsRequired = true)]
+        [ConfigurationProperty("downloadableContentTypes", IsRequired = true)]
         public string DownloadableContentTypes
         {
             get { return (string)this["downloadableContentTypes"]; }
             set { this["downloadableContentTypes"] = value; }
         }
 
-        [ConfigurationProperty("isUriRecrawlingEnabled", DefaultValue = "false", IsRequired = true)]
+        [ConfigurationProperty("isUriRecrawlingEnabled", IsRequired = true)]
         public bool IsUriRecrawlingEnabled
         {
             get { return (bool)this["isUriRecrawlingEnabled"]; }
@@ -118,14 +117,14 @@ namespace Abot.Core
 
     public class ExtensionValueElement : ConfigurationElement
     {
-        [ConfigurationProperty("key", DefaultValue = "", IsRequired = true, IsKey = true)]
+        [ConfigurationProperty("key", IsRequired = true, IsKey = true)]
         public string Key
         {
             get { return (string)this["key"]; }
             set { this["key"] = value; }
         }
 
-        [ConfigurationProperty("value", DefaultValue = "", IsRequired = true, IsKey = false)]
+        [ConfigurationProperty("value", IsRequired = true, IsKey = false)]
         public string Value
         {
             get { return (string)this["value"]; }
@@ -149,16 +148,6 @@ namespace Abot.Core
             }
         }
 
-        public void Add(ExtensionValueElement serviceConfig)
-        {
-            BaseAdd(serviceConfig);
-        }
-
-        //public void Clear()
-        //{
-        //    BaseClear();
-        //}
-
         protected override ConfigurationElement CreateNewElement()
         {
             return new ExtensionValueElement();
@@ -168,20 +157,5 @@ namespace Abot.Core
         {
             return ((ExtensionValueElement)element).Key;
         }
-
-        //public void Remove(ServiceConfig serviceConfig)
-        //{
-        //    BaseRemove(serviceConfig.Port);
-        //}
-
-        //public void RemoveAt(int index)
-        //{
-        //    BaseRemoveAt(index);
-        //}
-
-        //public void Remove(string name)
-        //{
-        //    BaseRemove(name);
-        //}
     }
 }
