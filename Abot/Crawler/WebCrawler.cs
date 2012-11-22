@@ -231,7 +231,7 @@ namespace Abot.Crawler
             string indentString = new string(' ', 2);
             foreach (PropertyInfo property in config.GetType().GetProperties())
             {
-                if (property.Name != "Data")
+                if (property.Name != "ConfigurationExtensions")
                     _logger.InfoFormat("{0}{1}: {2}", indentString, property.Name, property.GetValue(config, null));
             }
 

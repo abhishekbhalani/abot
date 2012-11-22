@@ -40,7 +40,7 @@ namespace Abot.Core
 
             lock (crawlContext.CrawledUrls)
             {
-                if (crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+                if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
                     return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
 
                 if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
@@ -94,8 +94,19 @@ namespace Abot.Core
             if (crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
                 return new CrawlDecision { Allow = false, Reason = "HttpStatusCode is not 200" };
             
-            if (!crawledPage.HttpWebResponse.ContentType.ToLower().Contains("text/html"))
-                return new CrawlDecision { Allow = false, Reason = "Content type is not text/html" };
+            //TODO This fails when the contenttype is "text/html; utf-8". Need to make this smarter!!!!!!!!!!!!!!!!!!!!!!!!!
+            string pageContentType = crawledPage.HttpWebResponse.ContentType.ToLower().Trim();
+            bool isDownloadable = false;
+            foreach (string downloadableContentType in crawlContext.CrawlConfiguration.DownloadableContentTypes.Split(','))
+            {
+                if (pageContentType.Contains(downloadableContentType.ToLower().Trim()))
+                {
+                    isDownloadable = true;
+                    break;
+                }
+            }
+            if (!isDownloadable)
+                return new CrawlDecision { Allow = false, Reason = "Content type is not any of the following: " + crawlContext.CrawlConfiguration.DownloadableContentTypes };
             
             return new CrawlDecision { Allow = true };            
         }

@@ -10,10 +10,13 @@ namespace Abot.Tests.Unit.Core
     public class CrawlDecisionMakerTest
     {
         CrawlDecisionMaker _unitUnderTest;
+        CrawlContext _crawlContext;
 
         [SetUp]
         public void SetUp()
         {
+            _crawlContext = new CrawlContext();
+            _crawlContext.CrawlConfiguration = new CrawlConfiguration();
             _unitUnderTest = new CrawlDecisionMaker();
         }
 
@@ -51,13 +54,11 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
+            _crawlContext.CrawledUrls = new List<string> { "http://a.com/" };
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(
                     new Uri("http://a.com/")),
-                    new CrawlContext()
-                    {
-                        CrawledUrls = new List<string> { "http://a.com/" }
-                    });
+                    _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link already crawled", result.Reason);
         }
@@ -216,7 +217,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri valid200StatusUri = new Uri("http://localhost:1111/");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), _crawlContext);
 
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
@@ -271,10 +272,10 @@ namespace Abot.Tests.Unit.Core
         {
             Uri imageUrl = new Uri("http://localhost:1111/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(imageUrl), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(imageUrl), _crawlContext);
 
             Assert.AreEqual(false, result.Allow);
-            Assert.AreEqual("Content type is not text/html", result.Reason);
+            Assert.AreEqual("Content type is not any of the following: text/html", result.Reason);
         }
     }
 }
