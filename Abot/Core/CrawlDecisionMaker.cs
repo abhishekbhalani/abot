@@ -94,7 +94,6 @@ namespace Abot.Core
             if (crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
                 return new CrawlDecision { Allow = false, Reason = "HttpStatusCode is not 200" };
             
-            //TODO This fails when the contenttype is "text/html; utf-8". Need to make this smarter!!!!!!!!!!!!!!!!!!!!!!!!!
             string pageContentType = crawledPage.HttpWebResponse.ContentType.ToLower().Trim();
             bool isDownloadable = false;
             foreach (string downloadableContentType in crawlContext.CrawlConfiguration.DownloadableContentTypes.Split(','))
