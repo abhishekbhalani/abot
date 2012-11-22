@@ -17,7 +17,6 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("bbbb", _config.CrawlBehavior.DownloadableContentTypes);
             Assert.AreEqual(true, _config.CrawlBehavior.IsUriRecrawlingEnabled); 
             Assert.AreEqual(11, _config.CrawlBehavior.MaxConcurrentThreads);
-            Assert.AreEqual(22, _config.CrawlBehavior.MaxDomainDiscoveryLevel);
             Assert.AreEqual(33, _config.CrawlBehavior.MaxPagesToCrawl);
             Assert.AreEqual("aaaa", _config.CrawlBehavior.UserAgentString);
             
@@ -42,7 +41,6 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.DownloadableContentTypes, _config.CrawlBehavior.DownloadableContentTypes);
             Assert.AreEqual(result.IsUriRecrawlingEnabled, _config.CrawlBehavior.IsUriRecrawlingEnabled);
             Assert.AreEqual(result.MaxConcurrentThreads, _config.CrawlBehavior.MaxConcurrentThreads);
-            Assert.AreEqual(result.MaxDomainDiscoveryLevel, _config.CrawlBehavior.MaxDomainDiscoveryLevel);
             Assert.AreEqual(result.MaxPagesToCrawl, _config.CrawlBehavior.MaxPagesToCrawl);
             Assert.AreEqual(result.UserAgentString, _config.CrawlBehavior.UserAgentString);
 

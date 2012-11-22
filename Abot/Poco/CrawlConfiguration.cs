@@ -25,14 +25,6 @@ namespace Abot.Poco
         /// </summary>
         public long MaxPagesToCrawl { get; set; }
 
-        public int MaxDomainDiscoveryLevel { get; set; }
-        //    0 = internal links only, 
-        //    1 = internal + external, 
-        //    2 = internal + external + external
-        //    IsWwwSameAsNonWww
-        //    IsSubdomainSameAsRoot
-        //    IsHttpSameAsHttps
-
         /// <summary>
         /// The user agent string to use for http requests
         /// </summary>

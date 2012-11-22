@@ -69,13 +69,6 @@ namespace Abot.Core
             get { return (int)this["maxConcurrentThreads"]; }
         }
 
-        [ConfigurationProperty("maxDomainDiscoveryLevel", IsRequired = true)]
-        [IntegerValidator]
-        public int MaxDomainDiscoveryLevel
-        {
-            get { return (int)this["maxDomainDiscoveryLevel"]; }
-        }
-
         [ConfigurationProperty("maxPagesToCrawl", IsRequired = true)]
         [IntegerValidator]
         public int MaxPagesToCrawl
