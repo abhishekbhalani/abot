@@ -24,7 +24,7 @@ namespace Abot.Core
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
-        public CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl, CrawlContext crawlContext)
+        public virtual CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl, CrawlContext crawlContext)
         {
             if(pageToCrawl == null)
                 return new CrawlDecision { Allow = false, Reason = "Null page to crawl" };
@@ -57,7 +57,7 @@ namespace Abot.Core
             return new CrawlDecision { Allow = true }; ;
         }
 
-        public CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage, CrawlContext crawlContext)
+        public virtual CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage, CrawlContext crawlContext)
         {
             if (crawledPage == null)
                 return new CrawlDecision{Allow = false, Reason = "Null crawled page"};
@@ -74,10 +74,7 @@ namespace Abot.Core
             return new CrawlDecision{Allow = true};
         }
 
-        /// <summary>
-        /// Will allow the dowloading of a page's content if the page returned a 200 status and has a downloadable content type
-        /// </summary>
-        public CrawlDecision ShouldDownloadPageContent(CrawledPage crawledPage, CrawlContext crawlContext)
+        public virtual CrawlDecision ShouldDownloadPageContent(CrawledPage crawledPage, CrawlContext crawlContext)
         {
             if (crawledPage == null)
                 return new CrawlDecision { Allow = false, Reason = "Null crawled page" };
