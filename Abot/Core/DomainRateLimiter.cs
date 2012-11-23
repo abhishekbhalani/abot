@@ -44,8 +44,6 @@ namespace Abot.Core
 
             if(timer.ElapsedMilliseconds > 10)
                 _logger.DebugFormat("Rate limited [{0}] [{1}] milliseconds", uri.AbsolutePath, timer.ElapsedMilliseconds);
-            else
-                _logger.DebugFormat("AAARate limited [{0}] [{1}] milliseconds", uri.AbsolutePath, timer.ElapsedMilliseconds);
         }
     }
 }
