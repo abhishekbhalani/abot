@@ -12,6 +12,8 @@ namespace Abot.Tests.Unit.Poco
         {
             PageToCrawl unitUnderTest = new PageToCrawl(new Uri("http://a.com/"));
             Assert.AreEqual(false, unitUnderTest.IsRetry);
+            Assert.AreEqual(false, unitUnderTest.IsRoot);
+            Assert.AreEqual(false, unitUnderTest.IsInternal);
             Assert.AreEqual(null, unitUnderTest.ParentUri);
             Assert.AreEqual("http://a.com/", unitUnderTest.Uri.AbsoluteUri);
         }

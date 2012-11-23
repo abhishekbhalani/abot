@@ -46,6 +46,16 @@ namespace Abot.Poco
         public bool IsUriRecrawlingEnabled { get; set; }
 
         /// <summary>
+        /// Whether pages external to the root uri should be crawled
+        /// </summary>
+        public bool IsExternalPageCrawlingEnabled { get; set; }
+
+        /// <summary>
+        /// Whether pages external to the root uri should have their links crawled. NOTE: IsExternalPageCrawlEnabled must be true for this setting to have any effect
+        /// </summary>
+        public bool IsExternalPageLinksCrawlingEnabled { get; set; }
+
+        /// <summary>
         /// A comma seperated string that has content types that should have their page content downloaded. For each page, the content type is checked to see if it contains any of the values defined here.
         /// </summary>
         public string DownloadableContentTypes { get; set; }

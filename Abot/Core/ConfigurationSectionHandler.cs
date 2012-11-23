@@ -99,6 +99,18 @@ namespace Abot.Core
         {
             get { return (bool)this["isUriRecrawlingEnabled"]; }
         }
+
+        [ConfigurationProperty("isExternalPageCrawlingEnabled", IsRequired = true)]
+        public bool IsExternalPageCrawlingEnabled
+        {
+            get { return (bool)this["isExternalPageCrawlingEnabled"]; }
+        }
+
+        [ConfigurationProperty("isExternalPageLinksCrawlingEnabled", IsRequired = true)]
+        public bool IsExternalPageLinksCrawlingEnabled
+        {
+            get { return (bool)this["isExternalPageLinksCrawlingEnabled"]; }
+        }
     }
 
     public class ExtensionValueElement : ConfigurationElement

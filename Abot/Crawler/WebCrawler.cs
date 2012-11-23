@@ -49,7 +49,6 @@ namespace Abot.Crawler
         ICrawlDecisionMaker _crawlDecisionMaker;
 
 
-
         /// <summary>
         /// Asynchronous event that is fired before a page is crawled.
         /// </summary>
@@ -130,7 +129,7 @@ namespace Abot.Crawler
             _logger.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
             PrintConfigValues(_crawlContext.CrawlConfiguration);
 
-            _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri });
+            _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true, IsRoot = true });
 
             _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
@@ -197,6 +196,8 @@ namespace Abot.Crawler
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             crawledPage.IsRetry = pageToCrawl.IsRetry;
             crawledPage.ParentUri = pageToCrawl.ParentUri;
+            crawledPage.IsInternal = pageToCrawl.IsInternal;
+            crawledPage.IsRoot = pageToCrawl.IsRoot;
 
             if (crawledPage.HttpWebResponse == null)
                 _logger.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Parent:[{1}]", crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
@@ -214,7 +215,7 @@ namespace Abot.Crawler
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri });
+                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _crawlContext.RootUri.IsBaseOf(uri), IsRoot = false });
                 }
             }
             else

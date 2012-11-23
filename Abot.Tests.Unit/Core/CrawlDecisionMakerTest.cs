@@ -41,7 +41,10 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPage_NonDuplicate_ReturnsTrue()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(new Uri("http://a.com/")),
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = true
+                },
                 new CrawlContext
                 {
                     CrawlConfiguration = new CrawlConfiguration(),
@@ -68,23 +71,23 @@ namespace Abot.Tests.Unit.Core
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")), new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Invalid scheme", result.Reason);
+            Assert.AreEqual("Scheme does not begin with http", result.Reason);
 
             result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")), new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Invalid scheme", result.Reason);
+            Assert.AreEqual("Scheme does not begin with http", result.Reason);
 
             result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")), new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Invalid scheme", result.Reason);
+            Assert.AreEqual("Scheme does not begin with http", result.Reason);
 
             result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")), new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Invalid scheme", result.Reason);
+            Assert.AreEqual("Scheme does not begin with http", result.Reason);
 
             result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")), new CrawlContext());
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Invalid scheme", result.Reason);
+            Assert.AreEqual("Scheme does not begin with http", result.Reason);
         }
 
         [Test]
@@ -124,7 +127,7 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPage_CrawlTimeoutSecondsZero_ReturnsTrue()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(new Uri("http://a.com/")),
+                new PageToCrawl(new Uri("http://a.com/")) { IsInternal = true },
                 new CrawlContext
                 {
                     CrawlStartDate = DateTime.Now.AddSeconds(-100),
@@ -132,6 +135,86 @@ namespace Abot.Tests.Unit.Core
                     {
                         CrawlTimeoutSeconds = 0 //equivalent to infinity
                     }
+                });
+            Assert.IsTrue(result.Allow);
+            Assert.AreEqual("", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_IsExternalPageCrawlingEnabledFalse_PageIsExternal_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = false
+                },
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageCrawlingEnabled = false
+                    },
+                    CrawlStartDate = DateTime.Now,
+                });
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Link is external", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_IsExternalPageCrawlingEnabledTrue_PageIsExternal_ReturnsTrue()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = false
+                },
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageCrawlingEnabled = true
+                    },
+                    CrawlStartDate = DateTime.Now,
+                });
+            Assert.IsTrue(result.Allow);
+            Assert.AreEqual("", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_IsExternalPageCrawlingEnabledFalse_PageIsInternal_ReturnsTrue()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = true
+                },
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageCrawlingEnabled = false
+                    },
+                    CrawlStartDate = DateTime.Now,
+                });
+            Assert.IsTrue(result.Allow);
+            Assert.AreEqual("", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_IsExternalPageCrawlingEnabledTrue_PageIsInternal_ReturnsTrue()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = true
+                },
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageCrawlingEnabled = true
+                    },
+                    CrawlStartDate = DateTime.Now,
                 });
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
@@ -180,35 +263,66 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void ShouldCrawlPageLinks_InternalLink_ReturnsTrue()
+        public void ShouldCrawlPageLinks_IsExternalPageLinksCrawlingEnabledFalse_ExternalLink_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
-                new CrawledPage(new Uri("http://a.com/a.html"))
+                new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    RawContent = "aaaa"
-                }, 
-                new CrawlContext 
+                    RawContent = "aaaa",
+                    IsInternal = false
+                },
+                new CrawlContext
                 {
-                    RootUri = new Uri("http://a.com/ ")
+                    RootUri = new Uri("http://a.com/ "),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageLinksCrawlingEnabled = false
+                    }
+                });
+            Assert.AreEqual(false, result.Allow);
+            Assert.AreEqual("Link is external", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPageLinks_IsExternalPageLinksCrawlingEnabledTrue_InternalLink_ReturnsTrue()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
+                new CrawledPage(new Uri("http://b.com/a.html"))
+                {
+                    RawContent = "aaaa",
+                    IsInternal = true
+                },
+                new CrawlContext
+                {
+                    RootUri = new Uri("http://a.com/ "),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageLinksCrawlingEnabled = true
+                    }
                 });
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
         }
 
         [Test]
-        public void ShouldCrawlPageLinks_ExternalLink_ReturnsFalse()
+        public void ShouldCrawlPageLinks_IsExternalPageLinksCrawlingEnabledFalse_InternalLink_ReturnsTrue()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
                     RawContent = "aaaa",
+                    IsInternal = true
                 },
                 new CrawlContext
                 {
-                    RootUri = new Uri("http://a.com/ ")
+                    RootUri = new Uri("http://a.com/ "),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageLinksCrawlingEnabled = false
+                    }
                 });
-            Assert.AreEqual(false, result.Allow);
-            Assert.AreEqual("Link is external", result.Reason);
+            Assert.AreEqual(true, result.Allow);
+            Assert.AreEqual("", result.Reason);
         }
 
 

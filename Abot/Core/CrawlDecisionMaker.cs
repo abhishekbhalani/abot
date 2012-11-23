@@ -24,9 +24,6 @@ namespace Abot.Core
 
     public class CrawlDecisionMaker : ICrawlDecisionMaker
     {
-        /// <summary>
-        /// Will allow any page to be crawled that has not already been crawled
-        /// </summary>
         public CrawlDecision ShouldCrawlPage(PageToCrawl pageToCrawl, CrawlContext crawlContext)
         {
             if(pageToCrawl == null)
@@ -36,7 +33,7 @@ namespace Abot.Core
                 return new CrawlDecision { Allow = false, Reason = "Null crawl context" };            
 
             if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
-                return new CrawlDecision { Allow = false, Reason = "Invalid scheme" };
+                return new CrawlDecision { Allow = false, Reason = "Scheme does not begin with http" };
 
             lock (crawlContext.CrawledUrls)
             {
@@ -54,12 +51,12 @@ namespace Abot.Core
                     return new CrawlDecision { Allow = false, Reason = string.Format("Crawl timeout of [{0}] seconds has been reached", crawlContext.CrawlConfiguration.CrawlTimeoutSeconds) };
             }
 
+            if(!crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled && !pageToCrawl.IsInternal)
+                return new CrawlDecision { Allow = false, Reason = "Link is external" };
+
             return new CrawlDecision { Allow = true }; ;
         }
 
-        /// <summary>
-        /// Will allow the crawling of all internal links only
-        /// </summary>
         public CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage, CrawlContext crawlContext)
         {
             if (crawledPage == null)
@@ -71,14 +68,14 @@ namespace Abot.Core
             if(string.IsNullOrWhiteSpace(crawledPage.RawContent))
                 return new CrawlDecision { Allow = false, Reason = "Page has no content" };
 
-            if(crawlContext.RootUri == null || !crawlContext.RootUri.IsBaseOf(crawledPage.Uri))
+            if (!crawlContext.CrawlConfiguration.IsExternalPageLinksCrawlingEnabled && !crawledPage.IsInternal)
                 return new CrawlDecision { Allow = false, Reason = "Link is external" };
             
             return new CrawlDecision{Allow = true};
         }
 
         /// <summary>
-        /// Will allow the dowloading of a page's content if the page returned a 200 status and is text/html
+        /// Will allow the dowloading of a page's content if the page returned a 200 status and has a downloadable content type
         /// </summary>
         public CrawlDecision ShouldDownloadPageContent(CrawledPage crawledPage, CrawlContext crawlContext)
         {
