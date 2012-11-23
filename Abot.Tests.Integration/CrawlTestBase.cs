@@ -34,7 +34,7 @@ namespace Abot.Tests.Integration
 
         public void CrawlAndAssert(IWebCrawler crawler)
         {
-            crawler.PageCrawlCompleted += crawler_PageCrawlCompleted;
+            crawler.PageCrawlCompletedAsync += crawler_PageCrawlCompleted;
 
             CrawlResult result = crawler.Crawl(_rootUri);
 

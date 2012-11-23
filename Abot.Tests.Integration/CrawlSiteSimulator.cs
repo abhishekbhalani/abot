@@ -34,7 +34,7 @@ namespace Abot.Tests.Integration
             int pagesCrawledCount = 0;
 
             WebCrawler crawler = new WebCrawler(configuration);
-            crawler.PageCrawlCompleted += (a, b) => pagesCrawledCount++;
+            crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));
 
