@@ -24,7 +24,7 @@ namespace Abot.Tests.Unit.Core
             
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
-            Assert.AreEqual(55, _config.Politeness.ManualCrawlDelayMilliSeconds); 
+            Assert.AreEqual(55, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds); 
 
             Assert.IsNotNull(_config.ExtensionValues);
             Assert.AreEqual("key1", _config.ExtensionValues[0].Key);
@@ -49,7 +49,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
 
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
-            Assert.AreEqual(result.ManualCrawlDelayMilliSeconds, _config.Politeness.ManualCrawlDelayMilliSeconds);
+            Assert.AreEqual(result.MinCrawlDelayPerDomainMilliSeconds, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);
 
             Assert.IsNotNull(result.ConfigurationExtensions);
             Assert.AreEqual(result.ConfigurationExtensions["key1"], _config.ExtensionValues[0].Value);

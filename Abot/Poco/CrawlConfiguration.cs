@@ -72,7 +72,7 @@ namespace Abot.Poco
         /// <summary>
         /// The number of milliseconds to wait in between http requests to the same domain. Note: This will set the crawl to a single thread no matter what the MaxConcurrentThreads value is.
         /// </summary>
-        public long ManualCrawlDelayMilliSeconds { get; set; }
+        public long MinCrawlDelayPerDomainMilliSeconds { get; set; }
         
         #endregion
     }

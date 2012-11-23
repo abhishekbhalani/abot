@@ -20,7 +20,7 @@ namespace Abot.Tests.Integration
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
             new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
-            base.CrawlAndAssert(new WebCrawler());
+            base.CrawlAndAssert(new WebCrawler(new CrawlConfiguration { MinCrawlDelayPerDomainMilliSeconds = 100 }));
         }
 
         [Test]

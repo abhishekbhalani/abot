@@ -53,11 +53,11 @@ namespace Abot.Core
             get { return (bool)this["isThrottlingEnabled"]; }
         }
 
-        [ConfigurationProperty("manualCrawlDelayMilliSeconds", IsRequired = true)]
+        [ConfigurationProperty("minCrawlDelayPerDomainMilliSeconds", IsRequired = true)]
         [LongValidator]
-        public long ManualCrawlDelayMilliSeconds
+        public long MinCrawlDelayPerDomainMilliSeconds
         {
-            get { return (long)this["manualCrawlDelayMilliSeconds"]; }
+            get { return (long)this["minCrawlDelayPerDomainMilliSeconds"]; }
         }
     }
 

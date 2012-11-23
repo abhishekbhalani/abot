@@ -67,12 +67,13 @@ namespace Abot.Crawler
         IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
         ICrawlDecisionMaker _crawlDecisionMaker;
+        IDomainRateLimiter _domainRateLimiter;
 
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
         public WebCrawler()
-            :this(null, null, null, null, null, null)
+            :this(null, null, null, null, null, null, null)
         {
         }
 
@@ -80,7 +81,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
         public WebCrawler(CrawlConfiguration crawlConfiguration)
-            : this(null, null, null, null, null, crawlConfiguration)
+            : this(null, null, null, null, null, null, crawlConfiguration)
         {
         }
 
@@ -98,6 +99,7 @@ namespace Abot.Crawler
             IPageRequester httpRequester, 
             IHyperLinkParser hyperLinkParser, 
             ICrawlDecisionMaker crawlDecisionMaker,
+            IDomainRateLimiter domainRateLimiter,
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
@@ -108,6 +110,12 @@ namespace Abot.Crawler
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
+            
+            if (_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
+            {
+                _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
+                PageCrawlStarting += (object sender, PageCrawlStartingArgs e) => _domainRateLimiter.RateLimit(e.PageToCrawl.Uri);
+            }
         }
 
 

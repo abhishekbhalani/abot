@@ -56,9 +56,11 @@
   <ItemGroup>
     <Compile Include="Core\ConfigurationSectionHandlerTest.cs" />
     <Compile Include="Core\CrawlDecisionMakerTest.cs" />
+    <Compile Include="Core\DomainRateLimiterTest.cs" />
     <Compile Include="Core\FifoSchedulerTest.cs" />
     <Compile Include="Core\HyperlinkParserTest.cs" />
     <Compile Include="Core\PageRequesterTest.cs" />
+    <Compile Include="Core\RateLimiterTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgsTest.cs" />
