@@ -1,6 +1,7 @@
 ﻿
 using Abot.Crawler;
 using Abot.Poco;
+using log4net.Config;
 using System;
 using System.Net;
 
@@ -10,12 +11,12 @@ namespace Abot.Demo
     {
         static void Main(string[] args)
         {
-            //XmlConfigurator.Configure();
+            XmlConfigurator.Configure();
 
             //Initialize the crawler
             WebCrawler crawler = new WebCrawler();
 
-            //Subscribe to any of these asynchronous events
+            //Subscribe to any of these asynchronous events, there are also sychronous versions of each
             crawler.PageCrawlStartingAsync += crawler_ProcessPageCrawlStarting;
             crawler.PageCrawlCompletedAsync += crawler_ProcessPageCrawlCompleted;
             crawler.PageCrawlDisallowedAsync += crawler_PageCrawlDisallowed;
