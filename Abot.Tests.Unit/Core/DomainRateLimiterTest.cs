@@ -54,5 +54,12 @@ namespace Abot.Tests.Unit.Core
 
             Assert.IsTrue(timer.ElapsedMilliseconds < 100);
         }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void RateLimit_NullUri()
+        {
+            new DomainRateLimiter(1000).RateLimit(null);
+        }
     }
 }
