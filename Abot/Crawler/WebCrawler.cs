@@ -103,7 +103,7 @@ namespace Abot.Crawler
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
 
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
@@ -153,7 +153,7 @@ namespace Abot.Crawler
         {
             ConfigurationSectionHandler configFromFile = ((ConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
             if (configFromFile == null)
-                throw new InvalidOperationException("CrawlConfiguration must either be supplied to constructor or there must be an <abot> config section in the app/web.config file.");
+                return null;
 
             return configFromFile.Convert();
         }
