@@ -81,6 +81,12 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>del /Q $(TargetDir)IlMerge
+mkdir $(TargetDir)IlMerge
+move /Y $(TargetDir)* $(TargetDir)IlMerge\
+"C:\Program Files (x86)\Microsoft\ILMerge\ilmerge.exe"  /targetplatform:v4 /wildcards /internalize /target:library /out:$(TargetDir)Abot.dll $(TargetDir)\IlMerge\*.dll</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
