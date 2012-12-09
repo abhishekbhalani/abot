@@ -53,6 +53,19 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
+        public void Constructor_WithDecisionMaker()
+        {
+            Assert.IsNotNull(new WebCrawler(new CrawlDecisionMaker()));
+        }
+
+        [Test]
+        public void Constructor_WithDecisionMakerAndConfiguration()
+        {
+            Assert.IsNotNull(new WebCrawler(new CrawlDecisionMaker(), new CrawlConfiguration()));
+        }
+
+
+        [Test]
         public void Crawl_CallsDependencies()
         {
             Uri uri1 = new Uri(_rootUri.AbsoluteUri + "a.html");

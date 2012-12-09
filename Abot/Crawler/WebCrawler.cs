@@ -78,10 +78,26 @@ namespace Abot.Crawler
         }
 
         /// <summary>
-        /// Creates a crawler instance with the default settings and implementations.
+        /// Creates a crawler instance with the default implementations but a custom crawl configuration.
         /// </summary>
         public WebCrawler(CrawlConfiguration crawlConfiguration)
             : this(null, null, null, null, null, null, crawlConfiguration)
+        {
+        }
+
+        /// <summary>
+        /// Creates a crawler instance with the default settings and implementations except a custom CrawlDecisionMaker.
+        /// </summary>
+        public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker)
+            : this(null, null, null, null, crawlDecisionMaker, null, null)
+        {
+        }
+
+        /// <summary>
+        /// Creates a crawler instance with the default implementations except a custom CrawlDecisionMaker, and custom settings.
+        /// </summary>
+        public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker, CrawlConfiguration crawlConfiguration)
+            : this(null, null, null, null, crawlDecisionMaker, null, crawlConfiguration)
         {
         }
 
