@@ -2,6 +2,7 @@
 using Abot.Poco;
 using NUnit.Framework;
 using System;
+using System.Reflection;
 
 
 namespace Abot.Tests.Unit.Core
@@ -31,6 +32,18 @@ namespace Abot.Tests.Unit.Core
         public void Constructor_NullUserAgent()
         {
             new PageRequester(null);
+        }
+
+        [Test]
+        public void Constructor_SetsUserAgent()
+        {
+            Assert.AreEqual("ha ha ha", new PageRequesterWrapper("ha ha ha").UserAgentWrapper);
+        }
+
+        [Test]
+        public void Constructor_SetsUserAgentWithAssemblyVersion()
+        {
+            Assert.AreEqual(string.Format("ha {0} ha", Assembly.GetExecutingAssembly().GetName().Version.ToString()), new PageRequesterWrapper("ha <ABOTASSEMBLYVERSION> ha").UserAgentWrapper);
         }
 
         [Test]
@@ -160,5 +173,15 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("", result.RawContent);
             Assert.AreEqual(200, (int)result.HttpWebResponse.StatusCode);
         }
+    }
+
+    public class PageRequesterWrapper : PageRequester
+    {
+        public string UserAgentWrapper { get{return base._userAgentString;} private set{} }
+        public PageRequesterWrapper(string userAgent)
+            :base(userAgent)
+        {
+        }
+
     }
 }

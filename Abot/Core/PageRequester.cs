@@ -3,6 +3,7 @@ using log4net;
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
 
 namespace Abot.Core
 {
@@ -23,14 +24,14 @@ namespace Abot.Core
     {
         ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
-        string _userAgentString;
+        protected string _userAgentString;
 
         public PageRequester(string userAgent)
         {
             if (string.IsNullOrWhiteSpace(userAgent))
                 throw new ArgumentNullException("userAgent");
 
-            _userAgentString = userAgent;
+            _userAgentString = userAgent.Replace("<ABOTASSEMBLYVERSION>", Assembly.GetExecutingAssembly().GetName().Version.ToString());
         }
 
         /// <summary>
