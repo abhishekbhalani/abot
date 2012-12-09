@@ -7,7 +7,7 @@ namespace Abot.Poco
         public CrawlConfiguration()
         {
             MaxConcurrentThreads = 10;
-            UserAgentString = "abot v1.0 http://code.google.com/p/abot";
+            UserAgentString = "abot v1.1 http://code.google.com/p/abot";
             MaxPagesToCrawl = 1000;
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
