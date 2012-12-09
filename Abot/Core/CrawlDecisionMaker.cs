@@ -36,14 +36,11 @@ namespace Abot.Core
             if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
                 return new CrawlDecision { Allow = false, Reason = "Scheme does not begin with http" };
 
-            lock (crawlContext.CrawledUrls)
-            {
-                if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
-                    return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
+            if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+                return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
 
-                if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
-                    return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
-            }
+            if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
+                return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
 
             if (crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
             {

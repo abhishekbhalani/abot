@@ -77,15 +77,12 @@ namespace Abot.Tests.Integration
 
         private void crawler_PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
         {
-            lock (_actualCrawledPages)
-            {
-                PageResult pageResult = new PageResult();
-                pageResult.Url = e.CrawledPage.Uri.AbsoluteUri;
-                if(e.CrawledPage.HttpWebResponse != null)
-                    pageResult.HttpStatusCode = Convert.ToInt32(e.CrawledPage.HttpWebResponse.StatusCode);
+            PageResult pageResult = new PageResult();
+            pageResult.Url = e.CrawledPage.Uri.AbsoluteUri;
+            if(e.CrawledPage.HttpWebResponse != null)
+                pageResult.HttpStatusCode = Convert.ToInt32(e.CrawledPage.HttpWebResponse.StatusCode);
 
-                _actualCrawledPages.Add(pageResult);
-            }
+            _actualCrawledPages.Add(pageResult);
         }
 
         private List<Discrepancy> GetDescrepancies()
