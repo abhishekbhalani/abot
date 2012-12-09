@@ -13,6 +13,8 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(null, unitUnderTest.RootUri);
             Assert.IsNotNull(unitUnderTest.CrawledUrls);
             Assert.AreEqual(0, unitUnderTest.CrawledUrls.Count);
+            Assert.IsNotNull(unitUnderTest.CrawlCountByDomain);
+            Assert.AreEqual(0, unitUnderTest.CrawlCountByDomain.Count);
             Assert.IsNull(unitUnderTest.CrawlConfiguration);
         }   
     }

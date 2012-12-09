@@ -213,10 +213,12 @@ namespace Abot.Crawler
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
 
-            lock (_crawlContext.CrawledUrls)
-            {
-                _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
-            }
+            //Add crawled url/domain to the crawl context
+            _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+            if (_crawlContext.CrawlCountByDomain.ContainsKey(pageToCrawl.Uri.Authority))
+                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority]++;
+            else
+                _crawlContext.CrawlCountByDomain.Add(pageToCrawl.Uri.Authority, 0);
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             crawledPage.IsRetry = pageToCrawl.IsRetry;

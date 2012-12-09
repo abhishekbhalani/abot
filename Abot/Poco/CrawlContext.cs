@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Abot.Poco
@@ -7,7 +8,8 @@ namespace Abot.Poco
     {
         public CrawlContext()
         {
-            CrawledUrls = new List<string>();
+            CrawledUrls = new ConcurrentBag<string>();
+            CrawlCountByDomain = new Dictionary<string, int>();
         }
 
         /// <summary>
@@ -31,12 +33,17 @@ namespace Abot.Poco
         //public DateTime LastUnsuccessfulHttpRequestDate { get; set; }
 
         /// <summary>
-        /// Urls that have been crawled. NOTE: Use lock when accessing this property since multiple threads are reading/writing to it
+        /// Threadsafe collection of urls that have been crawled
         /// </summary>
-        public List<string> CrawledUrls { get; set; }
+        public ConcurrentBag<string> CrawledUrls { get; set; }
+        
+        /// <summary>
+        /// Threadsafe dictionary of domains and how many pages were crawled in that domain
+        /// </summary>
+        public Dictionary<string, int> CrawlCountByDomain { get; set; }
 
         /// <summary>
-        /// 
+        /// Configuration values used to determine crawl settings
         /// </summary>
         public CrawlConfiguration CrawlConfiguration { get; set; }
     }

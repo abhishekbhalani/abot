@@ -2,7 +2,7 @@
 using Abot.Poco;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Abot.Tests.Unit.Core
 {
@@ -57,7 +57,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
-            _crawlContext.CrawledUrls = new List<string> { "http://a.com/" };
+            _crawlContext.CrawledUrls = new ConcurrentBag<string> { "http://a.com/" };
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(
                     new Uri("http://a.com/")),

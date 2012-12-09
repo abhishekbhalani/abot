@@ -1,7 +1,7 @@
 ﻿using Abot.Poco;
 using log4net;
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Abot.Core
 {
@@ -26,8 +26,7 @@ namespace Abot.Core
     public class FifoScheduler : IScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
-        Queue<PageToCrawl> _pagesToCrawl = new Queue<PageToCrawl>();
-        Object locker = new Object();
+        ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
 
         /// <summary>
         /// Count of remaining items that are currently scheduled
@@ -36,10 +35,7 @@ namespace Abot.Core
         {
             get
             {
-                lock (locker)
-                {
-                    return _pagesToCrawl.Count;
-                }
+                return _pagesToCrawl.Count;
             }
         }
 
@@ -52,11 +48,7 @@ namespace Abot.Core
                 throw new ArgumentNullException("page");
 
             _logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
-
-            lock (locker)
-            {
-                _pagesToCrawl.Enqueue(page);
-            }
+            _pagesToCrawl.Enqueue(page);
         }
 
         /// <summary>
@@ -65,11 +57,9 @@ namespace Abot.Core
         public PageToCrawl GetNext()
         {
             PageToCrawl nextItem = null;
-            lock (locker)
-            {
-                if(_pagesToCrawl.Count > 0)//issue 14: have to check this again since it may have changed since calling this method
-                    nextItem = _pagesToCrawl.Dequeue();
-            }
+
+            if(_pagesToCrawl.Count > 0)//issue 14: have to check this again since it may have changed since calling this method
+                _pagesToCrawl.TryDequeue(out nextItem);
 
             return nextItem;
         }
