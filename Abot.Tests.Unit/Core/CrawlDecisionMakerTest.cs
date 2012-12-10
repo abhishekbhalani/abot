@@ -220,6 +220,33 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("", result.Reason);
         }
 
+        [Test]
+        public void ShouldCrawlPage_OverMaxPagesToCrawlPerDomain_ReturnsFalse()
+        {
+            Uri uri = new Uri("http://a.com/");
+            CrawlConfiguration config = new CrawlConfiguration
+            {
+                MaxPagesToCrawlPerDomain = 100
+            };
+            ConcurrentDictionary<string,int> countByDomain = new ConcurrentDictionary<string,int>();
+            countByDomain.TryAdd(uri.Authority, 100);
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri(uri.AbsoluteUri + "anotherpage"))
+                {
+                    IsInternal = true
+                },
+                new CrawlContext
+                {
+                    CrawlConfiguration = config,
+                    CrawlStartDate = DateTime.Now,
+                    CrawlCountByDomain = countByDomain
+                });
+
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("MaxPagesToCrawlPerDomain limit of [100] has been reached for domain [a.com]", result.Reason);
+        }
+
 
         [Test]
         public void ShouldCrawlPageLinks_NullCrawledPage_ReturnsFalse()

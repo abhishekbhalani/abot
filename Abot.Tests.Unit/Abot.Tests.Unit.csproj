@@ -54,7 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\ConfigurationSectionHandlerTest.cs" />
+    <Compile Include="Core\AbotConfigurationSectionHandlerTest.cs" />
     <Compile Include="Core\CrawlDecisionMakerTest.cs" />
     <Compile Include="Core\DomainRateLimiterTest.cs" />
     <Compile Include="Core\FifoSchedulerTest.cs" />

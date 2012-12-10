@@ -5,9 +5,9 @@ using NUnit.Framework;
 namespace Abot.Tests.Unit.Core
 {
     [TestFixture]
-    public class ConfigurationSectionHandlerTest
+    public class AbotConfigurationSectionHandlerTest
     {
-        ConfigurationSectionHandler _config = (ConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot");
+        AbotConfigurationSectionHandler _config = (AbotConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot");
 
         [Test]
         public void GetSetion_FillsConfigValuesFromAppConfigFile()
@@ -18,6 +18,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(true, _config.CrawlBehavior.IsUriRecrawlingEnabled); 
             Assert.AreEqual(11, _config.CrawlBehavior.MaxConcurrentThreads);
             Assert.AreEqual(33, _config.CrawlBehavior.MaxPagesToCrawl);
+            Assert.AreEqual(333, _config.CrawlBehavior.MaxPagesToCrawlPerDomain);
             Assert.AreEqual("aaaa", _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
@@ -44,6 +45,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.IsUriRecrawlingEnabled, _config.CrawlBehavior.IsUriRecrawlingEnabled);
             Assert.AreEqual(result.MaxConcurrentThreads, _config.CrawlBehavior.MaxConcurrentThreads);
             Assert.AreEqual(result.MaxPagesToCrawl, _config.CrawlBehavior.MaxPagesToCrawl);
+            Assert.AreEqual(result.MaxPagesToCrawlPerDomain, _config.CrawlBehavior.MaxPagesToCrawlPerDomain);
             Assert.AreEqual(result.UserAgentString, _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(result.IsExternalPageCrawlingEnabled, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);

@@ -26,6 +26,11 @@ namespace Abot.Poco
         public long MaxPagesToCrawl { get; set; }
 
         /// <summary>
+        /// Maximum number of pages to crawl per domain
+        /// </summary>
+        public long MaxPagesToCrawlPerDomain { get; set; }
+
+        /// <summary>
         /// The user agent string to use for http requests
         /// </summary>
         public string UserAgentString { get; set; }

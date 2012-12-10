@@ -3,9 +3,9 @@ using System.Configuration;
 
 namespace Abot.Core
 {
-    public class ConfigurationSectionHandler : ConfigurationSection
+    public class AbotConfigurationSectionHandler : ConfigurationSection
     {
-        public ConfigurationSectionHandler()
+        public AbotConfigurationSectionHandler()
         {
         }
 
@@ -74,6 +74,13 @@ namespace Abot.Core
         public int MaxPagesToCrawl
         {
             get { return (int)this["maxPagesToCrawl"]; }
+        }
+
+        [ConfigurationProperty("maxPagesToCrawlPerDomain", IsRequired = true)]
+        [IntegerValidator]
+        public int MaxPagesToCrawlPerDomain
+        {
+            get { return (int)this["maxPagesToCrawlPerDomain"]; }
         }
 
         [ConfigurationProperty("userAgentString", IsRequired = true)]

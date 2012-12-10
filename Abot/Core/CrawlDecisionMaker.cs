@@ -1,7 +1,7 @@
 ﻿using Abot.Poco;
 using System;
-using System.Net;
 using System.Linq;
+using System.Net;
 
 namespace Abot.Core
 {
@@ -36,11 +36,22 @@ namespace Abot.Core
             if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
                 return new CrawlDecision { Allow = false, Reason = "Scheme does not begin with http" };
 
-            if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+            if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && 
+                crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
                 return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
 
             if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
                 return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
+
+            int pagesCrawledInThisDomain = 0;
+            if (crawlContext.CrawlConfiguration.MaxPagesToCrawlPerDomain > 0 && 
+                crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out pagesCrawledInThisDomain) && 
+                pagesCrawledInThisDomain > 0)
+            {
+                if(pagesCrawledInThisDomain >= crawlContext.CrawlConfiguration.MaxPagesToCrawlPerDomain)
+                    return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawlPerDomain limit of [{0}] has been reached for domain [{1}]", crawlContext.CrawlConfiguration.MaxPagesToCrawlPerDomain, pageToCrawl.Uri.Authority) };
+            }
+                
 
             if (crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
             {

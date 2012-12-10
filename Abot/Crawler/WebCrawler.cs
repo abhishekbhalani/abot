@@ -167,7 +167,7 @@ namespace Abot.Crawler
 
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
-            ConfigurationSectionHandler configFromFile = ((ConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
+            AbotConfigurationSectionHandler configFromFile = ((AbotConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
             if (configFromFile == null)
                 return null;
 
@@ -218,7 +218,7 @@ namespace Abot.Crawler
             if (_crawlContext.CrawlCountByDomain.ContainsKey(pageToCrawl.Uri.Authority))
                 _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority]++;
             else
-                _crawlContext.CrawlCountByDomain.Add(pageToCrawl.Uri.Authority, 0);
+                _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             crawledPage.IsRetry = pageToCrawl.IsRetry;

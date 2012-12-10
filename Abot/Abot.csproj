@@ -54,7 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\ConfigurationSectionHandler.cs" />
+    <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
     <Compile Include="Core\CrawlDecisionMaker.cs" />
     <Compile Include="Core\DomainRateLimiter.cs" />
     <Compile Include="Core\RateLimiter.cs" />
