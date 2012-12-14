@@ -1,7 +1,6 @@
 ﻿using Abot.Crawler;
 using Abot.Poco;
 using log4net;
-using log4net.Config;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -17,20 +16,11 @@ namespace Abot.Tests.Integration
         int _maxSecondsToCrawl;
         Uri _rootUri;
 
-        static CrawlTestBase()
-        {
-            XmlConfigurator.Configure();
-        }
-
         public CrawlTestBase(Uri rootUri, int maxSecondsToCrawl)
         {
             _rootUri = rootUri;
             _maxSecondsToCrawl = maxSecondsToCrawl;
         }
-
-
-        protected abstract List<PageResult> GetExpectedCrawlResult();
-
 
         public void CrawlAndAssert(IWebCrawler crawler)
         {
@@ -48,6 +38,8 @@ namespace Abot.Tests.Integration
             Assert.AreEqual(0, descrepancies.Count, "There were discrepancies between expected and actual crawl results. See ouput window for details.");
             Assert.IsTrue(result.Elapsed.TotalSeconds < _maxSecondsToCrawl, string.Format("Elapsed Time to crawl {0}, over {1} second threshold", result.Elapsed.TotalSeconds, _maxSecondsToCrawl));
         }
+
+        protected abstract List<PageResult> GetExpectedCrawlResult();
 
         private void PrintDescrepancies(List<Discrepancy> allDescrepancies)
         {
