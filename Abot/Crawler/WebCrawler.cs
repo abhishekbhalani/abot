@@ -48,7 +48,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
         /// </summary>
-        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowedAsync;  
+        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowedAsync;
 
         /// <summary>
         /// Begins a crawl using the uri param
@@ -215,8 +215,9 @@ namespace Abot.Crawler
 
             //Add crawled url/domain to the crawl context
             _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
-            if (_crawlContext.CrawlCountByDomain.ContainsKey(pageToCrawl.Uri.Authority))
-                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority]++;
+            int domainCount = 0;
+            if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
+                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
             else
                 _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
 
