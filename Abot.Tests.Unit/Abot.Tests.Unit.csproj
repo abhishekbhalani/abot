@@ -89,10 +89,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Abot.SiteSimulator\Abot.SiteSimulator.csproj">
-      <Project>{7c71f273-d40a-432c-9fc0-a40530f1ade6}</Project>
-      <Name>Abot.SiteSimulator</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Abot\Abot.csproj">
       <Project>{0cdcd537-4b0e-4514-966f-f425cdc92ba4}</Project>
       <Name>Abot</Name>
