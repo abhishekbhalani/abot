@@ -466,10 +466,10 @@ namespace Abot.Crawler
         private CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
         {
             CrawlDecision decision = _crawlDecisionMaker.ShouldDownloadPageContent(crawledPage, _crawlContext);
-            if (!decision.Allow)
-                return decision;
+            if (decision.Allow)
+                decision = (_shouldDownloadPageContentDecisionMaker != null) ? _shouldDownloadPageContentDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
 
-            return _shouldDownloadPageContentDecisionMaker.Invoke(crawledPage, _crawlContext);
+            return decision;
         }
 
         private void PrintConfigValues(CrawlConfiguration config)

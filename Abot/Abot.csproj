@@ -57,7 +57,6 @@
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
     <Compile Include="Core\CrawlDecisionMaker.cs" />
     <Compile Include="Core\DomainRateLimiter.cs" />
-    <Compile Include="Core\ProcessMemoryLimiter.cs" />
     <Compile Include="Core\RateLimiter.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
