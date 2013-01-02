@@ -155,7 +155,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
@@ -187,7 +186,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
@@ -216,7 +214,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>()), Times.Never());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
@@ -255,7 +252,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(1000);//sleep since the events are async and may not complete
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
@@ -286,7 +282,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(1000);//sleep since the events are async and may not complete
 
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
 
@@ -319,7 +314,6 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
             _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(2000);//sleep since the events are async and may not complete, set to 2 seconds since this test was mysteriously failing only when run with code coverage
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
@@ -685,6 +679,127 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         #endregion
+
+        [Test]
+        public void Crawl_CrawlDecisionDelegatesReturnTrue_EventsFired()
+        {
+            _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(new CrawledPage(_rootUri));
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
+
+            int pageCrawlStartingCount = 0;
+            int pageCrawlCompletedCount = 0;
+            _unitUnderTest.PageCrawlCompleted += (s, e) => ++pageCrawlCompletedCount;
+            _unitUnderTest.PageCrawlStarting += (s, e) => ++pageCrawlStartingCount;
+
+            bool shouldCrawlPageDelegateCalled = false;
+            _unitUnderTest.ShouldCrawlPage((x, y) =>
+            {
+                shouldCrawlPageDelegateCalled = true;
+                return new CrawlDecision { Allow = true };
+            });
+
+            //bool shouldCrawlDownloadPageContentDelegateCalled = false;
+            //_unitUnderTest.ShouldDownloadPageContent((x, y) =>
+            //{
+            //    shouldCrawlDownloadPageContentDelegateCalled = true;
+            //    return new CrawlDecision { Allow = true };
+            //});
+
+            bool shouldCrawlPageLinksDelegateCalled = false;
+            _unitUnderTest.ShouldCrawlPageLinks((x, y) =>
+            {
+                shouldCrawlPageLinksDelegateCalled = true;
+                return new CrawlDecision { Allow = true };
+            });
+
+            _unitUnderTest.Crawl(_rootUri);
+            System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
+
+            _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
+            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Once());
+            _fakeDomainRateLimiter.Verify(f => f.RateLimit(It.IsAny<Uri>()), Times.Never());
+
+            Assert.IsTrue(shouldCrawlPageDelegateCalled);
+            //Assert.IsTrue(shouldCrawlDownloadPageContentDelegateCalled);
+            Assert.IsTrue(shouldCrawlPageLinksDelegateCalled);
+            Assert.AreEqual(1, pageCrawlStartingCount);
+            Assert.AreEqual(1, pageCrawlCompletedCount);
+        }
+
+        [Test]
+        public void Crawl_ShouldCrawlPageDelegateReturnsFalse_PageIsNotCrawled()
+        {
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
+
+            int pageCrawlStartingCount = 0;
+            int pageCrawlCompletedCount = 0;
+            int pageCrawlDisallowedCount = 0;
+            int pageLinksCrawlDisallowedCount = 0;
+            _unitUnderTest.PageCrawlCompleted += (s, e) => ++pageCrawlCompletedCount;
+            _unitUnderTest.PageCrawlStarting += (s, e) => ++pageCrawlStartingCount;
+            _unitUnderTest.PageCrawlDisallowed += (s, e) => ++pageCrawlDisallowedCount;
+            _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++pageLinksCrawlDisallowedCount;
+
+            bool shouldCrawlPageDelegateCalled = false;
+            _unitUnderTest.ShouldCrawlPage((x, y) =>
+            {
+                shouldCrawlPageDelegateCalled = true;
+                return new CrawlDecision { Allow = false, Reason = "aaa" };
+            });
+
+            _unitUnderTest.Crawl(_rootUri);
+
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
+
+            Assert.IsTrue(shouldCrawlPageDelegateCalled);
+            Assert.AreEqual(0, pageCrawlStartingCount);
+            Assert.AreEqual(0, pageCrawlCompletedCount);
+            Assert.AreEqual(1, pageCrawlDisallowedCount);
+            Assert.AreEqual(0, pageLinksCrawlDisallowedCount);
+        }
+
+        [Test]
+        public void Crawl_ShouldCrawlLinksDelegateReturnsFalse_PageLinksNotCrawled()
+        {
+            _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(new CrawledPage(_rootUri));
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true});
+
+            int _pageCrawlStartingCount = 0;
+            int _pageCrawlCompletedCount = 0;
+            int _pageCrawlDisallowedCount = 0;
+            int _pageLinksCrawlDisallowedCount = 0;
+            _unitUnderTest.PageCrawlCompleted += (s, e) => ++_pageCrawlCompletedCount;
+            _unitUnderTest.PageCrawlStarting += (s, e) => ++_pageCrawlStartingCount;
+            _unitUnderTest.PageCrawlDisallowed += (s, e) => ++_pageCrawlDisallowedCount;
+            _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
+
+            bool delegateCalled = false;
+            _unitUnderTest.ShouldCrawlPageLinks((x, y) =>
+            {
+                delegateCalled = true;
+                return new CrawlDecision { Allow = false, Reason = "aaa" };
+            });
+
+            _unitUnderTest.Crawl(_rootUri);
+
+            _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
+            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Once());
+            _fakeDomainRateLimiter.Verify(f => f.RateLimit(It.IsAny<Uri>()), Times.Never());
+
+            Assert.AreEqual(1, _pageCrawlStartingCount);
+            Assert.AreEqual(1, _pageCrawlCompletedCount);
+            Assert.AreEqual(0, _pageCrawlDisallowedCount);
+            Assert.AreEqual(1, _pageLinksCrawlDisallowedCount);
+        }
+
 
         [Test]
         [ExpectedException(typeof(Exception))]
