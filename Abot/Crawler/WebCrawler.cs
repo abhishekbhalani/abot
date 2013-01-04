@@ -1,10 +1,10 @@
-﻿using Abot.Core;
-using Abot.Poco;
-using log4net;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using Abot.Core;
+using Abot.Poco;
+using log4net;
 
 namespace Abot.Crawler
 {
@@ -419,6 +419,7 @@ namespace Abot.Crawler
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
 
+            //TODO: maxpagestocrawl does not work correctly since it is checked before the request but not added as crawled until after the request comes here
             //Add crawled url/domain to the crawl context
             _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
             int domainCount = 0;

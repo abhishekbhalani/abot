@@ -1,5 +1,5 @@
-﻿using Abot.Poco;
-using System.Configuration;
+﻿using System.Configuration;
+using Abot.Poco;
 
 namespace Abot.Core
 {
@@ -54,7 +54,6 @@ namespace Abot.Core
         }
 
         [ConfigurationProperty("minCrawlDelayPerDomainMilliSeconds", IsRequired = true)]
-        [LongValidator]
         public long MinCrawlDelayPerDomainMilliSeconds
         {
             get { return (long)this["minCrawlDelayPerDomainMilliSeconds"]; }
@@ -70,14 +69,12 @@ namespace Abot.Core
         }
 
         [ConfigurationProperty("maxPagesToCrawl", IsRequired = true)]
-        [IntegerValidator]
         public int MaxPagesToCrawl
         {
             get { return (int)this["maxPagesToCrawl"]; }
         }
 
         [ConfigurationProperty("maxPagesToCrawlPerDomain", IsRequired = true)]
-        [IntegerValidator]
         public int MaxPagesToCrawlPerDomain
         {
             get { return (int)this["maxPagesToCrawlPerDomain"]; }
