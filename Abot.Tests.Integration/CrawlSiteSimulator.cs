@@ -41,6 +41,25 @@ namespace Abot.Tests.Integration
             Assert.AreEqual(5, pagesCrawledCount);
         }
 
+        [Test]
+        public void Crawl_MaxPagesTo5_WithCrawlDelay_OnlyCrawls5Pages()
+        {
+            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+
+            CrawlConfiguration configuration = new CrawlConfiguration();
+            configuration.MinCrawlDelayPerDomainMilliSeconds = 1000; //adding delay since it increases the chance of issues with abot crawling more than MaxPagesToCrawl.
+            configuration.MaxPagesToCrawl = 5;
+
+            int pagesCrawledCount = 0;
+
+            WebCrawler crawler = new WebCrawler(configuration);
+            crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
+
+            crawler.Crawl(new Uri("http://localhost:1111/"));
+
+            Assert.AreEqual(5, pagesCrawledCount);
+        }
+
         protected override List<PageResult> GetExpectedCrawlResult()
         {
             List<PageResult> expectedCrawlResult = new List<PageResult>

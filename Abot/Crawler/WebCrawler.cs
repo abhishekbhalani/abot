@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Abot.Core;
+using Abot.Poco;
+using log4net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using Abot.Core;
-using Abot.Poco;
-using log4net;
 
 namespace Abot.Crawler
 {
@@ -28,7 +28,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Synchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
         /// </summary>
-        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;  
+        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
 
         /// <summary>
         /// Asynchronous event that is fired before a page is crawled.
@@ -93,7 +93,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
         public WebCrawler()
-            :this(null, null, null, null, null, null, null)
+            : this(null, null, null, null, null, null, null)
         {
         }
 
@@ -130,10 +130,10 @@ namespace Abot.Crawler
         /// <param name="hyperLinkParser">Parses a crawled page for it's hyperlinks</param>
         /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
         /// <param name="crawlConfiguration">Configurable crawl values</param>
-        public WebCrawler(IThreadManager threadManager, 
-            IScheduler scheduler, 
-            IPageRequester httpRequester, 
-            IHyperLinkParser hyperLinkParser, 
+        public WebCrawler(IThreadManager threadManager,
+            IScheduler scheduler,
+            IPageRequester httpRequester,
+            IHyperLinkParser hyperLinkParser,
             ICrawlDecisionMaker crawlDecisionMaker,
             IDomainRateLimiter domainRateLimiter,
             CrawlConfiguration crawlConfiguration)
@@ -146,7 +146,7 @@ namespace Abot.Crawler
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
-            
+
             if (_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
             {
                 _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
@@ -160,11 +160,11 @@ namespace Abot.Crawler
         /// </summary>
         public CrawlResult Crawl(Uri uri)
         {
-            if(uri == null)
+            if (uri == null)
                 throw new ArgumentNullException("uri");
 
             _crawlContext.RootUri = uri;
-            
+
             _crawlResult = new CrawlResult();
             _crawlResult.RootUri = _crawlContext.RootUri;
             _crawlComplete = false;
@@ -404,10 +404,20 @@ namespace Abot.Crawler
 
             //Crawl the page
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
-            if(shouldCrawlPageDecision.Allow)
+            if (shouldCrawlPageDecision.Allow)
                 shouldCrawlPageDecision = (_shouldCrawlPageDecisionMaker != null) ? _shouldCrawlPageDecisionMaker.Invoke(pageToCrawl, _crawlContext) : new CrawlDecision { Allow = true };
 
-            if (!shouldCrawlPageDecision.Allow)
+            if (shouldCrawlPageDecision.Allow)
+            {
+                //Add crawled url/domain to the crawl context
+                _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+                int domainCount = 0;
+                if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
+                    _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
+                else
+                    _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
+            }
+            else
             {
                 _logger.DebugFormat("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
                 FirePageCrawlDisallowedEventAsync(pageToCrawl, shouldCrawlPageDecision.Reason);
@@ -418,15 +428,6 @@ namespace Abot.Crawler
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
-
-            //TODO: maxpagestocrawl does not work correctly since it is checked before the request but not added as crawled until after the request comes here
-            //Add crawled url/domain to the crawl context
-            _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
-            int domainCount = 0;
-            if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
-                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
-            else
-                _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => ShouldDownloadPageContentWrapper(x));
             crawledPage.IsRetry = pageToCrawl.IsRetry;
@@ -444,7 +445,7 @@ namespace Abot.Crawler
 
             //Crawl the page's links
             CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
-            if(shouldCrawlPageLinksDecision.Allow)
+            if (shouldCrawlPageLinksDecision.Allow)
                 shouldCrawlPageLinksDecision = (_shouldCrawlPageLinksDecisionMaker != null) ? _shouldCrawlPageLinksDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
 
             if (shouldCrawlPageLinksDecision.Allow)
