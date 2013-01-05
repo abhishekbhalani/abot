@@ -1,8 +1,8 @@
-﻿using Abot.Core;
+﻿using System;
+using System.Reflection;
+using Abot.Core;
 using Abot.Poco;
 using NUnit.Framework;
-using System;
-using System.Reflection;
 
 
 namespace Abot.Tests.Unit.Core
@@ -43,7 +43,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void Constructor_SetsUserAgentWithAssemblyVersion()
         {
-            Assert.AreEqual(string.Format("ha {0} ha", Assembly.GetExecutingAssembly().GetName().Version.ToString()), new PageRequesterWrapper("ha <ABOTASSEMBLYVERSION> ha").UserAgentWrapper);
+            Assert.AreEqual(string.Format("ha {0} ha", Assembly.GetExecutingAssembly().GetName().Version.ToString()), new PageRequesterWrapper("ha @ABOTASSEMBLYVERSION@ ha").UserAgentWrapper);
         }
 
         [Test]

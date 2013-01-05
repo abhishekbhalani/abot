@@ -1,9 +1,9 @@
-﻿using Abot.Poco;
-using log4net;
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using Abot.Poco;
+using log4net;
 
 namespace Abot.Core
 {
@@ -31,7 +31,7 @@ namespace Abot.Core
             if (string.IsNullOrWhiteSpace(userAgent))
                 throw new ArgumentNullException("userAgent");
 
-            _userAgentString = userAgent.Replace("<ABOTASSEMBLYVERSION>", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            _userAgentString = userAgent.Replace("@ABOTASSEMBLYVERSION@", Assembly.GetExecutingAssembly().GetName().Version.ToString());
         }
 
         /// <summary>
