@@ -1,8 +1,7 @@
 ﻿
-using System;
-using System.Net;
 using Abot.Crawler;
 using Abot.Poco;
+using System;
 
 namespace Abot.Demo
 {
@@ -17,9 +16,9 @@ namespace Abot.Demo
             WebCrawler crawler;
 
             //Uncomment only one of the following to see that instance in action
-            crawler = GetDefaultWebCrawler(uriToCrawl);
-            //crawler = GetManuallyConfiguredWebCrawler(uriToCrawl)
-            //crawler = CrawlUsingCustomCrawlDecesionMakerImplementation(uriToCrawl);
+            crawler = GetDefaultWebCrawler();
+            //crawler = GetManuallyConfiguredWebCrawler();
+            //crawler = GetCustomBehaviorUsingLambdaWebCrawler();
 
             //Subscribe to any of these asynchronous events, there are also sychronous versions of each.
             //This is where you process data about specific events of the crawl
@@ -33,7 +32,8 @@ namespace Abot.Demo
             CrawlResult result = crawler.Crawl(uriToCrawl);
 
             //Now go view the log.txt file that is in the same directory as this executable. It has
-            //all the statements that you were trying to read in the console window :)
+            //all the statements that you were trying to read in the console window :).
+            //Not enough data being logged? Change the app.config file's log4net log level from "INFO" TO "DEBUG"
 
             PrintDisclaimer();
         }
@@ -60,7 +60,7 @@ namespace Abot.Demo
             config.UserAgentString = "abot v@ABOTASSEMBLYVERSION@ http://code.google.com/p/abot";
 
             //Add you own values without modifying Abot's source code.
-            //these are accessible in CrawlContext.CrawlConfuration.ConfigurationException object throughout the crawl
+            //These are accessible in CrawlContext.CrawlConfuration.ConfigurationException object throughout the crawl
             config.ConfigurationExtensions.Add("Somekey1", "SomeValue1");
             config.ConfigurationExtensions.Add("Somekey2", "SomeValue2");
 
@@ -85,7 +85,7 @@ namespace Abot.Demo
                 return new CrawlDecision { Allow = true };
             });
 
-            //Register a lambda expression that will tell Abot to not download the page content for any page after 5.
+            //Register a lambda expression that will tell Abot to not download the page content for any page after 5th.
             //Abot will still make the http request but will not read the raw content from the stream
             //NOTE: This lambda is run after the regular ICrawlDecsionMaker.ShouldDownloadPageContent method is run
             crawler.ShouldDownloadPageContent((crawledPage, crawlContext) =>
@@ -128,39 +128,6 @@ namespace Abot.Demo
             return new Uri(userInput);
         }
 
-        static void crawler_ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
-        {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            //PageToCrawl object has information about the page/link being crawled along with the page it was found on
-        }
-
-        static void crawler_ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
-        {
-            CrawledPage crawledPage = e.CrawledPage;
-            //CrawlPage object, which is a child of PageToCrawl
-            //It has information about the http request/response along with the raw page content
-
-            if (crawledPage.WebException != null || crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
-                //do something
-            else
-                Console.WriteLine("Crawl of page succeeded [{0}]", crawledPage.Uri.AbsoluteUri);
-
-            if (string.IsNullOrEmpty(crawledPage.RawContent))
-                Console.WriteLine("Page had no content [{0}]", crawledPage.Uri.AbsoluteUri);
-        }
-
-        static void crawler_PageLinksCrawlDisallowed(object sender, PageLinksCrawlDisallowedArgs e)
-        {
-            CrawledPage crawledPage = e.CrawledPage;
-            Console.WriteLine("Did not crawl the links on page [{0}] [{1}]", crawledPage.Uri.AbsoluteUri, e.DisallowedReason);
-        }
-
-        static void crawler_PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
-        {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            Console.WriteLine("Did not crawl page [{0}] due to [{1}]", pageToCrawl.Uri.AbsoluteUri, e.DisallowedReason);
-        }
-
         private static void PrintDisclaimer()
         {
             PrintAttentionText("The demo is configured to only crawl a total of 10 pages and will wait 1 second in between http requests. This is to avoid getting you blocked by your isp or the sites you are trying to crawl. You can change these values in the app.config or Abot.Console.exe.config file.");
@@ -172,6 +139,26 @@ namespace Abot.Demo
             System.Console.ForegroundColor = ConsoleColor.Yellow;
             System.Console.WriteLine(text);
             System.Console.ForegroundColor = originalColor;
+        }
+
+        static void crawler_ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
+        {
+            //Process data
+        }
+
+        static void crawler_ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
+        {
+            //Process data
+        }
+
+        static void crawler_PageLinksCrawlDisallowed(object sender, PageLinksCrawlDisallowedArgs e)
+        {
+            //Process data
+        }
+
+        static void crawler_PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
+        {
+            //Process data
         }
     }
 }
