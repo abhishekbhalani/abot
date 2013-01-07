@@ -67,6 +67,9 @@
     <Compile Include="Crawler\PageCrawlDisallowedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgsTest.cs" />
+    <Compile Include="Crawler\PoliteWebCrawlerTest.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Crawler\WebCrawlerTest.cs">
       <SubType>Code</SubType>
     </Compile>

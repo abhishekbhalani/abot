@@ -62,6 +62,9 @@
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
+    <Compile Include="Crawler\PoliteWebCrawler.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Poco\CrawlConfiguration.cs" />
     <Compile Include="Poco\CrawlContext.cs" />
     <Compile Include="Poco\CrawlDecision.cs" />
