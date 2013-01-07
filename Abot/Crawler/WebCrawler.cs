@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Abot.Core;
+using Abot.Poco;
+using log4net;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using Abot.Core;
-using Abot.Poco;
-using log4net;
 
 namespace Abot.Crawler
 {
@@ -84,16 +84,30 @@ namespace Abot.Crawler
         IPageRequester _httpRequester;
         IHyperLinkParser _hyperLinkParser;
         ICrawlDecisionMaker _crawlDecisionMaker;
-        IDomainRateLimiter _domainRateLimiter;
         Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
+
+        #region Constructors
+
+        [Obsolete("No longer supported, IDomainRateLimiter is no longer a dependency")]
+        public WebCrawler(IThreadManager threadManager,
+            IScheduler scheduler,
+            IPageRequester httpRequester,
+            IHyperLinkParser hyperLinkParser,
+            ICrawlDecisionMaker crawlDecisionMaker,
+            IDomainRateLimiter domaintRateLimiter,
+            CrawlConfiguration crawlConfiguration)
+            : this(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, crawlConfiguration)
+        {
+
+        }
 
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
         public WebCrawler()
-            : this(null, null, null, null, null, null, null)
+            : this(null, null, null, null, null, null)
         {
         }
 
@@ -101,7 +115,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with the default implementations but a custom crawl configuration.
         /// </summary>
         public WebCrawler(CrawlConfiguration crawlConfiguration)
-            : this(null, null, null, null, null, null, crawlConfiguration)
+            : this(null, null, null, null, null, crawlConfiguration)
         {
         }
 
@@ -109,7 +123,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with the default settings and implementations except a custom CrawlDecisionMaker.
         /// </summary>
         public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker)
-            : this(null, null, null, null, crawlDecisionMaker, null, null)
+            : this(null, null, null, null, crawlDecisionMaker, null)
         {
         }
 
@@ -117,7 +131,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with the default implementations except a custom CrawlDecisionMaker, and custom settings.
         /// </summary>
         public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker, CrawlConfiguration crawlConfiguration)
-            : this(null, null, null, null, crawlDecisionMaker, null, crawlConfiguration)
+            : this(null, null, null, null, crawlDecisionMaker, crawlConfiguration)
         {
         }
 
@@ -135,7 +149,6 @@ namespace Abot.Crawler
             IPageRequester httpRequester,
             IHyperLinkParser hyperLinkParser,
             ICrawlDecisionMaker crawlDecisionMaker,
-            IDomainRateLimiter domainRateLimiter,
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
@@ -146,14 +159,9 @@ namespace Abot.Crawler
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
-
-            if (_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
-            {
-                _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
-                PageCrawlStarting += (object sender, PageCrawlStartingArgs e) => _domainRateLimiter.RateLimit(e.PageToCrawl.Uri);
-            }
         }
 
+        #endregion Constructors
 
         /// <summary>
         /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
