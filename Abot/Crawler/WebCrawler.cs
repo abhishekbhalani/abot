@@ -78,7 +78,7 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         bool _crawlComplete = false;
         CrawlResult _crawlResult = null;
-        CrawlContext _crawlContext;
+        protected CrawlContext _crawlContext;
         IThreadManager _threadManager;
         IScheduler _scheduler;
         IPageRequester _httpRequester;
