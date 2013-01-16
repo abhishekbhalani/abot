@@ -63,6 +63,7 @@
     <Compile Include="Core\PageRequesterTest.cs" />
     <Compile Include="Core\RateLimiterTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />
+    <Compile Include="Crawler\CrawlArgsTest.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgsTest.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgsTest.cs" />

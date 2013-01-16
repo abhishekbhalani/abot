@@ -58,6 +58,7 @@
     <Compile Include="Core\CrawlDecisionMaker.cs" />
     <Compile Include="Core\DomainRateLimiter.cs" />
     <Compile Include="Core\RateLimiter.cs" />
+    <Compile Include="Crawler\CrawlArgs.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />

@@ -159,6 +159,8 @@ namespace Abot.Crawler
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
+
+            _crawlContext.Scheduler = _scheduler;
         }
 
         #endregion Constructors
@@ -175,6 +177,7 @@ namespace Abot.Crawler
 
             _crawlResult = new CrawlResult();
             _crawlResult.RootUri = _crawlContext.RootUri;
+            _crawlResult.CrawlContext = _crawlContext;
             _crawlComplete = false;
 
             _logger.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
@@ -221,7 +224,7 @@ namespace Abot.Crawler
             {
                 EventHandler<PageCrawlStartingArgs> threadSafeEvent = PageCrawlStarting;
                 if (threadSafeEvent != null)
-                    threadSafeEvent(this, new PageCrawlStartingArgs(pageToCrawl));
+                    threadSafeEvent(this, new PageCrawlStartingArgs(_crawlContext, pageToCrawl));
             }
             catch (Exception e)
             {
@@ -235,7 +238,7 @@ namespace Abot.Crawler
             {
                 EventHandler<PageCrawlCompletedArgs> threadSafeEvent = PageCrawlCompleted;
                 if (threadSafeEvent != null)
-                    threadSafeEvent(this, new PageCrawlCompletedArgs(crawledPage));
+                    threadSafeEvent(this, new PageCrawlCompletedArgs(_crawlContext, crawledPage));
             }
             catch (Exception e)
             {
@@ -249,7 +252,7 @@ namespace Abot.Crawler
             {
                 EventHandler<PageCrawlDisallowedArgs> threadSafeEvent = PageCrawlDisallowed;
                 if (threadSafeEvent != null)
-                    threadSafeEvent(this, new PageCrawlDisallowedArgs(pageToCrawl, reason));
+                    threadSafeEvent(this, new PageCrawlDisallowedArgs(_crawlContext, pageToCrawl, reason));
             }
             catch (Exception e)
             {
@@ -263,7 +266,7 @@ namespace Abot.Crawler
             {
                 EventHandler<PageLinksCrawlDisallowedArgs> threadSafeEvent = PageLinksCrawlDisallowed;
                 if (threadSafeEvent != null)
-                    threadSafeEvent(this, new PageLinksCrawlDisallowedArgs(crawledPage, reason));
+                    threadSafeEvent(this, new PageLinksCrawlDisallowedArgs(_crawlContext, crawledPage, reason));
             }
             catch (Exception e)
             {
@@ -303,7 +306,7 @@ namespace Abot.Crawler
                 //Fire each subscribers delegate async
                 foreach (EventHandler<PageCrawlStartingArgs> del in threadSafeEvent.GetInvocationList())
                 {
-                    del.BeginInvoke(this, new PageCrawlStartingArgs(pageToCrawl), null, null);
+                    del.BeginInvoke(this, new PageCrawlStartingArgs(_crawlContext, pageToCrawl), null, null);
                 }
             }
         }
@@ -316,7 +319,7 @@ namespace Abot.Crawler
                 //Fire each subscribers delegate async
                 foreach (EventHandler<PageCrawlCompletedArgs> del in threadSafeEvent.GetInvocationList())
                 {
-                    del.BeginInvoke(this, new PageCrawlCompletedArgs(crawledPage), null, null);
+                    del.BeginInvoke(this, new PageCrawlCompletedArgs(_crawlContext, crawledPage), null, null);
                 }
             }
         }
@@ -329,7 +332,7 @@ namespace Abot.Crawler
                 //Fire each subscribers delegate async
                 foreach (EventHandler<PageCrawlDisallowedArgs> del in threadSafeEvent.GetInvocationList())
                 {
-                    del.BeginInvoke(this, new PageCrawlDisallowedArgs(pageToCrawl, reason), null, null);
+                    del.BeginInvoke(this, new PageCrawlDisallowedArgs(_crawlContext, pageToCrawl, reason), null, null);
                 }
             }
         }
@@ -342,7 +345,7 @@ namespace Abot.Crawler
                 //Fire each subscribers delegate async
                 foreach (EventHandler<PageLinksCrawlDisallowedArgs> del in threadSafeEvent.GetInvocationList())
                 {
-                    del.BeginInvoke(this, new PageLinksCrawlDisallowedArgs(crawledPage, reason), null, null);
+                    del.BeginInvoke(this, new PageLinksCrawlDisallowedArgs(_crawlContext, crawledPage, reason), null, null);
                 }
             }
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Abot.Core;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
@@ -46,5 +47,10 @@ namespace Abot.Poco
         /// Configuration values used to determine crawl settings
         /// </summary>
         public CrawlConfiguration CrawlConfiguration { get; set; }
+
+        /// <summary>
+        /// The scheduler that is being used
+        /// </summary>
+        public IScheduler Scheduler { get; set; }
     }
 }

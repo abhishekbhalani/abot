@@ -12,16 +12,16 @@ namespace Abot.Tests.Unit.Crawler
         public void Constructor_ValidArg_SetsPublicProperty()
         {
             CrawledPage page = new CrawledPage(new Uri("http://aaa.com/"));
-            PageCrawlCompletedArgs args = new PageCrawlCompletedArgs(page);
+            PageCrawlCompletedArgs uut = new PageCrawlCompletedArgs(new CrawlContext(), page);
 
-            Assert.AreSame(page, args.CrawledPage);
+            Assert.AreSame(page, uut.CrawledPage);
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentNullException))]
         public void Constructor_NullArg()
         {
-            new PageCrawlCompletedArgs(null);
+            new PageCrawlCompletedArgs(new CrawlContext(), null);
         }
     }
 }
