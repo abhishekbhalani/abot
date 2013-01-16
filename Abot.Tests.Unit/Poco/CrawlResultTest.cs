@@ -14,6 +14,8 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(default(TimeSpan), unitUnderTest.Elapsed);
             Assert.AreEqual("", unitUnderTest.ErrorMessage);
             Assert.AreEqual(false, unitUnderTest.ErrorOccurred);
-            Assert.AreEqual(null, unitUnderTest.RootUri);        }
+            Assert.AreEqual(null, unitUnderTest.RootUri);
+            Assert.AreEqual(null, unitUnderTest.CrawlContext);
+        }
     }
 }

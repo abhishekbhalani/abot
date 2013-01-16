@@ -28,5 +28,10 @@ namespace Abot.Poco
         /// The error message which describes the condition that prematurely ended the crawl
         /// </summary>
         public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// The context of the crawl
+        /// </summary>
+        public CrawlContext CrawlContext { get; set; }
     }
 }
