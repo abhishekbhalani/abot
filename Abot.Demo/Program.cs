@@ -9,11 +9,12 @@ namespace Abot.Demo
     {
         static void Main(string[] args)
         {
+            log4net.Config.XmlConfigurator.Configure();
             PrintDisclaimer();
 
             Uri uriToCrawl = GetSiteToCrawl(args);
 
-            WebCrawler crawler;
+            IWebCrawler crawler;
 
             //Uncomment only one of the following to see that instance in action
             crawler = GetDefaultWebCrawler();
@@ -38,12 +39,12 @@ namespace Abot.Demo
             PrintDisclaimer();
         }
 
-        private static WebCrawler GetDefaultWebCrawler()
+        private static IWebCrawler GetDefaultWebCrawler()
         {
-            return new WebCrawler();
+            return new PoliteWebCrawler();
         }
 
-        private static WebCrawler GetManuallyConfiguredWebCrawler()
+        private static IWebCrawler GetManuallyConfiguredWebCrawler()
         {
             //Create a config object manually
             CrawlConfiguration config = new CrawlConfiguration();
@@ -66,12 +67,12 @@ namespace Abot.Demo
 
             //Initialize the crawler with custom configuration created above.
             //This override the app.config file values
-            return new WebCrawler(config);
+            return new PoliteWebCrawler(config, null, null, null, null, null, null);
         }
 
-        private static WebCrawler GetCustomBehaviorUsingLambdaWebCrawler()
+        private static IWebCrawler GetCustomBehaviorUsingLambdaWebCrawler()
         {
-            WebCrawler crawler = GetDefaultWebCrawler();
+            IWebCrawler crawler = GetDefaultWebCrawler();
 
             //Register a lambda expression that will make Abot not crawl any url that has the word "ghost" in it.
             //For example http://a.com/ghost, would not get crawled if the link were found during the crawl.
