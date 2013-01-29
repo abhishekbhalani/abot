@@ -6,9 +6,9 @@ set tempDir=%targetDir%IlMergeTemp\
 rd /Q /S %tempDir%
 
 mkdir %tempDir%
-move /Y %targetDir%Abot.dll %tempDir%
-move /Y %targetDir%AutoMapper.dll %tempDir%
-move /Y %targetDir%HtmlAgilityPack.dll %tempDir%
+move /Y %targetDir%Abot.* %tempDir%
+move /Y %targetDir%AutoMapper.* %tempDir%
+move /Y %targetDir%HtmlAgilityPack.* %tempDir%
 
 "C:\Program Files (x86)\Microsoft\ILMerge\ilmerge.exe" /targetplatform:v4 /wildcards /internalize /target:library /out:%targetDir%Abot.dll %tempDir%Abot.dll %tempDir%AutoMapper.dll %tempDir%HtmlAgilityPack.dll
 

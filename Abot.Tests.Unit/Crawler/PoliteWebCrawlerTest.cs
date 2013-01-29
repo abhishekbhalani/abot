@@ -44,9 +44,9 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
-        public void Constructor_Empty2()
+        public void Constructor_ZeroMinCrawlDelay_DoesNotThrowExceptionCreatingAnIDomainRateLimiterWithLessThan1Millisec()
         {
-            new PoliteWebCrawler(null, null, null, null, null, null, null);
+            new PoliteWebCrawler(new CrawlConfiguration { MinCrawlDelayPerDomainMilliSeconds = 0 }, null, null, null, null, null, null);
         }
 
         [Test]

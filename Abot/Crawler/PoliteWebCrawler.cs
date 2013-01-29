@@ -46,8 +46,6 @@ namespace Abot.Crawler
             if(robotsCrawlDelay > _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds)
                 crawlDelayInMilliseconds = robotsCrawlDelay;
 
-            //_domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(crawlDelayInMilliseconds);
-
             if (_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
             {
                 _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(crawlDelayInMilliseconds);
