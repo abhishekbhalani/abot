@@ -63,7 +63,7 @@ namespace Abot.Core
             if(!crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled && !pageToCrawl.IsInternal)
                 return new CrawlDecision { Allow = false, Reason = "Link is external" };
 
-            return new CrawlDecision { Allow = true }; ;
+            return new CrawlDecision { Allow = true };
         }
 
         public virtual CrawlDecision ShouldCrawlPageLinks(CrawledPage crawledPage, CrawlContext crawlContext)

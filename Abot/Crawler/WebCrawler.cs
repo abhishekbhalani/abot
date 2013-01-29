@@ -90,7 +90,7 @@ namespace Abot.Crawler
 
         #region Constructors
 
-        [Obsolete("No longer supported, IDomainRateLimiter is no longer a dependency")]
+        [Obsolete("No longer supported, IDomainRateLimiter is no longer a dependency and is used in the PoliteWebCrawler")]
         public WebCrawler(IThreadManager threadManager,
             IScheduler scheduler,
             IPageRequester httpRequester,
@@ -114,6 +114,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Creates a crawler instance with the default implementations but a custom crawl configuration.
         /// </summary>
+        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
         public WebCrawler(CrawlConfiguration crawlConfiguration)
             : this(null, null, null, null, null, crawlConfiguration)
         {
@@ -122,6 +123,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations except a custom CrawlDecisionMaker.
         /// </summary>
+        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
         public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker)
             : this(null, null, null, null, crawlDecisionMaker, null)
         {
@@ -130,6 +132,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Creates a crawler instance with the default implementations except a custom CrawlDecisionMaker, and custom settings.
         /// </summary>
+        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
         public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker, CrawlConfiguration crawlConfiguration)
             : this(null, null, null, null, crawlDecisionMaker, crawlConfiguration)
         {
