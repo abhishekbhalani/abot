@@ -68,6 +68,12 @@ namespace Abot.Crawler
         void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker);
 
         /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
+        /// </summary>
+        /// <param name="decisionMaker delegate"></param>
+        void IsInternalUri(Func<Uri, Uri, bool> decisionMaker);
+
+        /// <summary>
         /// Begins a crawl using the uri param
         /// </summary>
         CrawlResult Crawl(Uri uri);
@@ -87,6 +93,7 @@ namespace Abot.Crawler
         Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
+        Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
 
         #region Constructors
 
@@ -381,6 +388,14 @@ namespace Abot.Crawler
             _shouldCrawlPageLinksDecisionMaker = decisionMaker;
         }
 
+        /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
+        /// </summary>
+        /// <param name="decisionMaker delegate"></param>     
+        public void IsInternalUri(Func<Uri, Uri, bool> decisionMaker)
+        {
+            _isInternalDecisionMaker = decisionMaker;
+        }
 
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
@@ -468,7 +483,7 @@ namespace Abot.Crawler
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _crawlContext.RootUri.IsBaseOf(uri), IsRoot = false });
+                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri), IsRoot = false });
                 }
             }
             else

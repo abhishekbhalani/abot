@@ -639,7 +639,7 @@ namespace Abot.Tests.Unit.Crawler
         public void Crawl_CrawlDecisionDelegatesReturnTrue_EventsFired()
         {
             _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(new CrawledPage(_rootUri));
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri> { new Uri("http://a.com"), new Uri("http://a.com/a"), new Uri("http://a.com/b") });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
@@ -651,8 +651,16 @@ namespace Abot.Tests.Unit.Crawler
             bool shouldCrawlPageDelegateCalled = false;
             _unitUnderTest.ShouldCrawlPage((x, y) =>
             {
-                shouldCrawlPageDelegateCalled = true;
-                return new CrawlDecision { Allow = true };
+                if (shouldCrawlPageDelegateCalled)
+                {
+                    return new CrawlDecision { Allow = false };
+                }
+                else
+                {
+                    //only return true on the first call to avoid an infinite loop
+                    shouldCrawlPageDelegateCalled = true;
+                    return new CrawlDecision { Allow = true };
+                }
             });
 
             bool shouldCrawlPageLinksDelegateCalled = false;
@@ -662,17 +670,25 @@ namespace Abot.Tests.Unit.Crawler
                 return new CrawlDecision { Allow = true };
             });
 
+            int isInternalUriDelegateCalledCount = 0;
+            _unitUnderTest.IsInternalUri((x, y) =>
+            {
+                isInternalUriDelegateCalledCount++;
+                return false;
+            });
+
             _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(100);//sleep since the events are async and may not complete before returning
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Once());
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(4));//1 for _rootUri, 3 for the returned links
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Once());
 
             Assert.IsTrue(shouldCrawlPageDelegateCalled);
             //Assert.IsTrue(shouldCrawlDownloadPageContentDelegateCalled);
             Assert.IsTrue(shouldCrawlPageLinksDelegateCalled);
+            Assert.AreEqual(3, isInternalUriDelegateCalledCount);
             Assert.AreEqual(1, pageCrawlStartingCount);
             Assert.AreEqual(1, pageCrawlCompletedCount);
         }
