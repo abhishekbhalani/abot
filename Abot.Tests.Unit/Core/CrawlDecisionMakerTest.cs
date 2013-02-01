@@ -1,5 +1,6 @@
 ﻿using Abot.Core;
 using Abot.Poco;
+using HtmlAgilityPack;
 using NUnit.Framework;
 using System;
 using System.Collections.Concurrent;
@@ -259,7 +260,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_NullCrawlContext_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/a.html")){ RawContent = "aaaa" }, null);
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/a.html")){ HtmlDocument = GetHtmlDocument("aaaa") }, null);
 
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null crawl context", result.Reason);
@@ -268,7 +269,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_NullHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = null }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -276,7 +277,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_WhitespaceHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = GetHtmlDocument("     ") }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -284,7 +285,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_EmptyHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = GetHtmlDocument("") }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);            
         }
@@ -295,7 +296,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    RawContent = "aaaa",
+                    HtmlDocument = GetHtmlDocument("aaaa"),
                     IsInternal = false
                 },
                 new CrawlContext
@@ -316,7 +317,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    RawContent = "aaaa",
+                    HtmlDocument = GetHtmlDocument("aaaa"),
                     IsInternal = true
                 },
                 new CrawlContext
@@ -337,7 +338,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    RawContent = "aaaa",
+                    HtmlDocument = GetHtmlDocument("aaaa"),
                     IsInternal = true
                 },
                 new CrawlContext
@@ -351,7 +352,6 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
         }
-
 
         [Test]
         public void ShouldDownloadPageContent_DownloadablePage_ReturnsTrue()
@@ -417,6 +417,13 @@ namespace Abot.Tests.Unit.Core
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Content type is not any of the following: text/html", result.Reason);
+        }
+
+        private HtmlDocument GetHtmlDocument(string html)
+        {
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return doc;
         }
     }
 }

@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Abot.Poco;
+using HtmlAgilityPack;
+using log4net;
+using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
-using Abot.Poco;
-using log4net;
 
 namespace Abot.Core
 {
@@ -89,7 +90,11 @@ namespace Abot.Core
                     {
                         string rawHtml = GetRawHtml(response, uri);
                         if (!string.IsNullOrWhiteSpace(rawHtml))
-                            crawledPage.RawContent = rawHtml;
+                        {
+                            HtmlDocument htmlDocument = new HtmlDocument();
+                            htmlDocument.LoadHtml(rawHtml);
+                            crawledPage.HtmlDocument = htmlDocument;
+                        }
                     }
                     else
                     {

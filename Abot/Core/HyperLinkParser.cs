@@ -11,6 +11,11 @@ namespace Abot.Core
         /// Parses html to extract hyperlinks, converts each into an absolute url
         /// </summary>
         IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml);
+
+        /// <summary>
+        /// Parses html using html agilty pack HtmlDocument to extract hyperlinks, converts each into an absolute url
+        /// </summary>
+        IEnumerable<Uri> GetLinks(Uri pageUri, HtmlDocument htmlDocument);
     }
 
     public class HyperLinkParser : IHyperLinkParser
@@ -31,13 +36,27 @@ namespace Abot.Core
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(pageHtml);
 
-            HtmlNodeCollection aTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
-            HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
+            return GetLinks(pageUri, htmlDoc);
+        }
+
+        /// <summary>
+        /// Parses html using html agilty pack HtmlDocument to extract hyperlinks, converts each into an absolute url
+        /// </summary>
+        public IEnumerable<Uri> GetLinks(Uri pageUri, HtmlDocument htmlDocument)
+        {
+            if (pageUri == null)
+                throw new ArgumentNullException("pageUri");
+
+            if (htmlDocument == null)
+                throw new ArgumentNullException("htmlDocument");
+
+            HtmlNodeCollection aTags = htmlDocument.DocumentNode.SelectNodes("//a[@href]");
+            HtmlNodeCollection areaTags = htmlDocument.DocumentNode.SelectNodes("//area[@href]");
 
             Uri uriToUse = pageUri;
 
             //If html base tag exists use it instead of page uri for relative links
-            string baseHref = GetBaseTagHref(htmlDoc);
+            string baseHref = GetBaseTagHref(htmlDocument);
             if (!string.IsNullOrEmpty(baseHref))
             {
                 try

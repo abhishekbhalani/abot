@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Net;
 
 namespace Abot.Poco
@@ -8,13 +9,27 @@ namespace Abot.Poco
         public CrawledPage(Uri uri)
             : base(uri)
         {
-            RawContent = "";
+            
         }
 
         /// <summary>
         /// The raw content of the request
         /// </summary>
-        public string RawContent { get; set; }
+        public string RawContent 
+        {
+            get
+            {
+                if(HtmlDocument == null)
+                    return "";
+
+                return HtmlDocument.DocumentNode.OuterHtml;
+            }
+        }
+
+        /// <summary>
+        /// The html agility pack document that can be used to retrieve html elements. This is the instance that was used to retrieve this page's links.
+        /// </summary>
+        public HtmlAgilityPack.HtmlDocument HtmlDocument { get; set; }
 
         /// <summary>
         /// Web request sent to the server

@@ -1,4 +1,5 @@
 ﻿using Abot.Core;
+using HtmlAgilityPack;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,8 @@ namespace Abot.Tests.Unit.Core
         [ExpectedException(typeof(ArgumentNullException))]
         public void GetLinks_NullHtml()
         {
-            _unitUnderTest.GetLinks(_uri, null);
+            string nullString = null;
+            _unitUnderTest.GetLinks(_uri, nullString);
         }
 
         [Test]
@@ -239,6 +241,20 @@ namespace Abot.Tests.Unit.Core
             string html = "<base href=\"http:http://http:\"><a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
 
             IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
+
+            Assert.AreEqual(2, result.Count());
+            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
+            Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+        }
+
+        [Test]
+        public void GetLinks_HtmlDocumentObjectParam_ReturnsLinks()
+        {
+            string html = "<a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
+            HtmlDocument htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(html);
+
+            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, htmlDocument);
 
             Assert.AreEqual(2, result.Count());
             Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);

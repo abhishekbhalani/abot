@@ -1,6 +1,7 @@
 ﻿using Abot.Core;
 using Abot.Crawler;
 using Abot.Poco;
+using HtmlAgilityPack;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -55,7 +56,7 @@ namespace Abot.Tests.Unit.Crawler
             Uri uri1 = new Uri(_rootUri.AbsoluteUri + "a.html");
             Uri uri2 = new Uri(_rootUri.AbsoluteUri + "b.html");
 
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
+            CrawledPage homePage = new CrawledPage(_rootUri) { HtmlDocument = GetHtmlDocument("content here") };
             CrawledPage page1 = new CrawledPage(uri1);
             CrawledPage page2 = new CrawledPage(uri2);
 
@@ -64,7 +65,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri1, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(page1);
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri2, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(page2);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(_rootUri, It.IsAny<string>())).Returns(links);
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(_rootUri, It.IsAny<HtmlDocument>())).Returns(links);
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
@@ -81,7 +82,7 @@ namespace Abot.Tests.Unit.Crawler
             Uri uri1 = new Uri(_rootUri.AbsoluteUri + "a.html");
             Uri uri2 = new Uri(_rootUri.AbsoluteUri + "b.html");
 
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
+            CrawledPage homePage = new CrawledPage(_rootUri) { HtmlDocument = GetHtmlDocument("content here") };
             CrawledPage page1 = new CrawledPage(uri1);
             CrawledPage page2 = new CrawledPage(uri2);
 
@@ -90,7 +91,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri1, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(page1);
             _fakeHttpRequester.Setup(f => f.MakeRequest(uri2, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(page2);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(_rootUri, It.IsAny<string>())).Returns(links);
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(_rootUri, It.IsAny<HtmlDocument>())).Returns(links);
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
@@ -100,6 +101,13 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.Crawl(_rootUri);
 
             _fakeDomainRateLimiter.Verify(f => f.RateLimit(It.IsAny<Uri>()), Times.Exactly(3));//BY HAVING A CRAWL DELAY ABOVE ZERO WE EXPECT THE IDOMAINRATELIMITER TO BE CALLED
+        }
+
+        private HtmlDocument GetHtmlDocument(string html)
+        {
+            HtmlDocument doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return doc;
         }
     }
 }
