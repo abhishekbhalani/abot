@@ -28,7 +28,7 @@ namespace Abot.Tests.Integration
 
             CrawlResult result = crawler.Crawl(_rootUri);
 
-            Assert.AreEqual("", result.ErrorMessage);
+            Assert.IsNull(result.ErrorException);
             Assert.IsFalse(result.ErrorOccurred);
             Assert.AreSame(_rootUri, result.RootUri);
 

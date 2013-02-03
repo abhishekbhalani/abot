@@ -100,6 +100,21 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.Crawl(null);
         }
 
+        [Test]
+        public void Crawl_ExceptionThrown_SetsCrawlResultError()
+        {
+            Mock<IScheduler> fakeScheduler = new Mock<IScheduler>();
+            Exception ex = new Exception("oh no");
+            fakeScheduler.Setup(f => f.Count).Throws(ex);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            fakeScheduler.Verify(f => f.Count, Times.Exactly(1));
+            Assert.IsTrue(result.ErrorOccurred);
+            Assert.AreSame(ex, result.ErrorException);
+        }
+
         #region Synchronous Event Tests
 
         [Test]

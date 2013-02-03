@@ -197,7 +197,15 @@ namespace Abot.Crawler
 
             _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
-            CrawlSite();
+            try
+            {
+                CrawlSite();
+            }
+            catch (Exception e)
+            {
+                _crawlResult.ErrorException = e;
+                _logger.FatalFormat("An error occurred while crawling site [{0}]", uri, e);
+            }
             timer.Stop();
 
             _crawlResult.Elapsed = timer.Elapsed;
