@@ -1,5 +1,5 @@
-﻿using System.Configuration;
-using Abot.Poco;
+﻿using Abot.Poco;
+using System.Configuration;
 
 namespace Abot.Core
 {
@@ -114,6 +114,18 @@ namespace Abot.Core
         public bool IsExternalPageLinksCrawlingEnabled
         {
             get { return (bool)this["isExternalPageLinksCrawlingEnabled"]; }
+        }
+
+        [ConfigurationProperty("shouldLoadCsQueryForEachCrawledPage", IsRequired = true)]
+        public bool ShouldLoadCsQueryForEachCrawledPage
+        {
+            get { return (bool)this["shouldLoadCsQueryForEachCrawledPage"]; }
+        }
+
+        [ConfigurationProperty("shouldLoadHtmlAgilityPackForEachCrawledPage", IsRequired = true)]
+        public bool ShouldLoadHtmlAgilityPackForEachCrawledPage
+        {
+            get { return (bool)this["shouldLoadHtmlAgilityPackForEachCrawledPage"]; }
         }
     }
 

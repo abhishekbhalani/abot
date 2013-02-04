@@ -22,6 +22,8 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("aaaa", _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
+            Assert.AreEqual(true, _config.CrawlBehavior.ShouldLoadHtmlAgilityPackForEachCrawledPage);
+            Assert.AreEqual(true, _config.CrawlBehavior.ShouldLoadCsQueryForEachCrawledPage);
             
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
@@ -49,6 +51,8 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.UserAgentString, _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(result.IsExternalPageCrawlingEnabled, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
+            Assert.AreEqual(result.ShouldLoadHtmlAgilityPackForEachCrawledPage, _config.CrawlBehavior.ShouldLoadHtmlAgilityPackForEachCrawledPage);
+            Assert.AreEqual(result.ShouldLoadCsQueryForEachCrawledPage, _config.CrawlBehavior.ShouldLoadCsQueryForEachCrawledPage);
 
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(result.MinCrawlDelayPerDomainMilliSeconds, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);

@@ -296,7 +296,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    HtmlDocument = GetHtmlDocument("aaaa"),
+                    RawContent = "aaaa",
                     IsInternal = false
                 },
                 new CrawlContext
@@ -317,7 +317,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    HtmlDocument = GetHtmlDocument("aaaa"),
+                    RawContent = "aaaa",
                     IsInternal = true
                 },
                 new CrawlContext
@@ -338,7 +338,7 @@ namespace Abot.Tests.Unit.Core
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
                 new CrawledPage(new Uri("http://b.com/a.html"))
                 {
-                    HtmlDocument = GetHtmlDocument("aaaa"),
+                    RawContent = "aaaa",
                     IsInternal = true
                 },
                 new CrawlContext

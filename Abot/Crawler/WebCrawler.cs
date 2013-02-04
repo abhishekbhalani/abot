@@ -1,5 +1,7 @@
 ﻿using Abot.Core;
 using Abot.Poco;
+using CsQuery;
+using HtmlAgilityPack;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -167,8 +169,14 @@ namespace Abot.Crawler
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
-            _hyperLinkParser = hyperLinkParser ?? new HyperLinkParser();
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
+
+            if (hyperLinkParser != null)
+                _hyperLinkParser = hyperLinkParser;
+            else if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
+                _hyperLinkParser = new HapHyperLinkParser();
+            else if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
+                _hyperLinkParser = new CSQueryHyperlinkParser();
 
             _crawlContext.Scheduler = _scheduler;
         }
@@ -467,10 +475,8 @@ namespace Abot.Crawler
             FirePageCrawlStartingEvent(pageToCrawl);
 
             CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => ShouldDownloadPageContentWrapper(x));
-            crawledPage.IsRetry = pageToCrawl.IsRetry;
-            crawledPage.ParentUri = pageToCrawl.ParentUri;
-            crawledPage.IsInternal = pageToCrawl.IsInternal;
-            crawledPage.IsRoot = pageToCrawl.IsRoot;
+            AutoMapper.Mapper.CreateMap<PageToCrawl, CrawledPage>();
+            AutoMapper.Mapper.Map(pageToCrawl, crawledPage);
 
             if (crawledPage.HttpWebResponse == null)
                 _logger.InfoFormat("Page crawl complete, Status:[NA] Url:[{0}] Parent:[{1}]", crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
@@ -487,7 +493,19 @@ namespace Abot.Crawler
 
             if (shouldCrawlPageLinksDecision.Allow)
             {
-                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage.Uri, crawledPage.HtmlDocument);
+                //Load CsQuery Object
+                if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
+                    crawledPage.CsQueryDocument = CQ.Create(crawledPage.RawContent);
+
+                //Load Html Agility Pack
+                if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
+                {
+                    HtmlDocument hapDoc = new HtmlDocument();
+                    hapDoc.LoadHtml(crawledPage.RawContent);
+                    crawledPage.HtmlDocument = hapDoc;
+                }
+
+                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
                 foreach (Uri uri in crawledPageLinks)
                 {
                     _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);

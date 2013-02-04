@@ -11,6 +11,7 @@ namespace Abot.Poco
             MaxPagesToCrawl = 1000;
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
+            ShouldLoadHtmlAgilityPackForEachCrawledPage = true;//required for the default IHyperlinkParser HapHyperlinkParser
         }
 
         #region crawlBehavior
@@ -59,6 +60,16 @@ namespace Abot.Poco
         /// Whether pages external to the root uri should have their links crawled. NOTE: IsExternalPageCrawlEnabled must be true for this setting to have any effect
         /// </summary>
         public bool IsExternalPageLinksCrawlingEnabled { get; set; }
+
+        /// <summary>
+        // Whether an Html Agility Pack HtmlDocument is loaded with the raw content of each page. . Allows you to use CrawledPage.HtmlDocument to search/modify raw html.
+        /// </summary>
+        public bool ShouldLoadHtmlAgilityPackForEachCrawledPage { get; set; }
+
+        /// <summary>
+        // Whether a CsQuery CQ is loaded with the raw content of each page. Allows you to use CrawledPage.CsQueryDocument to search/modify raw html.
+        /// </summary>
+        public bool ShouldLoadCsQueryForEachCrawledPage { get; set; }
 
         /// <summary>
         /// A comma seperated string that has content types that should have their page content downloaded. For each page, the content type is checked to see if it contains any of the values defined here.

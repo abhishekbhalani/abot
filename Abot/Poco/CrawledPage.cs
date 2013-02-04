@@ -1,4 +1,5 @@
-﻿using HtmlAgilityPack;
+﻿using CsQuery;
+using HtmlAgilityPack;
 using System;
 using System.Net;
 
@@ -9,27 +10,23 @@ namespace Abot.Poco
         public CrawledPage(Uri uri)
             : base(uri)
         {
-            
+            RawContent = "";
         }
 
         /// <summary>
         /// The raw content of the request
         /// </summary>
-        public string RawContent 
-        {
-            get
-            {
-                if(HtmlDocument == null)
-                    return "";
-
-                return HtmlDocument.DocumentNode.OuterHtml;
-            }
-        }
+        public string RawContent { get; set; }
 
         /// <summary>
-        /// The html agility pack document that can be used to retrieve html elements. This is the instance that was used to retrieve this page's links.
+        /// The Html Agility Pack (http://htmlagilitypack.codeplex.com/) document that can be used to retrieve/modify html elements on the crawled page.
         /// </summary>
-        public HtmlAgilityPack.HtmlDocument HtmlDocument { get; set; }
+        public HtmlDocument HtmlDocument { get; set; }
+
+        /// <summary>
+        /// CsQuery (https://github.com/jamietre/CsQuery) document that can be used to retrieve/modify html elements on the crawled page.
+        /// </summary>
+        public CQ CsQueryDocument { get; set; }
 
         /// <summary>
         /// Web request sent to the server

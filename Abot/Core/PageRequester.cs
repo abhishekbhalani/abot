@@ -1,5 +1,4 @@
 ﻿using Abot.Poco;
-using HtmlAgilityPack;
 using log4net;
 using System;
 using System.IO;
@@ -88,13 +87,7 @@ namespace Abot.Core
                     CrawlDecision shouldDownloadContentDecision = shouldDownloadContent(crawledPage);
                     if (shouldDownloadContentDecision.Allow)
                     {
-                        string rawHtml = GetRawHtml(response, uri);
-                        if (!string.IsNullOrWhiteSpace(rawHtml))
-                        {
-                            HtmlDocument htmlDocument = new HtmlDocument();
-                            htmlDocument.LoadHtml(rawHtml);
-                            crawledPage.HtmlDocument = htmlDocument;
-                        }
+                        crawledPage.RawContent = GetRawHtml(response, uri);
                     }
                     else
                     {

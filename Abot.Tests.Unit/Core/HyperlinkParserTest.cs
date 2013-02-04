@@ -1,5 +1,4 @@
 ﻿using Abot.Core;
-using HtmlAgilityPack;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -8,15 +7,17 @@ using System.Linq;
 namespace Abot.Tests.Unit.Core
 {
     [TestFixture]
-    public class HyperLinkParserTest
+    public abstract class HyperLinkParserTest
     {
         HyperLinkParser _unitUnderTest;
         Uri _uri = new Uri("http://a.com/");
 
+        protected abstract HyperLinkParser GetInstance();
+
         [SetUp]
         public void Setup()
         {
-            _unitUnderTest = new HyperLinkParser();
+            _unitUnderTest = GetInstance();
         }
 
         [Test]
@@ -248,17 +249,10 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void GetLinks_HtmlDocumentObjectParam_ReturnsLinks()
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void GetLinks_NullCrawledPage()
         {
-            string html = "<a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
-            HtmlDocument htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(html);
-
-            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, htmlDocument);
-
-            Assert.AreEqual(2, result.Count());
-            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-            Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+            _unitUnderTest.GetLinks(null);
         }
     }
 }
