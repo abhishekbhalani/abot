@@ -14,7 +14,15 @@ namespace Abot.Core
         /// <summary>
         /// Will perform the action asynchrously on a seperate thread
         /// </summary>
+        /// <param name="action">The action to perform</param>
         void DoWork(Action action);
+
+        /// <summary>
+        /// Will perform the action asynchrously on a seperate thread
+        /// </summary>
+        /// <param name="action">The action to perform</param>
+        /// <param name="timeoutInMilliSecs">The amount of time to allow the action to perform. If above this threshold will abort the thread.</param>
+        void DoWork(Action action, int timeoutInMilliSecs);
 
         /// <summary>
         /// Whether there are running threads
@@ -52,6 +60,14 @@ namespace Abot.Core
         /// </summary>
         public void DoWork(Action action)
         {
+            DoWork(action, 0);
+        }
+
+        /// <summary>
+        /// Will perform the action asynchrously on a seperate thread
+        /// </summary>
+        public void DoWork(Action action, int timeoutInMilliSecs)
+        {
             lock (_lock)
             {
                 int freeThreadIndex = GetFreeThreadIndex();
@@ -67,12 +83,27 @@ namespace Abot.Core
                     _threads[freeThreadIndex] = new Thread(new ThreadStart(action));
                     _logger.DebugFormat("Doing work on thread Index:[{0}] Id[{1}]", freeThreadIndex, _threads[freeThreadIndex].ManagedThreadId);
                     _threads[freeThreadIndex].Start();
+
+                    if (timeoutInMilliSecs > 0)
+                    {
+                        //Have to create an instance of timer and dispose it so its declared
+                        Timer timer = new Timer(o => DoNothing(), null, int.MaxValue, Timeout.Infinite);
+                        timer.Dispose();
+
+                        //Use the declared reference to timer and pass it into the TimeOutThread method so it can be properly disposed of after 1 use
+                        timer = new Timer(o => TimeOutThread(_threads[freeThreadIndex], timeoutInMilliSecs, timer), null, timeoutInMilliSecs, Timeout.Infinite);
+                    }
                 }
                 else
                 {
                     action.Invoke();
                 }
             }
+        }
+
+        private object DoNothing()
+        {
+            return null;
         }
 
         /// <summary>
@@ -122,6 +153,16 @@ namespace Abot.Core
                 }
             }
             return freeThreadIndex;;
+        }
+
+        private void TimeOutThread(Thread thread, int timeoutInMillisec, Timer timer)
+        {
+            timer.Dispose();
+            if (thread == null || !thread.IsAlive)
+                return;
+
+            _logger.WarnFormat("Thread Id[{0}] being aborted after [{1}] millisecs timeout", thread.ManagedThreadId, timeoutInMillisec);
+            thread.Abort();
         }
     }
 }
