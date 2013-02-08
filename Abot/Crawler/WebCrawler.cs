@@ -483,6 +483,18 @@ namespace Abot.Crawler
             else
                 _logger.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Parent:[{2}]", Convert.ToInt32(crawledPage.HttpWebResponse.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
 
+            //Load CsQuery Object
+            if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
+                crawledPage.CsQueryDocument = CQ.Create(crawledPage.RawContent);
+
+            //Load Html Agility Pack
+            if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
+            {
+                HtmlDocument hapDoc = new HtmlDocument();
+                hapDoc.LoadHtml(crawledPage.RawContent);
+                crawledPage.HtmlDocument = hapDoc;
+            }
+
             FirePageCrawlCompletedEventAsync(crawledPage);
             FirePageCrawlCompletedEvent(crawledPage);
 
@@ -493,18 +505,6 @@ namespace Abot.Crawler
 
             if (shouldCrawlPageLinksDecision.Allow)
             {
-                //Load CsQuery Object
-                if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
-                    crawledPage.CsQueryDocument = CQ.Create(crawledPage.RawContent);
-
-                //Load Html Agility Pack
-                if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
-                {
-                    HtmlDocument hapDoc = new HtmlDocument();
-                    hapDoc.LoadHtml(crawledPage.RawContent);
-                    crawledPage.HtmlDocument = hapDoc;
-                }
-
                 IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
                 foreach (Uri uri in crawledPageLinks)
                 {
