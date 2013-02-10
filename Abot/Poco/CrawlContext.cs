@@ -1,7 +1,7 @@
 ﻿using Abot.Core;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Dynamic;
 
 namespace Abot.Poco
 {
@@ -11,6 +11,7 @@ namespace Abot.Poco
         {
             CrawledUrls = new ConcurrentBag<string>();
             CrawlCountByDomain = new ConcurrentDictionary<string, int>();
+            CrawlBag = new ExpandoObject();
         }
 
         /// <summary>
@@ -22,16 +23,6 @@ namespace Abot.Poco
         /// The datetime of the last unsuccessful http status (non 200) was requested
         /// </summary>
         public DateTime CrawlStartDate { get; set; }
-
-        ///// <summary>
-        ///// The datetime of the last successful http status (200) was requested
-        ///// </summary>
-        //public DateTime LastSuccessfulHttpRequestDate { get; set; }
-
-        ///// <summary>
-        ///// The datetime of the last unsuccessful http status (non 200) was requested
-        ///// </summary>
-        //public DateTime LastUnsuccessfulHttpRequestDate { get; set; }
 
         /// <summary>
         /// Threadsafe collection of urls that have been crawled
@@ -52,5 +43,10 @@ namespace Abot.Poco
         /// The scheduler that is being used
         /// </summary>
         public IScheduler Scheduler { get; set; }
+
+        /// <summary>
+        /// Random dynamic values
+        /// </summary>
+        public ExpandoObject CrawlBag { get; set; }
     }
 }
