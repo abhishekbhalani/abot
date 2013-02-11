@@ -427,19 +427,15 @@ namespace Abot.Crawler
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
             AbotConfigurationSectionHandler configFromFile = null;
-            try
-            {
-                configFromFile = AbotConfigurationSectionHandler.LoadFromXml();
-            }
-            catch{}
+            try{ configFromFile = AbotConfigurationSectionHandler.LoadFromXml(); } catch {}
 
             if (configFromFile == null)
             {
-                _logger.InfoFormat("abot config section was NOT found");
+                _logger.DebugFormat("abot config section was NOT found");
                 return null;
             }
 
-            _logger.InfoFormat("abot config section was found");
+            _logger.DebugFormat("abot config section was found");
             return configFromFile.Convert();
         }
 
