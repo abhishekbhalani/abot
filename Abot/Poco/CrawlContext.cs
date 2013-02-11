@@ -47,6 +47,6 @@ namespace Abot.Poco
         /// <summary>
         /// Random dynamic values
         /// </summary>
-        public ExpandoObject CrawlBag { get; set; }
+        public dynamic CrawlBag { get; set; }
     }
 }
