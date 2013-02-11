@@ -20,7 +20,7 @@ namespace Abot.Tests.Integration
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
             new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
-            base.CrawlAndAssert(new WebCrawler());
+            base.CrawlAndAssert(new PoliteWebCrawler());
         }
 
         [Test]
@@ -33,7 +33,7 @@ namespace Abot.Tests.Integration
 
             int pagesCrawledCount = 0;
 
-            WebCrawler crawler = new WebCrawler(configuration);
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null);
             crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));
@@ -52,7 +52,7 @@ namespace Abot.Tests.Integration
 
             int pagesCrawledCount = 0;
 
-            WebCrawler crawler = new WebCrawler(configuration);
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null);
             crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));

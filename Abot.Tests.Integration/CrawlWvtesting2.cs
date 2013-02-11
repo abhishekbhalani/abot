@@ -16,7 +16,7 @@ namespace Abot.Tests.Integration
         [Test]
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
-            base.CrawlAndAssert(new WebCrawler());
+            base.CrawlAndAssert(new PoliteWebCrawler());
         }
 
         protected override List<PageResult> GetExpectedCrawlResult()
