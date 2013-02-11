@@ -43,6 +43,11 @@ namespace Abot.Core
 
             return config;
         }
+
+        public static AbotConfigurationSectionHandler LoadFromXml()
+        {
+            return ((AbotConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
+        }
     }
 
     public class PolitenessElement : ConfigurationElement

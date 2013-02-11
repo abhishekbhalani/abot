@@ -7,7 +7,7 @@ namespace Abot.Tests.Unit.Core
     [TestFixture]
     public class AbotConfigurationSectionHandlerTest
     {
-        AbotConfigurationSectionHandler _config = (AbotConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot");
+        AbotConfigurationSectionHandler _config = AbotConfigurationSectionHandler.LoadFromXml();
 
         [Test]
         public void GetSetion_FillsConfigValuesFromAppConfigFile()
