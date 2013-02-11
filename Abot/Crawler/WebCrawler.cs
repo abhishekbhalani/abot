@@ -79,6 +79,11 @@ namespace Abot.Crawler
         /// Begins a crawl using the uri param
         /// </summary>
         CrawlResult Crawl(Uri uri);
+
+        /// <summary>
+        /// Dynamic object that can hold any value that needs to be available in the crawl context
+        /// </summary>
+        dynamic CrawlBag { get; set; }
     }
 
     public class WebCrawler : IWebCrawler
@@ -96,6 +101,11 @@ namespace Abot.Crawler
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
         Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
+
+        /// <summary>
+        /// Dynamic object that can hold any value that needs to be available in the crawl context
+        /// </summary>
+        public dynamic CrawlBag { get; set; }
 
         #region Constructors
 
@@ -165,6 +175,7 @@ namespace Abot.Crawler
         {
             _crawlContext = new CrawlContext();
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
+            CrawlBag = _crawlContext.CrawlBag;
 
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler();
