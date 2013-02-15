@@ -6,6 +6,7 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 
 namespace Abot.Crawler
@@ -484,7 +485,7 @@ namespace Abot.Crawler
             FirePageCrawlCompletedEvent(crawledPage);
 
             if (ShouldCrawlPageLinks(crawledPage))
-                CrawlPageLinks(crawledPage);
+                SchedulePageLinks(crawledPage);
         }
 
         private bool ShouldCrawlPageLinks(CrawledPage crawledPage)
@@ -552,16 +553,10 @@ namespace Abot.Crawler
                 _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
         }
 
-        private void CrawlPageLinks(CrawledPage crawledPage)
+        private void SchedulePageLinks(CrawledPage crawledPage)
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
-            int foundLinkCount = 0;
-            foreach (Uri uri in crawledPageLinks)
-            {
-                _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri), IsRoot = false });
-                foundLinkCount++;
-            }
-            _logger.DebugFormat("Found [{0}] links on page [{1}]", foundLinkCount, crawledPage.Uri.AbsoluteUri);
+            _scheduler.Add(crawledPageLinks.Select(p => new CrawledPage(p) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(p, _crawlContext.RootUri), IsRoot = false }));
         }
 
         private void LoadCsQuery(CrawledPage crawledPage)

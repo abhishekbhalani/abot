@@ -2,7 +2,7 @@
 using log4net;
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace Abot.Core
 {
@@ -19,6 +19,11 @@ namespace Abot.Core
         void Add(PageToCrawl page);
 
         /// <summary>
+        /// Schedules the param to be crawled
+        /// </summary>
+        void Add(IEnumerable<PageToCrawl> pages);
+
+        /// <summary>
         /// Gets the next page to crawl
         /// </summary>
         PageToCrawl GetNext();
@@ -28,7 +33,8 @@ namespace Abot.Core
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
         ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
-        ConcurrentBag<string> _scheduledOrCrawled = new ConcurrentBag<string>();
+        ConcurrentDictionary<string, object> _scheduledOrCrawled = new ConcurrentDictionary<string, object>();
+         
         bool _allowUriRecrawling = false;
 
         public FifoScheduler()
@@ -66,13 +72,21 @@ namespace Abot.Core
             }
             else
             {
-                if (!_scheduledOrCrawled.Contains(page.Uri.AbsoluteUri))
+                if (_scheduledOrCrawled.TryAdd(page.Uri.AbsoluteUri, null))
                 {
-                    _scheduledOrCrawled.Add(page.Uri.AbsoluteUri);
                     //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
                     _pagesToCrawl.Enqueue(page);
                 }
             }
+        }
+
+        public void Add(IEnumerable<PageToCrawl> pages)
+        {
+            if(pages == null)
+                throw new ArgumentNullException("pages");
+
+            foreach (PageToCrawl page in pages)
+                Add(page);
         }
 
         /// <summary>
