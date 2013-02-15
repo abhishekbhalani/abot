@@ -761,7 +761,7 @@ namespace Abot.Tests.Unit.Crawler
         {
             //Arrange
             _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(new CrawledPage(_rootUri));
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<CrawledPage>())).Returns(new List<Uri> { new Uri("http://a.com"), new Uri("http://a.com/a"), new Uri("http://a.com/b") });
+            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<CrawledPage>())).Returns(new List<Uri> { new Uri("http://a.com/a"), new Uri("http://a.com/b") });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
@@ -807,13 +807,13 @@ namespace Abot.Tests.Unit.Crawler
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<CrawledPage>()), Times.Once());
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(4));//1 for _rootUri, 3 for the returned links
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(3));//1 for _rootUri, 2 for the returned links
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Once());
 
             Assert.IsTrue(shouldCrawlPageDelegateCalled);
             //Assert.IsTrue(shouldCrawlDownloadPageContentDelegateCalled);
             Assert.IsTrue(shouldCrawlPageLinksDelegateCalled);
-            Assert.AreEqual(3, isInternalUriDelegateCalledCount);
+            Assert.AreEqual(2, isInternalUriDelegateCalledCount);
             Assert.AreEqual(1, pageCrawlStartingCount);
             Assert.AreEqual(1, pageCrawlCompletedCount);
         }

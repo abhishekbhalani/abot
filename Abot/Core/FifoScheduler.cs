@@ -2,6 +2,7 @@
 using log4net;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace Abot.Core
 {
@@ -27,6 +28,17 @@ namespace Abot.Core
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
         ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
+        ConcurrentBag<string> _scheduledOrCrawled = new ConcurrentBag<string>();
+        bool _allowUriRecrawling = false;
+
+        public FifoScheduler()
+        {
+        }
+
+        public FifoScheduler(bool allowUriRecrawling)
+        {
+            _allowUriRecrawling = allowUriRecrawling;
+        }
 
         /// <summary>
         /// Count of remaining items that are currently scheduled
@@ -47,8 +59,20 @@ namespace Abot.Core
             if (page == null)
                 throw new ArgumentNullException("page");
 
-            _logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
-            _pagesToCrawl.Enqueue(page);
+            if (_allowUriRecrawling)
+            {
+                //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
+                _pagesToCrawl.Enqueue(page);
+            }
+            else
+            {
+                if (!_scheduledOrCrawled.Contains(page.Uri.AbsoluteUri))
+                {
+                    _scheduledOrCrawled.Add(page.Uri.AbsoluteUri);
+                    //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
+                    _pagesToCrawl.Enqueue(page);
+                }
+            }
         }
 
         /// <summary>

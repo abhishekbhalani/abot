@@ -25,6 +25,28 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
+        public void Add_IsUriRecrawlingIsFalse_DuplicateNotAdded()
+        {
+            _unitUnderTest = new FifoScheduler(false);//this is the default
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+
+            Assert.AreEqual(1, _unitUnderTest.Count);
+        }
+
+        [Test]
+        public void Add_IsUriRecrawlingIsTrue_DuplicateAdded()
+        {
+            _unitUnderTest = new FifoScheduler(true);
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+
+            Assert.AreEqual(3, _unitUnderTest.Count);
+        }
+
+        [Test]
         [ExpectedException(typeof(ArgumentNullException))]
         public void Add_NullUri()
         {

@@ -178,7 +178,7 @@ namespace Abot.Crawler
             CrawlBag = _crawlContext.CrawlBag;
 
             _threadManager = threadManager ?? new ThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
-            _scheduler = scheduler ?? new FifoScheduler();
+            _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
@@ -223,7 +223,8 @@ namespace Abot.Crawler
             catch (Exception e)
             {
                 _crawlResult.ErrorException = e;
-                _logger.FatalFormat("An error occurred while crawling site [{0}]", uri, e);
+                _logger.FatalFormat("An error occurred while crawling site [{0}]", uri);
+                _logger.Fatal(e);
             }
             timer.Stop();
 
@@ -265,7 +266,8 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri);
+                _logger.Error(e);
             }
         }
 
@@ -280,6 +282,7 @@ namespace Abot.Crawler
             catch (Exception e)
             {
                 _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
+                _logger.Error(e);
             }
         }
 
@@ -293,7 +296,8 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri, e);
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri);
+                _logger.Error(e);
             }
         }
 
@@ -307,7 +311,8 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri, e);
+                _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri);
+                _logger.Error(e);
             }
         }
 
@@ -445,7 +450,7 @@ namespace Abot.Crawler
             {
                 if (_scheduler.Count > 0)
                 {
-                    _threadManager.DoWork(() => CrawlPage(_scheduler.GetNext()));
+                    _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
                 }
                 else if (!_threadManager.HasRunningThreads())
                 {
@@ -459,34 +464,67 @@ namespace Abot.Crawler
             }
         }
 
-        private void CrawlPage(PageToCrawl pageToCrawl)
+        private void ProcessPage(PageToCrawl pageToCrawl)
         {
             if (pageToCrawl == null)
                 return;
 
-            //Crawl the page
+            if (!ShouldCrawlPage(pageToCrawl))
+                return;
+
+            CrawledPage crawledPage = CrawlThePage(pageToCrawl);
+
+            if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
+                LoadCsQuery(crawledPage);
+
+            if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
+                LoadHtmlAgilityPack(crawledPage);
+
+            FirePageCrawlCompletedEventAsync(crawledPage);
+            FirePageCrawlCompletedEvent(crawledPage);
+
+            if (ShouldCrawlPageLinks(crawledPage))
+                CrawlPageLinks(crawledPage);
+        }
+
+        private bool ShouldCrawlPageLinks(CrawledPage crawledPage)
+        {
+            CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
+            if (shouldCrawlPageLinksDecision.Allow)
+                shouldCrawlPageLinksDecision = (_shouldCrawlPageLinksDecisionMaker != null) ? _shouldCrawlPageLinksDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
+
+            if (!shouldCrawlPageLinksDecision.Allow)
+            {
+                _logger.DebugFormat("Links on page [{0}] not crawled, [{1}]", crawledPage.Uri.AbsoluteUri, shouldCrawlPageLinksDecision.Reason);
+                FirePageLinksCrawlDisallowedEventAsync(crawledPage, shouldCrawlPageLinksDecision.Reason);
+                FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
+            }
+
+            return shouldCrawlPageLinksDecision.Allow;
+        }
+
+        private bool ShouldCrawlPage(PageToCrawl pageToCrawl)
+        {
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
             if (shouldCrawlPageDecision.Allow)
                 shouldCrawlPageDecision = (_shouldCrawlPageDecisionMaker != null) ? _shouldCrawlPageDecisionMaker.Invoke(pageToCrawl, _crawlContext) : new CrawlDecision { Allow = true };
 
             if (shouldCrawlPageDecision.Allow)
             {
-                //Add crawled url/domain to the crawl context
-                _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
-                int domainCount = 0;
-                if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
-                    _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
-                else
-                    _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
+                AddPageToContext(pageToCrawl);
             }
             else
             {
                 _logger.DebugFormat("Page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageDecision.Reason);
                 FirePageCrawlDisallowedEventAsync(pageToCrawl, shouldCrawlPageDecision.Reason);
                 FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
-                return;
             }
 
+            return shouldCrawlPageDecision.Allow;
+        }
+
+        private CrawledPage CrawlThePage(PageToCrawl pageToCrawl)
+        {
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
@@ -500,41 +538,64 @@ namespace Abot.Crawler
             else
                 _logger.InfoFormat("Page crawl complete, Status:[{0}] Url:[{1}] Parent:[{2}]", Convert.ToInt32(crawledPage.HttpWebResponse.StatusCode), crawledPage.Uri.AbsoluteUri, crawledPage.ParentUri);
 
-            //Load CsQuery Object
-            if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
-                crawledPage.CsQueryDocument = CQ.Create(crawledPage.RawContent);
+            return crawledPage;
 
-            //Load Html Agility Pack
-            if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
-            {
-                HtmlDocument hapDoc = new HtmlDocument();
-                hapDoc.LoadHtml(crawledPage.RawContent);
-                crawledPage.HtmlDocument = hapDoc;
-            }
+        }
 
-            FirePageCrawlCompletedEventAsync(crawledPage);
-            FirePageCrawlCompletedEvent(crawledPage);
-
-            //Crawl the page's links
-            CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
-            if (shouldCrawlPageLinksDecision.Allow)
-                shouldCrawlPageLinksDecision = (_shouldCrawlPageLinksDecisionMaker != null) ? _shouldCrawlPageLinksDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
-
-            if (shouldCrawlPageLinksDecision.Allow)
-            {
-                IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
-                foreach (Uri uri in crawledPageLinks)
-                {
-                    _logger.DebugFormat("Found link [{0}] on page [{1}]", uri.AbsoluteUri, crawledPage.Uri.AbsoluteUri);
-                    _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri), IsRoot = false });
-                }
-            }
+        private void AddPageToContext(PageToCrawl pageToCrawl)
+        {
+            _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+            int domainCount = 0;
+            if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
+                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
             else
+                _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
+        }
+
+        private void CrawlPageLinks(CrawledPage crawledPage)
+        {
+            IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
+            int foundLinkCount = 0;
+            foreach (Uri uri in crawledPageLinks)
             {
-                _logger.DebugFormat("Links on page [{0}] not crawled, [{1}]", pageToCrawl.Uri.AbsoluteUri, shouldCrawlPageLinksDecision.Reason);
-                FirePageLinksCrawlDisallowedEventAsync(crawledPage, shouldCrawlPageLinksDecision.Reason);
-                FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
+                _scheduler.Add(new CrawledPage(uri) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri), IsRoot = false });
+                foundLinkCount++;
             }
+            _logger.DebugFormat("Found [{0}] links on page [{1}]", foundLinkCount, crawledPage.Uri.AbsoluteUri);
+        }
+
+        private void LoadCsQuery(CrawledPage crawledPage)
+        {
+            CQ csQueryObject;
+            try
+            {
+                csQueryObject = CQ.Create(crawledPage.RawContent);
+            }
+            catch (Exception e)
+            {
+                csQueryObject = CQ.Create("");
+
+                _logger.ErrorFormat("Error occurred while loading CsQuery object for Url [{0}]", crawledPage.Uri);
+                _logger.Error(e);
+            }
+            crawledPage.CsQueryDocument = csQueryObject;
+        }
+
+        private void LoadHtmlAgilityPack(CrawledPage crawledPage)
+        {
+            HtmlDocument hapDoc = new HtmlDocument();
+            try
+            {
+                hapDoc.LoadHtml(crawledPage.RawContent);
+            }
+            catch (Exception e)
+            {
+                hapDoc.LoadHtml("");
+
+                _logger.ErrorFormat("Error occurred while loading HtmlAgilityPack object for Url [{0}]", crawledPage.Uri);
+                _logger.Error(e);
+            }
+            crawledPage.HtmlDocument = hapDoc;
         }
 
         private CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
