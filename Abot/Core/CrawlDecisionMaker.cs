@@ -109,7 +109,10 @@ namespace Abot.Core
             }
             if (!isDownloadable)
                 return new CrawlDecision { Allow = false, Reason = "Content type is not any of the following: " + crawlContext.CrawlConfiguration.DownloadableContentTypes };
-            
+
+            if (crawlContext.CrawlConfiguration.MaxPageSizeInBytes > 0 && crawledPage.HttpWebResponse.ContentLength > crawlContext.CrawlConfiguration.MaxPageSizeInBytes)
+                return new CrawlDecision { Allow = false, Reason = string.Format("Page size of [{0}] bytes is above the max allowable of [{1}] bytes", crawledPage.PageSizeInBytes, crawlContext.CrawlConfiguration.MaxPageSizeInBytes) };
+
             return new CrawlDecision { Allow = true };            
         }
     }

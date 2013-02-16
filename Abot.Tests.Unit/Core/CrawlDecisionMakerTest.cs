@@ -353,6 +353,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("", result.Reason);
         }
 
+
         [Test]
         public void ShouldDownloadPageContent_DownloadablePage_ReturnsTrue()
         {
@@ -417,6 +418,42 @@ namespace Abot.Tests.Unit.Core
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Content type is not any of the following: text/html", result.Reason);
+        }
+
+        [Test]
+        public void ShouldDownloadPageContent_AboveMaxPageSize_ReturnsFalse()
+        {
+            Uri valid200StatusUri = new Uri("http://localhost:1111/");
+
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), 
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        MaxPageSizeInBytes = 5
+                    }
+                });
+
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Page size of [938] bytes is above the max allowable of [5] bytes", result.Reason);
+        }
+
+        [Test]
+        public void ShouldDownloadPageContent_MaxPageSizeInBytesZero_ReturnsTrue()
+        {
+            Uri valid200StatusUri = new Uri("http://localhost:1111/");
+
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri),
+                new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        MaxPageSizeInBytes = 0
+                    }
+                });
+
+            Assert.IsTrue(result.Allow);
+            Assert.AreEqual("", result.Reason);
         }
 
         private HtmlDocument GetHtmlDocument(string html)

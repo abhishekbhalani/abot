@@ -32,6 +32,11 @@ namespace Abot.Poco
         public long MaxPagesToCrawlPerDomain { get; set; }
 
         /// <summary>
+        /// Maximum size of page. If the page size is above this value, it will not be downloaded or processed
+        /// </summary>
+        public long MaxPageSizeInBytes { get; set; }
+
+        /// <summary>
         /// The user agent string to use for http requests
         /// </summary>
         public string UserAgentString { get; set; }

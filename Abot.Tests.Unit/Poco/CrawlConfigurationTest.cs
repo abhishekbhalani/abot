@@ -26,6 +26,7 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual("abot v1.1 http://code.google.com/p/abot", unitUnderTest.UserAgentString);
             Assert.AreEqual(true, unitUnderTest.ShouldLoadHtmlAgilityPackForEachCrawledPage);
             Assert.AreEqual(false, unitUnderTest.ShouldLoadCsQueryForEachCrawledPage);
+            Assert.AreEqual(0, unitUnderTest.MaxPageSizeInBytes);
         }
     }
 }

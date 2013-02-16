@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Reflection;
+using System.Text;
 
 namespace Abot.Core
 {
@@ -88,6 +89,7 @@ namespace Abot.Core
                     if (shouldDownloadContentDecision.Allow)
                     {
                         crawledPage.RawContent = GetRawHtml(response, uri);
+                        crawledPage.PageSizeInBytes = Encoding.UTF8.GetBytes(crawledPage.RawContent).Length;
                     }
                     else
                     {
@@ -96,7 +98,7 @@ namespace Abot.Core
                     response.Close();
                 }
             }
-
+            
             return crawledPage;
         }
 

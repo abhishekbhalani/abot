@@ -189,6 +189,8 @@ namespace Abot.Crawler
                 _hyperLinkParser = new HapHyperLinkParser();
             else if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
                 _hyperLinkParser = new CSQueryHyperlinkParser();
+            else
+                throw new InvalidOperationException("ShouldLoadHtmlAgilityPackForEachCrawledPage is false, ShouldLoadCsQueryForEachCrawledPage is false and no IHyperLinkParser parser was passed in. No way to parse links. At least one of these needs to happen.");
 
             _crawlContext.Scheduler = _scheduler;
         }
@@ -475,6 +477,9 @@ namespace Abot.Crawler
 
             CrawledPage crawledPage = CrawlThePage(pageToCrawl);
 
+            if (PageSizeIsAboveMax(crawledPage))
+                return;
+
             if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
                 LoadCsQuery(crawledPage);
 
@@ -486,6 +491,18 @@ namespace Abot.Crawler
 
             if (ShouldCrawlPageLinks(crawledPage))
                 SchedulePageLinks(crawledPage);
+        }
+
+        private bool PageSizeIsAboveMax(CrawledPage crawledPage)
+        {
+            bool isAboveMax = false;
+            if (_crawlContext.CrawlConfiguration.MaxPageSizeInBytes > 0 &&
+                crawledPage.PageSizeInBytes > _crawlContext.CrawlConfiguration.MaxPageSizeInBytes)
+            {
+                isAboveMax = true;
+                _logger.DebugFormat("Page [{0}] has a page size of [{1}] bytes which is above the [{2}] byte max", crawledPage.Uri, crawledPage.PageSizeInBytes, _crawlContext.CrawlConfiguration.MaxPageSizeInBytes);
+            }
+            return isAboveMax;
         }
 
         private bool ShouldCrawlPageLinks(CrawledPage crawledPage)

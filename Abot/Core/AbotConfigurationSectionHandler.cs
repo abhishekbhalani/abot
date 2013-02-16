@@ -85,6 +85,12 @@ namespace Abot.Core
             get { return (int)this["maxPagesToCrawlPerDomain"]; }
         }
 
+        [ConfigurationProperty("maxPageSizeInBytes", IsRequired = true)]
+        public int MaxPageSizeInBytes
+        {
+            get { return (int)this["maxPageSizeInBytes"]; }
+        }
+
         [ConfigurationProperty("userAgentString", IsRequired = true)]
         public string UserAgentString
         {

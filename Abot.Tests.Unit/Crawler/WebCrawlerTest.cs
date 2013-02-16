@@ -49,25 +49,32 @@ namespace Abot.Tests.Unit.Crawler
         [Test]
         public void Constructor_WithConfiguration()
         {
-            Assert.IsNotNull(new WebCrawler(new CrawlConfiguration()));
+            Assert.IsNotNull(new WebCrawler(null, null, null, null, null, new CrawlConfiguration()));
         }
 
         [Test]
         public void Constructor_ShouldLoadHtmlAgilityPackForEachPageIsFalse_UsesCsQuery()
         {
-            Assert.IsNotNull(new WebCrawler(new CrawlConfiguration { ShouldLoadHtmlAgilityPackForEachCrawledPage = false, ShouldLoadCsQueryForEachCrawledPage = true }));
+            Assert.IsNotNull(new WebCrawler(null, null, null, null, null, new CrawlConfiguration { ShouldLoadHtmlAgilityPackForEachCrawledPage = false, ShouldLoadCsQueryForEachCrawledPage = true }));
         }
 
         [Test]
         public void Constructor_WithDecisionMaker()
         {
-            Assert.IsNotNull(new WebCrawler(new CrawlDecisionMaker()));
+            Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), null));
         }
 
         [Test]
         public void Constructor_WithDecisionMakerAndConfiguration()
         {
-            Assert.IsNotNull(new WebCrawler(new CrawlDecisionMaker(), new CrawlConfiguration()));
+            Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), new CrawlConfiguration()));
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void Constructor_HapAndCsQueryConfigsAreFalse()
+        {
+            new WebCrawler(null, null, null, null, null, new CrawlConfiguration { ShouldLoadHtmlAgilityPackForEachCrawledPage = false, ShouldLoadCsQueryForEachCrawledPage = false });
         }
 
 
@@ -867,10 +874,8 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageCrawlDisallowed += (s, e) => ++_pageCrawlDisallowedCount;
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
-            bool delegateCalled = false;
             _unitUnderTest.ShouldCrawlPageLinks((x, y) =>
             {
-                delegateCalled = true;
                 return new CrawlDecision { Allow = false, Reason = "aaa" };
             });
 

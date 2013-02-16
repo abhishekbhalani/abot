@@ -50,5 +50,10 @@ namespace Abot.Poco
             else
                 return string.Format("{0}[{1}]", Uri.AbsoluteUri, (int)HttpWebResponse.StatusCode);
         }
+
+        /// <summary>
+        /// The actual byte size of the page's raw content. This property is due to the Content-length header being untrustable.
+        /// </summary>
+        public long PageSizeInBytes { get; set; }
     }
 }

@@ -19,6 +19,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(11, _config.CrawlBehavior.MaxConcurrentThreads);
             Assert.AreEqual(33, _config.CrawlBehavior.MaxPagesToCrawl);
             Assert.AreEqual(333, _config.CrawlBehavior.MaxPagesToCrawlPerDomain);
+            Assert.AreEqual(4444, _config.CrawlBehavior.MaxPageSizeInBytes);
             Assert.AreEqual("aaaa", _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
@@ -48,6 +49,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.MaxConcurrentThreads, _config.CrawlBehavior.MaxConcurrentThreads);
             Assert.AreEqual(result.MaxPagesToCrawl, _config.CrawlBehavior.MaxPagesToCrawl);
             Assert.AreEqual(result.MaxPagesToCrawlPerDomain, _config.CrawlBehavior.MaxPagesToCrawlPerDomain);
+            Assert.AreEqual(result.MaxPageSizeInBytes, _config.CrawlBehavior.MaxPageSizeInBytes);
             Assert.AreEqual(result.UserAgentString, _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(result.IsExternalPageCrawlingEnabled, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);

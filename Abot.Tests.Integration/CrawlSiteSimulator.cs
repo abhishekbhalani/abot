@@ -13,7 +13,7 @@ namespace Abot.Tests.Integration
         public CrawlSiteSimulator()
             :base(new Uri("http://localhost:1111/"), 15)
         {
-
+            
         }
 
         [Test]

@@ -3,6 +3,7 @@ using Abot.Poco;
 using log4net;
 using NUnit.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,7 +13,7 @@ namespace Abot.Tests.Integration
     public abstract class CrawlTestBase
     {
         static ILog _logger = LogManager.GetLogger(typeof(CrawlTestBase).FullName);
-        List<PageResult> _actualCrawledPages = new List<PageResult>();
+        ConcurrentBag<PageResult> _actualCrawledPages = new ConcurrentBag<PageResult>();
         int _maxSecondsToCrawl;
         Uri _rootUri;
 
