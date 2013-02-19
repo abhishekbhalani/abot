@@ -1,5 +1,4 @@
 ﻿using Abot.Poco;
-using CsQuery;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,15 +17,7 @@ namespace Abot.Core
 
         protected override CrawledPage GetCrawledWebPage(Uri pageUri, string pageHtml)
         {
-            return new CrawledPage(pageUri) { CsQueryDocument = CQ.CreateDocument(pageHtml) };
-        }
-
-        protected override void CheckParams(CrawledPage crawledPage)
-        {
-            base.CheckParams(crawledPage);
-
-            if (crawledPage.CsQueryDocument == null)
-                throw new InvalidOperationException("CrawledPage.CsQueryDocument is null. Be sure to set the config value ShouldLoadHtmlAgilityPackForEachCrawledPage to true when using this HyperlinkParser.");
+            return new CrawledPage(pageUri) { RawContent = pageHtml };
         }
 
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)

@@ -56,8 +56,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(200, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual(938, result.PageSizeInBytes);
         }
@@ -71,8 +71,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNotNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(403, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual("The remote server returned an error: (403) Forbidden.", result.WebException.Message);
             Assert.AreEqual(4596, result.PageSizeInBytes);
@@ -88,8 +88,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNotNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(404, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual("The remote server returned an error: (404) Not Found.", result.WebException.Message);
             Assert.AreEqual(4634, result.PageSizeInBytes);
@@ -105,8 +105,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNotNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(500, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual("The remote server returned an error: (500) Internal Server Error.", result.WebException.Message);
             Assert.AreEqual(8011, result.PageSizeInBytes);
@@ -122,8 +122,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNotNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(503, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual("The remote server returned an error: (503) Server Unavailable.", result.WebException.Message);
             Assert.AreEqual(8010, result.PageSizeInBytes);
@@ -152,8 +152,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(200, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual(312, result.PageSizeInBytes);
         }
@@ -168,8 +168,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNotNull(result.WebException);
             Assert.IsFalse(string.IsNullOrWhiteSpace(result.RawContent));
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(404, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual("The remote server returned an error: (404) Not Found.", result.WebException.Message);
             Assert.AreEqual(4634, result.PageSizeInBytes);
@@ -192,8 +192,8 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HttpWebResponse);
             Assert.IsNull(result.WebException);
             Assert.AreEqual("", result.RawContent);
-            Assert.IsNull(result.HtmlDocument);
-            Assert.IsNull(result.CsQueryDocument);
+            Assert.IsNotNull(result.HtmlDocument);
+            Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(200, (int)result.HttpWebResponse.StatusCode);
             Assert.AreEqual(0, result.PageSizeInBytes);
         }

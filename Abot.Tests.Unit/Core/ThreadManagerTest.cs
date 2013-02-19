@@ -93,13 +93,13 @@ namespace Abot.Tests.Unit.Core
         {
             int count = 0;
 
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(40); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(40); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(40); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(40); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(40); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
 
-            System.Threading.Thread.Sleep(200);
+            System.Threading.Thread.Sleep(250);
 
             Assert.AreEqual(0, count);
         }

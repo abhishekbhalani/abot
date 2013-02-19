@@ -1,7 +1,5 @@
 ﻿using Abot.Core;
 using Abot.Poco;
-using CsQuery;
-using HtmlAgilityPack;
 using log4net;
 using System;
 using System.Collections.Generic;
@@ -183,14 +181,7 @@ namespace Abot.Crawler
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
-            if (hyperLinkParser != null)
-                _hyperLinkParser = hyperLinkParser;
-            else if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
-                _hyperLinkParser = new HapHyperLinkParser();
-            else if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
-                _hyperLinkParser = new CSQueryHyperlinkParser();
-            else
-                throw new InvalidOperationException("ShouldLoadHtmlAgilityPackForEachCrawledPage is false, ShouldLoadCsQueryForEachCrawledPage is false and no IHyperLinkParser parser was passed in. No way to parse links. At least one of these needs to happen.");
+            _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();
 
             _crawlContext.Scheduler = _scheduler;
         }
@@ -480,12 +471,6 @@ namespace Abot.Crawler
             if (PageSizeIsAboveMax(crawledPage))
                 return;
 
-            if (_crawlContext.CrawlConfiguration.ShouldLoadCsQueryForEachCrawledPage)
-                LoadCsQuery(crawledPage);
-
-            if (_crawlContext.CrawlConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage)
-                LoadHtmlAgilityPack(crawledPage);
-
             FirePageCrawlCompletedEventAsync(crawledPage);
             FirePageCrawlCompletedEvent(crawledPage);
 
@@ -574,40 +559,6 @@ namespace Abot.Crawler
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
             _scheduler.Add(crawledPageLinks.Select(p => new CrawledPage(p) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(p, _crawlContext.RootUri), IsRoot = false }));
-        }
-
-        private void LoadCsQuery(CrawledPage crawledPage)
-        {
-            CQ csQueryObject;
-            try
-            {
-                csQueryObject = CQ.Create(crawledPage.RawContent);
-            }
-            catch (Exception e)
-            {
-                csQueryObject = CQ.Create("");
-
-                _logger.ErrorFormat("Error occurred while loading CsQuery object for Url [{0}]", crawledPage.Uri);
-                _logger.Error(e);
-            }
-            crawledPage.CsQueryDocument = csQueryObject;
-        }
-
-        private void LoadHtmlAgilityPack(CrawledPage crawledPage)
-        {
-            HtmlDocument hapDoc = new HtmlDocument();
-            try
-            {
-                hapDoc.LoadHtml(crawledPage.RawContent);
-            }
-            catch (Exception e)
-            {
-                hapDoc.LoadHtml("");
-
-                _logger.ErrorFormat("Error occurred while loading HtmlAgilityPack object for Url [{0}]", crawledPage.Uri);
-                _logger.Error(e);
-            }
-            crawledPage.HtmlDocument = hapDoc;
         }
 
         private CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)

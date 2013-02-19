@@ -20,15 +20,7 @@ namespace Abot.Core
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(pageHtml);
 
-            return new CrawledPage(pageUri) { HtmlDocument = htmlDoc };
-        }
-
-        protected override void CheckParams(CrawledPage crawledPage)
-        {
-            base.CheckParams(crawledPage);
-
-            if (crawledPage.HtmlDocument == null)
-                throw new InvalidOperationException("CrawledPage.HtmlDocument is null. Be sure to set the config value ShouldLoadCsQueryForEachCrawledPage to true when using this HyperlinkParser.");
+            return new CrawledPage(pageUri) { Uri = pageUri, RawContent = pageHtml };
         }
 
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)

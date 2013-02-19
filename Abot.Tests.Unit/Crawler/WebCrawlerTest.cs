@@ -53,12 +53,6 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
-        public void Constructor_ShouldLoadHtmlAgilityPackForEachPageIsFalse_UsesCsQuery()
-        {
-            Assert.IsNotNull(new WebCrawler(null, null, null, null, null, new CrawlConfiguration { ShouldLoadHtmlAgilityPackForEachCrawledPage = false, ShouldLoadCsQueryForEachCrawledPage = true }));
-        }
-
-        [Test]
         public void Constructor_WithDecisionMaker()
         {
             Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), null));
@@ -68,13 +62,6 @@ namespace Abot.Tests.Unit.Crawler
         public void Constructor_WithDecisionMakerAndConfiguration()
         {
             Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), new CrawlConfiguration()));
-        }
-
-        [Test]
-        [ExpectedException(typeof(InvalidOperationException))]
-        public void Constructor_HapAndCsQueryConfigsAreFalse()
-        {
-            new WebCrawler(null, null, null, null, null, new CrawlConfiguration { ShouldLoadHtmlAgilityPackForEachCrawledPage = false, ShouldLoadCsQueryForEachCrawledPage = false });
         }
 
 
@@ -108,87 +95,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == uri2)), Times.Exactly(1));
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(3));
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Exactly(3));
-        }
-
-        [Test]
-        public void Crawl_ShouldLoadHtmlAgilityPackForEachCrawledPageIsFalse_DoesNotLoadHtmlAgilityPackForEachCrawledPage()
-        {
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
-
-            _dummyConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage = false;
-            _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri))).Returns(new List<Uri>());
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-
-            _unitUnderTest.Crawl(_rootUri);
-
-            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
-            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri)), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            Assert.IsNull(homePage.HtmlDocument);
-        }
-
-        [Test]
-        public void Crawl_ShouldLoadHtmlAgilityPackForEachCrawledPageIsTrue_LoadsHtmlAgilityPackForEachCrawledPage()
-        {
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
-
-            _dummyConfiguration.ShouldLoadHtmlAgilityPackForEachCrawledPage = true;
-            _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri))).Returns(new List<Uri>());
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-            
-            _unitUnderTest.Crawl(_rootUri);
-
-            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
-            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri)), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            Assert.IsNotNull(homePage.HtmlDocument);
-        }
-
-
-        [Test]
-        public void Crawl_ShouldLoadCsQueryForEachCrawledPageIsFalse_DoesNotLoadCsQueryForEachCrawledPage()
-        {
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
-
-            _dummyConfiguration.ShouldLoadCsQueryForEachCrawledPage = false;
-            _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri))).Returns(new List<Uri>());
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-
-            _unitUnderTest.Crawl(_rootUri);
-
-            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
-            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri)), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            Assert.IsNull(homePage.CsQueryDocument);
-        }
-
-        [Test]
-        public void Crawl_ShouldLoadCsQueryForEachCrawledPageIsTrue_LoadsCsQueryForEachCrawledPage()
-        {
-            CrawledPage homePage = new CrawledPage(_rootUri) { RawContent = "content here" };
-
-            _dummyConfiguration.ShouldLoadCsQueryForEachCrawledPage = true;
-            _fakeHttpRequester.Setup(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(homePage);
-            _fakeHyperLinkParser.Setup(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri))).Returns(new List<Uri>());
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
-
-            _unitUnderTest.Crawl(_rootUri);
-
-            _fakeHttpRequester.Verify(f => f.MakeRequest(_rootUri, It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
-            _fakeHyperLinkParser.Verify(f => f.GetLinks(It.Is<CrawledPage>(p => p.Uri == homePage.Uri)), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
-            Assert.IsNotNull(homePage.CsQueryDocument);
         }
 
 

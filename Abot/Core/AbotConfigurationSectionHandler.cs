@@ -126,18 +126,6 @@ namespace Abot.Core
         {
             get { return (bool)this["isExternalPageLinksCrawlingEnabled"]; }
         }
-
-        [ConfigurationProperty("shouldLoadCsQueryForEachCrawledPage", IsRequired = true)]
-        public bool ShouldLoadCsQueryForEachCrawledPage
-        {
-            get { return (bool)this["shouldLoadCsQueryForEachCrawledPage"]; }
-        }
-
-        [ConfigurationProperty("shouldLoadHtmlAgilityPackForEachCrawledPage", IsRequired = true)]
-        public bool ShouldLoadHtmlAgilityPackForEachCrawledPage
-        {
-            get { return (bool)this["shouldLoadHtmlAgilityPackForEachCrawledPage"]; }
-        }
     }
 
     public class ExtensionValueElement : ConfigurationElement

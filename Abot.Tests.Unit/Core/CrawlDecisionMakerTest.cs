@@ -260,7 +260,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_NullCrawlContext_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/a.html")){ HtmlDocument = GetHtmlDocument("aaaa") }, null);
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/a.html")){ RawContent = "aaaa" }, null);
 
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null crawl context", result.Reason);
@@ -269,7 +269,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_NullHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = null }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -277,7 +277,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_WhitespaceHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = GetHtmlDocument("     ") }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -285,7 +285,7 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPageLinks_EmptyHtmlContent_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { HtmlDocument = GetHtmlDocument("") }, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }, new CrawlContext());
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);            
         }
