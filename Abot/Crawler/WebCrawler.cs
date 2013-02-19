@@ -442,6 +442,8 @@ namespace Abot.Crawler
         {
             while (!_crawlComplete)
             {
+                HandleCrawlStopRequest();
+
                 if (_scheduler.Count > 0)
                 {
                     _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
@@ -455,6 +457,20 @@ namespace Abot.Crawler
                     _logger.DebugFormat("Waiting for links to be scheduled...");
                     System.Threading.Thread.Sleep(2500);
                 }
+            }
+        }
+
+        private void HandleCrawlStopRequest()
+        {
+            bool crawlStopReported = false;
+            if (_crawlContext.IsCrawlStopRequested)
+            {
+                if (!crawlStopReported)
+                {
+                    _logger.InfoFormat("Crawl stop requested!");
+                    crawlStopReported = true;
+                }
+                _scheduler.Clear();
             }
         }
 

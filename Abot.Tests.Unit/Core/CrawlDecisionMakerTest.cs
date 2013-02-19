@@ -25,15 +25,18 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_NullPageToCrawl_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(null, new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(null, _crawlContext);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null page to crawl", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_NullCrawlContext_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), null);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null crawl context", result.Reason);
         }
@@ -41,184 +44,216 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_NonDuplicate_ReturnsTrue()
         {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlConfiguration = new CrawlConfiguration(),
+                CrawlStartDate = DateTime.Now
+            };
+
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri("http://a.com/"))
                 {
                     IsInternal = true
                 },
-                new CrawlContext
-                {
-                    CrawlConfiguration = new CrawlConfiguration(),
-                    CrawlStartDate = DateTime.Now
-                });
+                crawlContext);
+
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
+
         }
 
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
             _crawlContext.CrawledUrls = new ConcurrentBag<string> { "http://a.com/" };
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(
-                    new Uri("http://a.com/")),
-                    _crawlContext);
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), _crawlContext);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link already crawled", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_NonHttpOrHttpsSchemes_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("file:///C:/Users/")), _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Scheme does not begin with http", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")), new CrawlContext());
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("mailto:user@yourdomainname.com")), _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Scheme does not begin with http", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")), new CrawlContext());
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("ftp://user@yourdomainname.com")), _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Scheme does not begin with http", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")), new CrawlContext());
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("callto:+1234567")), _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Scheme does not begin with http", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
 
-            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")), new CrawlContext());
+            result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("tel:+1234567")), _crawlContext);
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Scheme does not begin with http", result.Reason);
+            Assert.IsFalse(_crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_OverMaxPageToCrawlLimit_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(new Uri("http://a.com/")),
-                new CrawlContext
+
+            CrawlContext crawlContext = new CrawlContext
                 {
                     CrawlConfiguration = new CrawlConfiguration
                     {
                         MaxPagesToCrawl = 0
                     }
-                });
+                };
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), crawlContext);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("MaxPagesToCrawl limit of [0] has been reached", result.Reason);
+            Assert.IsTrue(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_OverCrawlTimeoutSeconds_ReturnsFalse()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(new Uri("http://a.com/")),
-                new CrawlContext
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlStartDate = DateTime.Now.AddSeconds(-100),
+                CrawlConfiguration = new CrawlConfiguration
                 {
-                    CrawlStartDate = DateTime.Now.AddSeconds(-100),
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        CrawlTimeoutSeconds = 99
-                    }
-                });
+                    CrawlTimeoutSeconds = 99
+                }
+            };
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), crawlContext);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Crawl timeout of [99] seconds has been reached", result.Reason);
+            Assert.IsTrue(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_CrawlTimeoutSecondsZero_ReturnsTrue()
         {
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
-                new PageToCrawl(new Uri("http://a.com/")) { IsInternal = true },
-                new CrawlContext
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlStartDate = DateTime.Now.AddSeconds(-100),
+                CrawlConfiguration = new CrawlConfiguration
                 {
-                    CrawlStartDate = DateTime.Now.AddSeconds(-100),
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        CrawlTimeoutSeconds = 0 //equivalent to infinity
-                    }
-                });
+                    CrawlTimeoutSeconds = 0 //equivalent to infinity
+                }
+            };
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")) { IsInternal = true }, crawlContext);
+            
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_IsExternalPageCrawlingEnabledFalse_PageIsExternal_ReturnsFalse()
         {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlStartDate = DateTime.Now.AddSeconds(-100),
+                CrawlConfiguration = new CrawlConfiguration
+                {
+                    CrawlTimeoutSeconds = 0 //equivalent to infinity
+                }
+            };
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri("http://a.com/"))
                 {
                     IsInternal = false
-                },
-                new CrawlContext
-                {
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        IsExternalPageCrawlingEnabled = false
-                    },
-                    CrawlStartDate = DateTime.Now,
-                });
+                }, 
+                crawlContext);
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Link is external", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_IsExternalPageCrawlingEnabledTrue_PageIsExternal_ReturnsTrue()
         {
+            CrawlContext crawlContext = new CrawlContext
+                {
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        IsExternalPageCrawlingEnabled = true
+                    },
+                    CrawlStartDate = DateTime.Now,
+                };
+
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri("http://a.com/"))
                 {
                     IsInternal = false
                 },
-                new CrawlContext
-                {
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        IsExternalPageCrawlingEnabled = true
-                    },
-                    CrawlStartDate = DateTime.Now,
-                });
+                crawlContext);
+
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_IsExternalPageCrawlingEnabledFalse_PageIsInternal_ReturnsTrue()
         {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlConfiguration = new CrawlConfiguration
+                {
+                    IsExternalPageCrawlingEnabled = false
+                },
+                CrawlStartDate = DateTime.Now,
+            };
+
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri("http://a.com/"))
                 {
                     IsInternal = true
                 },
-                new CrawlContext
-                {
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        IsExternalPageCrawlingEnabled = false
-                    },
-                    CrawlStartDate = DateTime.Now,
-                });
+                crawlContext);
+
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
         public void ShouldCrawlPage_IsExternalPageCrawlingEnabledTrue_PageIsInternal_ReturnsTrue()
         {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlConfiguration = new CrawlConfiguration
+                {
+                    IsExternalPageCrawlingEnabled = true
+                },
+                CrawlStartDate = DateTime.Now,
+            };
+
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri("http://a.com/"))
                 {
                     IsInternal = true
                 },
-                new CrawlContext
-                {
-                    CrawlConfiguration = new CrawlConfiguration
-                    {
-                        IsExternalPageCrawlingEnabled = true
-                    },
-                    CrawlStartDate = DateTime.Now,
-                });
+                crawlContext);
+
             Assert.IsTrue(result.Allow);
             Assert.AreEqual("", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
         [Test]
@@ -231,21 +266,23 @@ namespace Abot.Tests.Unit.Core
             };
             ConcurrentDictionary<string,int> countByDomain = new ConcurrentDictionary<string,int>();
             countByDomain.TryAdd(uri.Authority, 100);
+            CrawlContext crawlContext = new CrawlContext
+                {
+                    CrawlConfiguration = config,
+                    CrawlStartDate = DateTime.Now,
+                    CrawlCountByDomain = countByDomain
+                };
 
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
                 new PageToCrawl(new Uri(uri.AbsoluteUri + "anotherpage"))
                 {
                     IsInternal = true
                 },
-                new CrawlContext
-                {
-                    CrawlConfiguration = config,
-                    CrawlStartDate = DateTime.Now,
-                    CrawlCountByDomain = countByDomain
-                });
+                crawlContext);
 
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("MaxPagesToCrawlPerDomain limit of [100] has been reached for domain [a.com]", result.Reason);
+            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
 
@@ -253,6 +290,7 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPageLinks_NullCrawledPage_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(null, new CrawlContext());
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Null crawled page", result.Reason);
         }
@@ -270,6 +308,7 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPageLinks_NullHtmlContent_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = null }, new CrawlContext());
+            
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -278,6 +317,7 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPageLinks_WhitespaceHtmlContent_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "     " }, new CrawlContext());
+
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("Page has no content", result.Reason);
         }
@@ -286,8 +326,9 @@ namespace Abot.Tests.Unit.Core
         public void ShouldCrawlPageLinks_EmptyHtmlContent_ReturnsFalse()
         {
             CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(new CrawledPage(new Uri("http://a.com/")) { RawContent = "" }, new CrawlContext());
+            
             Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Page has no content", result.Reason);            
+            Assert.AreEqual("Page has no content", result.Reason);
         }
 
         [Test]

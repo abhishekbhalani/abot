@@ -18,6 +18,7 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(0, unitUnderTest.CrawlCountByDomain.Count);
             Assert.IsNull(unitUnderTest.CrawlConfiguration);
             Assert.IsNotNull(unitUnderTest.CrawlBag);
+            Assert.AreEqual(false, unitUnderTest.IsCrawlStopRequested);
         }
 
         [Test]

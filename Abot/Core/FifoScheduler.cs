@@ -27,6 +27,11 @@ namespace Abot.Core
         /// Gets the next page to crawl
         /// </summary>
         PageToCrawl GetNext();
+
+        /// <summary>
+        /// Clear all currently scheduled pages
+        /// </summary>
+        void Clear();
     }
 
     public class FifoScheduler : IScheduler
@@ -100,6 +105,14 @@ namespace Abot.Core
                 _pagesToCrawl.TryDequeue(out nextItem);
 
             return nextItem;
+        }
+
+        /// <summary>
+        /// Clear all currently scheduled pages
+        /// </summary>
+        public void Clear()
+        {
+            _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
         }
     }
 }

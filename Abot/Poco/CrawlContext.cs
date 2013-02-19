@@ -48,5 +48,10 @@ namespace Abot.Poco
         /// Random dynamic values
         /// </summary>
         public dynamic CrawlBag { get; set; }
+
+        /// <summary>
+        /// Whether a request to stop the crawl has happened
+        /// </summary>
+        public bool IsCrawlStopRequested { get; set; }
     }
 }

@@ -103,5 +103,18 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(page3.Uri, _unitUnderTest.GetNext().Uri);
             Assert.AreEqual(0, _unitUnderTest.Count);
         }
+
+        [Test]
+        public void Clear_RemovesAllPrevious()
+        {
+            _unitUnderTest = new FifoScheduler();
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://a.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://b.com/")));
+            _unitUnderTest.Add(new PageToCrawl(new Uri("http://c.com/")));
+
+            _unitUnderTest.Clear();
+
+            Assert.AreEqual(0, _unitUnderTest.Count);
+        }
     }
 }

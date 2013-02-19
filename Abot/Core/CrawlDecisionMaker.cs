@@ -41,7 +41,10 @@ namespace Abot.Core
                 return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
 
             if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
+            {
+                crawlContext.IsCrawlStopRequested = true;
                 return new CrawlDecision { Allow = false, Reason = string.Format("MaxPagesToCrawl limit of [{0}] has been reached", crawlContext.CrawlConfiguration.MaxPagesToCrawl) };
+            }
 
             int pagesCrawledInThisDomain = 0;
             if (crawlContext.CrawlConfiguration.MaxPagesToCrawlPerDomain > 0 && 
@@ -57,7 +60,10 @@ namespace Abot.Core
             {
                 double elapsedCrawlSeconds = (DateTime.Now - crawlContext.CrawlStartDate).TotalSeconds;
                 if (elapsedCrawlSeconds > crawlContext.CrawlConfiguration.CrawlTimeoutSeconds)
+                {
+                    crawlContext.IsCrawlStopRequested = true;
                     return new CrawlDecision { Allow = false, Reason = string.Format("Crawl timeout of [{0}] seconds has been reached", crawlContext.CrawlConfiguration.CrawlTimeoutSeconds) };
+                }
             }
 
             if(!crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled && !pageToCrawl.IsInternal)
