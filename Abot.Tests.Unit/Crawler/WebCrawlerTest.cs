@@ -817,6 +817,12 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
+        public void Crawl_StopRequested_CrawlIsStopped()
+        {
+            Assert.Fail("Write this test");
+        }
+
+        [Test]
         public void CrawlBag_IsSetOnCrawlContext()
         {
             _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(new CrawledPage(_rootUri));
