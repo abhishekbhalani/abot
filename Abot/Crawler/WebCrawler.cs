@@ -4,7 +4,6 @@ using log4net;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Reflection;
 
 namespace Abot.Crawler
@@ -574,7 +573,19 @@ namespace Abot.Crawler
         private void SchedulePageLinks(CrawledPage crawledPage)
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
-            _scheduler.Add(crawledPageLinks.Select(p => new CrawledPage(p) { ParentUri = crawledPage.Uri, IsInternal = _isInternalDecisionMaker(p, _crawlContext.RootUri), IsRoot = false }));
+            foreach (Uri uri in crawledPageLinks)
+            {
+                //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
+                try
+                {
+                    PageToCrawl page = new CrawledPage(uri);
+                    page.ParentUri = crawledPage.Uri;
+                    page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
+                    page.IsRoot = false;
+                    _scheduler.Add(page);
+                }
+                catch{}
+            }
         }
 
         private CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
