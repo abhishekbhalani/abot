@@ -11,6 +11,7 @@ namespace Abot.Poco
             MaxPagesToCrawl = 1000;
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
+            MaxRobotsDotTextCrawlDelayInSeconds = 5;
         }
 
         #region crawlBehavior
@@ -34,6 +35,12 @@ namespace Abot.Poco
         /// Maximum size of page. If the page size is above this value, it will not be downloaded or processed
         /// </summary>
         public long MaxPageSizeInBytes { get; set; }
+
+        /// <summary>
+        /// The maximum numer of seconds to respect in the robots.txt "Crawl-delay: X" directive. If set to 0 will always follow this directive no matter how high the value. 
+        /// IsRespectRobotsDotTextEnabled must be true for this value to be used.
+        /// </summary>
+        public int MaxRobotsDotTextCrawlDelayInSeconds { get; set; }
 
         /// <summary>
         /// The user agent string to use for http requests

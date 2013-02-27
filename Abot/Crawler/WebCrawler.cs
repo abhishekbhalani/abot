@@ -190,7 +190,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
         /// </summary>
-        public CrawlResult Crawl(Uri uri)
+        public virtual CrawlResult Crawl(Uri uri)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -249,7 +249,7 @@ namespace Abot.Crawler
         /// </summary>
         public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
 
-        private void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
+        protected virtual void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
         {
             try
             {
@@ -264,7 +264,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
+        protected virtual void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
         {
             try
             {
@@ -279,7 +279,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
+        protected virtual void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
         {
             try
             {
@@ -294,7 +294,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
+        protected virtual void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
         {
             try
             {
@@ -333,7 +333,7 @@ namespace Abot.Crawler
         /// </summary>
         public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowedAsync;
 
-        private void FirePageCrawlStartingEventAsync(PageToCrawl pageToCrawl)
+        protected virtual void FirePageCrawlStartingEventAsync(PageToCrawl pageToCrawl)
         {
             EventHandler<PageCrawlStartingArgs> threadSafeEvent = PageCrawlStartingAsync;
             if (threadSafeEvent != null)
@@ -346,7 +346,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageCrawlCompletedEventAsync(CrawledPage crawledPage)
+        protected virtual void FirePageCrawlCompletedEventAsync(CrawledPage crawledPage)
         {
             EventHandler<PageCrawlCompletedArgs> threadSafeEvent = PageCrawlCompletedAsync;
             if (threadSafeEvent != null)
@@ -359,7 +359,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageCrawlDisallowedEventAsync(PageToCrawl pageToCrawl, string reason)
+        protected virtual void FirePageCrawlDisallowedEventAsync(PageToCrawl pageToCrawl, string reason)
         {
             EventHandler<PageCrawlDisallowedArgs> threadSafeEvent = PageCrawlDisallowedAsync;
             if (threadSafeEvent != null)
@@ -372,7 +372,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void FirePageLinksCrawlDisallowedEventAsync(CrawledPage crawledPage, string reason)
+        protected virtual void FirePageLinksCrawlDisallowedEventAsync(CrawledPage crawledPage, string reason)
         {
             EventHandler<PageLinksCrawlDisallowedArgs> threadSafeEvent = PageLinksCrawlDisallowedAsync;
             if (threadSafeEvent != null)
@@ -437,7 +437,7 @@ namespace Abot.Crawler
             return configFromFile.Convert();
         }
 
-        private void CrawlSite()
+        protected virtual void CrawlSite()
         {
             while (!_crawlComplete)
             {
@@ -459,7 +459,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void HandleCrawlStopRequest()
+        protected virtual void HandleCrawlStopRequest()
         {
             bool crawlStopReported = false;
             if (_crawlContext.IsCrawlStopRequested)
@@ -473,7 +473,7 @@ namespace Abot.Crawler
             }
         }
 
-        private void ProcessPage(PageToCrawl pageToCrawl)
+        protected virtual void ProcessPage(PageToCrawl pageToCrawl)
         {
             if (pageToCrawl == null)
                 return;
@@ -493,7 +493,7 @@ namespace Abot.Crawler
                 SchedulePageLinks(crawledPage);
         }
 
-        private bool PageSizeIsAboveMax(CrawledPage crawledPage)
+        protected virtual bool PageSizeIsAboveMax(CrawledPage crawledPage)
         {
             bool isAboveMax = false;
             if (_crawlContext.CrawlConfiguration.MaxPageSizeInBytes > 0 &&
@@ -505,7 +505,7 @@ namespace Abot.Crawler
             return isAboveMax;
         }
 
-        private bool ShouldCrawlPageLinks(CrawledPage crawledPage)
+        protected virtual bool ShouldCrawlPageLinks(CrawledPage crawledPage)
         {
             CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
             if (shouldCrawlPageLinksDecision.Allow)
@@ -541,7 +541,7 @@ namespace Abot.Crawler
             return shouldCrawlPageDecision.Allow;
         }
 
-        private CrawledPage CrawlThePage(PageToCrawl pageToCrawl)
+        protected virtual CrawledPage CrawlThePage(PageToCrawl pageToCrawl)
         {
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEventAsync(pageToCrawl);
@@ -560,7 +560,7 @@ namespace Abot.Crawler
 
         }
 
-        private void AddPageToContext(PageToCrawl pageToCrawl)
+        protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
         {
             _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
             int domainCount = 0;
@@ -570,7 +570,7 @@ namespace Abot.Crawler
                 _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
         }
 
-        private void SchedulePageLinks(CrawledPage crawledPage)
+        protected virtual void SchedulePageLinks(CrawledPage crawledPage)
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
             foreach (Uri uri in crawledPageLinks)
@@ -588,7 +588,7 @@ namespace Abot.Crawler
             }
         }
 
-        private CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
+        protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
         {
             CrawlDecision decision = _crawlDecisionMaker.ShouldDownloadPageContent(crawledPage, _crawlContext);
             if (decision.Allow)
@@ -597,7 +597,7 @@ namespace Abot.Crawler
             return decision;
         }
 
-        private void PrintConfigValues(CrawlConfiguration config)
+        protected virtual void PrintConfigValues(CrawlConfiguration config)
         {
             _logger.Info("Configuration Values:");
 

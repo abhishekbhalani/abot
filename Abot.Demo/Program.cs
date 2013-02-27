@@ -53,6 +53,7 @@ namespace Abot.Demo
             config.IsExternalPageCrawlingEnabled = false;
             config.IsExternalPageLinksCrawlingEnabled = false;
             config.IsThrottlingEnabled = false;
+            config.IsRespectRobotsDotTextEnabled = false;
             config.IsUriRecrawlingEnabled = false;
             config.MaxConcurrentThreads = 10;
             config.MaxPagesToCrawl = 10;

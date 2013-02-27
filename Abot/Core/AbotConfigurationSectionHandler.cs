@@ -64,6 +64,12 @@ namespace Abot.Core
             get { return (bool)this["isRespectRobotsDotTextEnabled"]; }
         }
 
+        [ConfigurationProperty("maxRobotsDotTextCrawlDelayInSeconds", IsRequired = true)]
+        public int MaxRobotsDotTextCrawlDelayInSeconds
+        {
+            get { return (int)this["maxRobotsDotTextCrawlDelayInSeconds"]; }
+        }
+
         [ConfigurationProperty("minCrawlDelayPerDomainMilliSeconds", IsRequired = true)]
         public long MinCrawlDelayPerDomainMilliSeconds
         {
