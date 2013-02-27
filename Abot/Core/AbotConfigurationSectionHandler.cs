@@ -58,6 +58,12 @@ namespace Abot.Core
             get { return (bool)this["isThrottlingEnabled"]; }
         }
 
+        [ConfigurationProperty("isRespectRobotsDotTextEnabled", IsRequired = true)]
+        public bool IsRespectRobotsDotTextEnabled
+        {
+            get { return (bool)this["isRespectRobotsDotTextEnabled"]; }
+        }
+
         [ConfigurationProperty("minCrawlDelayPerDomainMilliSeconds", IsRequired = true)]
         public long MinCrawlDelayPerDomainMilliSeconds
         {

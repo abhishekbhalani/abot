@@ -23,7 +23,7 @@ namespace Abot.Core
 
     public class PageRequester : IPageRequester
     {
-        ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
         protected string _userAgentString;
 
@@ -57,12 +57,7 @@ namespace Abot.Core
             HttpWebResponse response = null;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(uri);
-                request.AllowAutoRedirect = true;
-                request.MaximumAutomaticRedirections = 7;
-                request.UserAgent = _userAgentString;
-                request.Accept = "*/*";
-
+                request = BuildRequestObject(uri);
                 response = (HttpWebResponse)request.GetResponse();
             }
             catch (WebException e)
@@ -100,6 +95,18 @@ namespace Abot.Core
             }
             
             return crawledPage;
+        }
+
+        protected virtual HttpWebRequest BuildRequestObject(Uri uri)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.AllowAutoRedirect = true;
+            request.MaximumAutomaticRedirections = 7;
+            request.UserAgent = _userAgentString;
+            request.Accept = "*/*";
+            //request.Timeout = 15000;
+
+            return request;
         }
 
         protected virtual string GetRawHtml(HttpWebResponse response, Uri requestUri)

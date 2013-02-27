@@ -71,6 +71,8 @@
     <Compile Include="Core\HyperlinkParserTest.cs" />
     <Compile Include="Core\PageRequesterTest.cs" />
     <Compile Include="Core\RateLimiterTest.cs" />
+    <Compile Include="Core\RobotsDotTextFinderTest.cs" />
+    <Compile Include="Core\RobotsDotTextTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />
     <Compile Include="Crawler\CrawlArgsTest.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgsTest.cs" />

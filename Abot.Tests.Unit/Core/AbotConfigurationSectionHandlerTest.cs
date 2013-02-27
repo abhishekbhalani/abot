@@ -26,6 +26,7 @@ namespace Abot.Tests.Unit.Core
             
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
+            Assert.AreEqual(true, _config.Politeness.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(55, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds); 
 
             Assert.IsNotNull(_config.ExtensionValues);
@@ -53,6 +54,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
 
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
+            Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _config.Politeness.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(result.MinCrawlDelayPerDomainMilliSeconds, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);
 
             Assert.IsNotNull(result.ConfigurationExtensions);

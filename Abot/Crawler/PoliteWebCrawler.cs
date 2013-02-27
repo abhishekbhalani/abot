@@ -17,7 +17,7 @@ namespace Abot.Crawler
         //protected IThrottler _throttler;
 
         public PoliteWebCrawler()
-            : this(null, null, null, null, null, null, null)
+            : this(null, null, null, null, null, null, null, null)
         {
         }
 
@@ -28,10 +28,10 @@ namespace Abot.Crawler
             IScheduler scheduler,
             IPageRequester httpRequester,
             IHyperLinkParser hyperLinkParser,
-            IDomainRateLimiter domainRateLimiter)
+            IDomainRateLimiter domainRateLimiter,
+            IRobotsDotTextFinder robotsDotTextFinder)
             : base(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, crawlConfiguration)
         {
-            bool isThrottlingEnabled = _crawlContext.CrawlConfiguration.IsThrottlingEnabled;
             bool isRespectRobotsDotTextCrawlDelayEnabled = false;//TODO add to config helper
             
             long robotsCrawlDelay = 0;
@@ -52,23 +52,10 @@ namespace Abot.Crawler
                 PageCrawlStarting += (sender, e) => _domainRateLimiter.RateLimit(e.PageToCrawl.Uri);
             }
 
-            if (isThrottlingEnabled)
-            {
-                PageCrawlCompleted += ProcessForThrottling;
-            }
-           
-        }
-
-        private void ProcessForThrottling(object sender, PageCrawlCompletedArgs e)
-        {
-            //if throttling is detected
-                //set Isthrottled or IsRetry
-                //call CrawlPage() again
-        }
-
-        private void RespectRobotsDotText(object sender, PageCrawlStartingArgs e)
-        {
-            throw new System.NotImplementedException();
+            //if (_crawlContext.CrawlConfiguration.IsThrottlingEnabled)
+            //{
+            //    PageCrawlCompleted += ProcessForThrottling;
+            //}
         }
     }
 }

@@ -87,18 +87,18 @@ namespace Abot.Crawler
     public class WebCrawler : IWebCrawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
-        bool _crawlComplete = false;
-        CrawlResult _crawlResult = null;
+        protected bool _crawlComplete = false;
+        protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
-        IThreadManager _threadManager;
-        IScheduler _scheduler;
-        IPageRequester _httpRequester;
-        IHyperLinkParser _hyperLinkParser;
-        ICrawlDecisionMaker _crawlDecisionMaker;
-        Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
-        Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
-        Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
-        Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
+        protected IThreadManager _threadManager;
+        protected IScheduler _scheduler;
+        protected IPageRequester _httpRequester;
+        protected IHyperLinkParser _hyperLinkParser;
+        protected ICrawlDecisionMaker _crawlDecisionMaker;
+        protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
+        protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
+        protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
+        protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
 
         /// <summary>
         /// Dynamic object that can hold any value that needs to be available in the crawl context
@@ -521,7 +521,7 @@ namespace Abot.Crawler
             return shouldCrawlPageLinksDecision.Allow;
         }
 
-        private bool ShouldCrawlPage(PageToCrawl pageToCrawl)
+        protected virtual bool ShouldCrawlPage(PageToCrawl pageToCrawl)
         {
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
             if (shouldCrawlPageDecision.Allow)

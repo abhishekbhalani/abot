@@ -18,6 +18,7 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(false, unitUnderTest.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(false, unitUnderTest.IsExternalPageLinksCrawlingEnabled);
             Assert.AreEqual(false, unitUnderTest.IsThrottlingEnabled);
+            Assert.AreEqual(false, unitUnderTest.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(false, unitUnderTest.IsUriRecrawlingEnabled);
             Assert.AreEqual(10, unitUnderTest.MaxConcurrentThreads);
             Assert.AreEqual(1000, unitUnderTest.MaxPagesToCrawl);

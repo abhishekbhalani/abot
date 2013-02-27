@@ -80,6 +80,11 @@ namespace Abot.Poco
         public bool IsThrottlingEnabled { get; set; }
 
         /// <summary>
+        /// Whether the crawler should retrieve and respect the robotsdottext file.
+        /// </summary>
+        public bool IsRespectRobotsDotTextEnabled { get; set; }
+
+        /// <summary>
         /// The number of milliseconds to wait in between http requests to the same domain. Note: This will set the crawl to a single thread no matter what the MaxConcurrentThreads value is.
         /// </summary>
         public long MinCrawlDelayPerDomainMilliSeconds { get; set; }
