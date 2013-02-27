@@ -37,28 +37,40 @@ namespace Abot.Crawler
 
         public override CrawlResult Crawl(Uri uri)
         {
-            int robotsDotTextCrawlDelay = 0;
+            int robotsDotTextCrawlDelayInSecs = 0;
+            int robotsDotTextCrawlDelayInMillisecs = 0;
+
+            int maxRobotsDotTextCrawlDelayInSeconds = _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds;
+            int maxRobotsDotTextCrawlDelayInMilliSecs = maxRobotsDotTextCrawlDelayInSeconds * 1000;
+
+            //Load robots.txt
             if (_crawlContext.CrawlConfiguration.IsRespectRobotsDotTextEnabled)
             {
                 _robotsDotText = _robotsDotTextFinder.Find(uri);
 
                 if (_robotsDotText != null)
-                    robotsDotTextCrawlDelay = _robotsDotText.GetCrawlDelay(_crawlContext.CrawlConfiguration.UserAgentString) * 1000;
+                {
+                    robotsDotTextCrawlDelayInSecs = _robotsDotText.GetCrawlDelay(_crawlContext.CrawlConfiguration.UserAgentString);
+                    robotsDotTextCrawlDelayInMillisecs = robotsDotTextCrawlDelayInSecs * 1000;
+                }
             }
 
-            if (robotsDotTextCrawlDelay > 0 && robotsDotTextCrawlDelay > _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds)
+            //Use whichever value is greater between the actual crawl delay value found, the max allowed crawl delay value or the minimum crawl delay required for every domain
+            if (robotsDotTextCrawlDelayInSecs > 0 && robotsDotTextCrawlDelayInMillisecs > _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds)
             {
-                if (robotsDotTextCrawlDelay > _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds)
+                if (robotsDotTextCrawlDelayInSecs > maxRobotsDotTextCrawlDelayInSeconds)
                 {
-                    robotsDotTextCrawlDelay = _crawlContext.CrawlConfiguration.MaxRobotsDotTextCrawlDelayInSeconds;
-                    _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.", uri, robotsDotTextCrawlDelay);
+                    robotsDotTextCrawlDelayInSecs = maxRobotsDotTextCrawlDelayInSeconds;
+                    robotsDotTextCrawlDelayInMillisecs = robotsDotTextCrawlDelayInSecs * 1000;
+
+                    _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.", uri, robotsDotTextCrawlDelayInSecs);
                 }
 
-                _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] will be respected.", uri, robotsDotTextCrawlDelay);
-                _domainRateLimiter.AddDomain(uri, robotsDotTextCrawlDelay);
+                _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] will be respected.", uri, robotsDotTextCrawlDelayInSecs);
+                _domainRateLimiter.AddDomain(uri, robotsDotTextCrawlDelayInMillisecs);
             }
 
-            if(robotsDotTextCrawlDelay > 0 || _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
+            if(robotsDotTextCrawlDelayInSecs > 0 || _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
                 PageCrawlStarting += (s, e) => _domainRateLimiter.RateLimit(e.PageToCrawl.Uri);
 
             return base.Crawl(uri);
@@ -77,8 +89,11 @@ namespace Abot.Crawler
 
                 FirePageCrawlDisallowedEventAsync(pageToCrawl, message);
                 FirePageCrawlDisallowedEvent(pageToCrawl, message);
+
+                return false;
             }
-            return base.ShouldCrawlPage(pageToCrawl);
+
+            return allowedByRobots && base.ShouldCrawlPage(pageToCrawl);
         }
     }
 }
