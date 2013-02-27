@@ -21,6 +21,7 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(false, unitUnderTest.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(false, unitUnderTest.IsUriRecrawlingEnabled);
             Assert.AreEqual(10, unitUnderTest.MaxConcurrentThreads);
+            Assert.AreEqual(5, unitUnderTest.MaxRobotsDotTextCrawlDelayInSeconds);
             Assert.AreEqual(1000, unitUnderTest.MaxPagesToCrawl);
             Assert.AreEqual(0, unitUnderTest.MaxPagesToCrawlPerDomain);
             Assert.AreEqual(0, unitUnderTest.MinCrawlDelayPerDomainMilliSeconds);
