@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Timers;
 
 namespace Abot.Crawler
 {
@@ -209,6 +210,14 @@ namespace Abot.Crawler
 
             _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
+
+            if (_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
+            {
+                Timer timeoutTimer = new Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
+                timeoutTimer.Elapsed += HandleCrawlTimeout;
+                timeoutTimer.Start();
+            }
+
             try
             {
                 CrawlSite();
@@ -462,15 +471,33 @@ namespace Abot.Crawler
         protected virtual void HandleCrawlStopRequest()
         {
             bool crawlStopReported = false;
-            if (_crawlContext.IsCrawlStopRequested)
+            if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
             {
                 if (!crawlStopReported)
                 {
                     _logger.InfoFormat("Crawl stop requested!");
                     crawlStopReported = true;
                 }
-                _scheduler.Clear();
+                _scheduler.Clear(); 
             }
+
+            if (_crawlContext.IsCrawlHardStopRequested)
+            {
+                _threadManager.AbortAll();
+                _scheduler.Clear();//to be sure nothing was scheduled since first calls
+            }
+        }
+
+        protected virtual void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
+        {
+            Timer elapsedTimer = sender as Timer;
+            if (elapsedTimer != null)
+                elapsedTimer.Stop();
+
+            _logger.InfoFormat("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
+            _scheduler.Clear();
+            _threadManager.AbortAll();
+            _scheduler.Clear();//to be sure nothing was scheduled since first calls
         }
 
         protected virtual void ProcessPage(PageToCrawl pageToCrawl)

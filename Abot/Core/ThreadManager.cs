@@ -28,6 +28,11 @@ namespace Abot.Core
         /// Whether there are running threads
         /// </summary>
         bool HasRunningThreads();
+
+        /// <summary>
+        /// Abort all running threads
+        /// </summary>
+        void AbortAll();
     }
 
     public class ThreadManager : IThreadManager
@@ -97,6 +102,19 @@ namespace Abot.Core
                 else
                 {
                     action.Invoke();
+                }
+            }
+        }
+
+        public void AbortAll()
+        {
+            _logger.Debug("Aborting all threads");
+            lock (_lock)
+            {
+                foreach (Thread thread in _threads)
+                {
+                    if (thread != null)
+                        thread.Abort();
                 }
             }
         }

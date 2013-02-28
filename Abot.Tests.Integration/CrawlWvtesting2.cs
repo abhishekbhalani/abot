@@ -1,4 +1,5 @@
 ﻿using Abot.Crawler;
+using Abot.Poco;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,24 @@ namespace Abot.Tests.Integration
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
             base.CrawlAndAssert(new PoliteWebCrawler());
+        }
+
+        [Test]
+        public void Crawl_CrawlTimeoutIs1Sec_TimesOut()
+        {
+            CrawlConfiguration configuration = new CrawlConfiguration();
+            configuration.CrawlTimeoutSeconds = 1;
+
+            int pagesCrawledCount = 0;
+
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null);
+            crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
+
+            CrawlResult result = crawler.Crawl(new Uri("http://wvtesting2.com/"));
+
+            Assert.IsFalse(result.ErrorOccurred);
+            Assert.IsTrue(result.Elapsed.TotalSeconds < 5);
+            Assert.IsTrue(pagesCrawledCount > 0);
         }
 
         protected override List<PageResult> GetExpectedCrawlResult()

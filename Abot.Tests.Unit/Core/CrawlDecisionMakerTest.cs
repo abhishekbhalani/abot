@@ -121,44 +121,7 @@ namespace Abot.Tests.Unit.Core
             Assert.IsFalse(result.Allow);
             Assert.AreEqual("MaxPagesToCrawl limit of [0] has been reached", result.Reason);
             Assert.IsTrue(crawlContext.IsCrawlStopRequested);
-        }
-
-        [Test]
-        public void ShouldCrawlPage_OverCrawlTimeoutSeconds_ReturnsFalse()
-        {
-            CrawlContext crawlContext = new CrawlContext
-            {
-                CrawlStartDate = DateTime.Now.AddSeconds(-100),
-                CrawlConfiguration = new CrawlConfiguration
-                {
-                    CrawlTimeoutSeconds = 99
-                }
-            };
-
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), crawlContext);
-
-            Assert.IsFalse(result.Allow);
-            Assert.AreEqual("Crawl timeout of [99] seconds has been reached", result.Reason);
-            Assert.IsTrue(crawlContext.IsCrawlStopRequested);
-        }
-
-        [Test]
-        public void ShouldCrawlPage_CrawlTimeoutSecondsZero_ReturnsTrue()
-        {
-            CrawlContext crawlContext = new CrawlContext
-            {
-                CrawlStartDate = DateTime.Now.AddSeconds(-100),
-                CrawlConfiguration = new CrawlConfiguration
-                {
-                    CrawlTimeoutSeconds = 0 //equivalent to infinity
-                }
-            };
-
-            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")) { IsInternal = true }, crawlContext);
-            
-            Assert.IsTrue(result.Allow);
-            Assert.AreEqual("", result.Reason);
-            Assert.IsFalse(crawlContext.IsCrawlStopRequested);
+            Assert.IsFalse(crawlContext.IsCrawlHardStopRequested);
         }
 
         [Test]

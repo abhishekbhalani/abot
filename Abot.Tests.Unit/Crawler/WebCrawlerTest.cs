@@ -820,6 +820,29 @@ namespace Abot.Tests.Unit.Crawler
         public void Crawl_StopRequested_CrawlIsStopped()
         {
             Assert.Fail("Write this test");//write this
+            //verify scheduler is called
+            //verify abortAll is called
+        }
+
+        [Test]
+        public void Crawl_OverCrawlTimeoutSeconds_StopsCrawl()
+        {
+            Assert.Fail("Write this test");//write this
+            //CrawlContext crawlContext = new CrawlContext
+            //{
+            //    CrawlStartDate = DateTime.Now.AddSeconds(-100),
+            //    CrawlConfiguration = new CrawlConfiguration
+            //    {
+            //        CrawlTimeoutSeconds = 99
+            //    }
+            //};
+
+            //CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), crawlContext);
+
+            //Assert.IsFalse(result.Allow);
+            //Assert.AreEqual("Crawl timeout of [99] seconds has been reached", result.Reason);
+            //Assert.IsFalse(crawlContext.IsCrawlStopRequested);
+            //Assert.IsTrue(crawlContext.IsCrawlHardStopRequested);
         }
 
         [Test]

@@ -119,5 +119,22 @@ namespace Abot.Tests.Unit.Core
 
             Assert.AreEqual(1, count);
         }
+
+        [Test]
+        public void AbortAll_WorkNeverCompleted()
+        {
+            int count = 0;
+
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+
+            _unitUnderTest.AbortAll();
+
+            System.Threading.Thread.Sleep(250);
+            Assert.AreEqual(0, count);
+        }
     }
 }

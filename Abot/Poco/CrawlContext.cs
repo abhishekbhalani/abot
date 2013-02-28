@@ -50,8 +50,13 @@ namespace Abot.Poco
         public dynamic CrawlBag { get; set; }
 
         /// <summary>
-        /// Whether a request to stop the crawl has happened
+        /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages but will allow any threads that are currently crawling to complete.
         /// </summary>
         public bool IsCrawlStopRequested { get; set; }
+
+        /// <summary>
+        /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages and abort any threads that are currently crawling.
+        /// </summary>
+        public bool IsCrawlHardStopRequested { get; set; }
     }
 }
