@@ -60,10 +60,10 @@ namespace Abot.Crawler
             {
                 if (robotsDotTextCrawlDelayInSecs > maxRobotsDotTextCrawlDelayInSeconds)
                 {
+                    _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.", uri, robotsDotTextCrawlDelayInSecs);
+
                     robotsDotTextCrawlDelayInSecs = maxRobotsDotTextCrawlDelayInSeconds;
                     robotsDotTextCrawlDelayInMillisecs = robotsDotTextCrawlDelayInSecs * 1000;
-
-                    _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] is above the value set in the config value MaxRobotsDotTextCrawlDelay, will use MaxRobotsDotTextCrawlDelay value instead.", uri, robotsDotTextCrawlDelayInSecs);
                 }
 
                 _logger.WarnFormat("[{0}] robot.txt file directive [Crawl-delay: {1}] will be respected.", uri, robotsDotTextCrawlDelayInSecs);

@@ -268,8 +268,11 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri);
-                _logger.Error(e);
+                if (!IsThreadAbortException(e))
+                {
+                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlStarting event for url:" + pageToCrawl.Uri.AbsoluteUri);
+                    _logger.Error(e);
+                }
             }
         }
 
@@ -283,8 +286,11 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
-                _logger.Error(e);
+                if (!IsThreadAbortException(e))
+                {
+                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
+                    _logger.Error(e);
+                }
             }
         }
 
@@ -298,8 +304,11 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri);
-                _logger.Error(e);
+                if (!IsThreadAbortException(e))
+                {
+                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlDisallowed event for url:" + pageToCrawl.Uri.AbsoluteUri);
+                    _logger.Error(e);
+                }
             }
         }
 
@@ -313,8 +322,11 @@ namespace Abot.Crawler
             }
             catch (Exception e)
             {
-                _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri);
-                _logger.Error(e);
+                if (!IsThreadAbortException(e))
+                {
+                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageLinksCrawlDisallowed event for url:" + crawledPage.Uri.AbsoluteUri);
+                    _logger.Error(e);
+                }
             }
         }
 
@@ -639,6 +651,11 @@ namespace Abot.Crawler
             {
                 _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
             }
+        }
+
+        private bool IsThreadAbortException(Exception e)
+        {
+            return e.Message.Contains("System.Threading.ThreadAbortException");
         }
     }
 }
