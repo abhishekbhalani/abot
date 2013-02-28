@@ -24,8 +24,8 @@ namespace Abot.Core
         {
             IEnumerable<string> hrefValues = crawledPage.CsQueryDocument.Select("a, area")
             .Elements
-            .Where(a => !string.IsNullOrWhiteSpace(a.GetAttribute("href")))
-            .Select(y => y.GetAttribute("href"));
+            .Select(y => y.GetAttribute("href"))
+            .Where(a => !string.IsNullOrWhiteSpace(a));
 
             return hrefValues;
         }
