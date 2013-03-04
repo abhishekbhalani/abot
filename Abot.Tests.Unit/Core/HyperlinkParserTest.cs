@@ -85,13 +85,22 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void GetLinks_InvalidFormatUrl_NotReturned()
-        {
-            string html = "<a href=\"http://////\" />";
+		public void GetLinks_InvalidFormatUrl_NotReturned ()
+		{
+			string html = "<a href=\"http://////\" />";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
+			IEnumerable<Uri> result = _unitUnderTest.GetLinks (_uri, html);
 
-            Assert.AreEqual(0, result.Count());
+				
+			if (AssemblySetup.IsWindows()) 
+			{
+	            Assert.AreEqual (0, result.Count ());
+			}
+			else
+			{
+	            Assert.AreEqual(1, result.Count());
+	            Assert.AreEqual("http://a.com/http://////", result.ElementAt(0).AbsoluteUri);
+			}
         }
 
         [Test]
@@ -225,15 +234,24 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void GetLinks_RelativeBaseTagPresent_ReturnsRelativeLinksPageUri()
-        {
-            string html = "<base href=\"/images\"><a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
+		public void GetLinks_RelativeBaseTagPresent_ReturnsRelativeLinksPageUri ()
+		{
+			string html = "<base href=\"/images\"><a href=\"http://aaa.com/\" ></a><a href=\"/aaa/a.html\" /></a>";
 
-            IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
+			IEnumerable<Uri> result = _unitUnderTest.GetLinks (_uri, html);
 
-            Assert.AreEqual(2, result.Count());
-            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-            Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+			if (AssemblySetup.IsWindows()) 
+			{
+				Assert.AreEqual (2, result.Count ());
+				Assert.AreEqual ("http://aaa.com/", result.ElementAt (0).AbsoluteUri);
+				Assert.AreEqual ("http://a.com/aaa/a.html", result.ElementAt (1).AbsoluteUri);
+			}
+			else
+			{
+				Assert.AreEqual (2, result.Count ());
+				Assert.AreEqual ("http://aaa.com/", result.ElementAt (0).AbsoluteUri);
+				Assert.AreEqual ("file:///aaa/a.html", result.ElementAt (1).AbsoluteUri);
+			}
         }
 
         [Test]
@@ -243,9 +261,18 @@ namespace Abot.Tests.Unit.Core
 
             IEnumerable<Uri> result = _unitUnderTest.GetLinks(_uri, html);
 
-            Assert.AreEqual(2, result.Count());
-            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-            Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+			if (AssemblySetup.IsWindows()) 
+			{
+	            Assert.AreEqual(2, result.Count());
+	            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
+	            Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+			}
+			else
+			{
+	            Assert.AreEqual(2, result.Count());
+	            Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
+	            Assert.AreEqual("http://http/aaa/a.html", result.ElementAt(1).AbsoluteUri);
+			}
         }
 
         [Test]
