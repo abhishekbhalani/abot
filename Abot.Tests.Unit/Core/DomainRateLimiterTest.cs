@@ -32,7 +32,7 @@ namespace Abot.Tests.Unit.Core
             unitUnderTest.RateLimit(uri);
             timer.Stop();
 
-            Assert.IsTrue(timer.ElapsedMilliseconds > 200);
+            Assert.IsTrue(timer.ElapsedMilliseconds > 175);
         }
 
         [Test]
