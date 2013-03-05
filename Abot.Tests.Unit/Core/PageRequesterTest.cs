@@ -125,8 +125,13 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(result.HtmlDocument);
             Assert.IsNotNull(result.CsQueryDocument);
             Assert.AreEqual(503, (int)result.HttpWebResponse.StatusCode);
-            Assert.AreEqual("The remote server returned an error: (503) Server Unavailable.", result.WebException.Message);
             Assert.IsTrue(result.PageSizeInBytes > 0);
+
+			if (AssemblySetup.IsWindows()) 
+				Assert.AreEqual("The remote server returned an error: (503) Server Unavailable.", result.WebException.Message);
+			else
+				Assert.AreEqual("The remote server returned an error: (503) Service Unavailable.", result.WebException.Message);
+
         }
 
         [Test, Ignore]//Cox intercepts 502 status and returns 200
