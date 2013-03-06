@@ -817,38 +817,58 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
-        public void Crawl_StopRequested_CrawlIsStopped()
+        public void Crawl_StopRequested_CrawlIsStoppedBeforeCompletion()
         {
-            Assert.Fail("Write this test");//write this
-            //verify scheduler is called
-            //verify abortAll is called
+            PageToCrawl pageToReturn = new PageToCrawl(_rootUri);
+            for (int i = 0; i < 100; i++)
+                _dummyScheduler.Add(pageToReturn);
+            
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
+                .Callback<PageToCrawl, CrawlContext>((p, c) =>
+                {
+                    c.IsCrawlStopRequested = true;
+                    System.Threading.Thread.Sleep(500);
+                })
+                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter." });
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(pageToReturn, It.IsAny<CrawlContext>()), Times.Exactly(1));
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsTrue(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
+        }
+
+        [Test, Ignore]
+        public void Crawl_HardStopRequested_CrawlIsStoppedBeforeCompletion()
+        {
+            //Nothing calls hard stop due to thread aborting is a bad way to stop threads
+            //Waiting for tpl impl so we can use a cancellation token
         }
 
         [Test]
-        public void Crawl_OverCrawlTimeoutSeconds_StopsCrawl()
+        public void Crawl_OverCrawlTimeoutSeconds_CrawlIsStoppedBeforeCompletion()
         {
-            Assert.Fail("Write this test");//write this
-            //CrawlContext crawlContext = new CrawlContext
-            //{
-            //    CrawlStartDate = DateTime.Now.AddSeconds(-100),
-            //    CrawlConfiguration = new CrawlConfiguration
-            //    {
-            //        CrawlTimeoutSeconds = 99
-            //    }
-            //};
+            _dummyConfiguration.CrawlTimeoutSeconds = 1;
 
-            //CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), crawlContext);
+            PageToCrawl pageToReturn = new PageToCrawl(_rootUri);
+            CrawledPage crawledPage = new CrawledPage(_rootUri) { ParentUri = _rootUri};
 
-            //Assert.IsFalse(result.Allow);
-            //Assert.AreEqual("Crawl timeout of [99] seconds has been reached", result.Reason);
-            //Assert.IsFalse(crawlContext.IsCrawlStopRequested);
-            //Assert.IsTrue(crawlContext.IsCrawlHardStopRequested);
-        }
+            for (int i = 0; i < 100; i++)
+                _dummyScheduler.Add(pageToReturn);
 
-        [Test]
-        public void Events_ThreadAbortExceptionHappens_NotLogged()
-        {
-            Assert.Fail("Write this test");//write this
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
+                .Callback(() => System.Threading.Thread.Sleep(2000))
+                .Returns(new CrawlDecision { Allow = true });
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = false });
+            _fakeHttpRequester.Setup(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>())).Returns(crawledPage);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(pageToReturn, It.IsAny<CrawlContext>()), Times.Exactly(1));
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsTrue(result.CrawlContext.IsCrawlStopRequested, "should have been false");
+            Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
         [Test]
