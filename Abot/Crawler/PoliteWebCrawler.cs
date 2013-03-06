@@ -50,7 +50,7 @@ namespace Abot.Crawler
 
                 if (_robotsDotText != null)
                 {
-                    robotsDotTextCrawlDelayInSecs = _robotsDotText.GetCrawlDelay(_crawlContext.CrawlConfiguration.UserAgentString);
+                    robotsDotTextCrawlDelayInSecs = _robotsDotText.GetCrawlDelay(_crawlContext.CrawlConfiguration.RobotsDotTextUserAgentString);
                     robotsDotTextCrawlDelayInMillisecs = robotsDotTextCrawlDelayInSecs * 1000;
                 }
             }
@@ -80,7 +80,7 @@ namespace Abot.Crawler
         {
             bool allowedByRobots = true;
             if (_robotsDotText != null)
-                allowedByRobots = _robotsDotText.IsUrlAllowed(pageToCrawl.Uri.AbsoluteUri, _crawlContext.CrawlConfiguration.UserAgentString);
+                allowedByRobots = _robotsDotText.IsUrlAllowed(pageToCrawl.Uri.AbsoluteUri, _crawlContext.CrawlConfiguration.RobotsDotTextUserAgentString);
 
             if (!allowedByRobots)
             {

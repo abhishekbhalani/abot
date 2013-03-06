@@ -27,6 +27,7 @@ namespace Abot.Tests.Unit.Core
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(true, _config.Politeness.IsRespectRobotsDotTextEnabled);
+            Assert.AreEqual("zzzz", _config.Politeness.RobotsDotTextUserAgentString);
             Assert.AreEqual(55, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);
             Assert.AreEqual(5, _config.Politeness.MaxRobotsDotTextCrawlDelayInSeconds); 
 
@@ -56,6 +57,7 @@ namespace Abot.Tests.Unit.Core
 
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _config.Politeness.IsRespectRobotsDotTextEnabled);
+            Assert.AreEqual(result.RobotsDotTextUserAgentString, _config.Politeness.RobotsDotTextUserAgentString);
             Assert.AreEqual(result.MinCrawlDelayPerDomainMilliSeconds, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);
             Assert.AreEqual(result.MaxRobotsDotTextCrawlDelayInSeconds, _config.Politeness.MaxRobotsDotTextCrawlDelayInSeconds);
 

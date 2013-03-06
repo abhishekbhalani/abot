@@ -7,6 +7,7 @@ namespace Abot.Core
     {
         public AbotConfigurationSectionHandler()
         {
+            
         }
 
         [ConfigurationProperty("crawlBehavior")]
@@ -62,6 +63,12 @@ namespace Abot.Core
         public bool IsRespectRobotsDotTextEnabled
         {
             get { return (bool)this["isRespectRobotsDotTextEnabled"]; }
+        }
+
+        [ConfigurationProperty("robotsDotTextUserAgentString", IsRequired = true)]
+        public string RobotsDotTextUserAgentString
+        {
+            get { return (string)this["robotsDotTextUserAgentString"]; }
         }
 
         [ConfigurationProperty("maxRobotsDotTextCrawlDelayInSeconds", IsRequired = true)]

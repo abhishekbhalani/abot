@@ -7,7 +7,8 @@ namespace Abot.Poco
         public CrawlConfiguration()
         {
             MaxConcurrentThreads = 10;
-            UserAgentString = "abot v1.1 http://code.google.com/p/abot";
+            UserAgentString = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; abot v@ABOTASSEMBLYVERSION@ http://code.google.com/p/abot)";
+            RobotsDotTextUserAgentString = "abot";
             MaxPagesToCrawl = 1000;
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
@@ -90,6 +91,11 @@ namespace Abot.Poco
         /// Whether the crawler should retrieve and respect the robotsdottext file.
         /// </summary>
         public bool IsRespectRobotsDotTextEnabled { get; set; }
+
+        /// <summary>
+        /// The user agent string to use when checking robots.txt file for specific directives.  Some examples of other crawler's user agent values are "googlebot", "slurp" etc...
+        /// </summary>
+        public string RobotsDotTextUserAgentString { get; set; }
 
         /// <summary>
         /// The number of milliseconds to wait in between http requests to the same domain. Note: This will set the crawl to a single thread no matter what the MaxConcurrentThreads value is.
