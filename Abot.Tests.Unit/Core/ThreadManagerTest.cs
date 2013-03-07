@@ -5,14 +5,16 @@ using System;
 namespace Abot.Tests.Unit.Core
 {
     [TestFixture]
-    public class ThreadManagerTest
+    public abstract class ThreadManagerTest
     {
-        ThreadManager _unitUnderTest;
+        IThreadManager _unitUnderTest;
+
+        protected abstract IThreadManager GetInstance(int maxThreads);
 
         [SetUp]
         public void SetUp()
         {
-            _unitUnderTest = new ThreadManager(10);
+            _unitUnderTest = GetInstance(10);
         }
 
         [Test]
@@ -26,14 +28,14 @@ namespace Abot.Tests.Unit.Core
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_OverMax()
         {
-            _unitUnderTest = new ThreadManager(101);
+            _unitUnderTest = GetInstance(101);
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_BelowMinimum()
         {
-            _unitUnderTest = new ThreadManager(0);
+            _unitUnderTest = GetInstance(0);
         }
 
         [Test]
@@ -93,11 +95,11 @@ namespace Abot.Tests.Unit.Core
         {
             int count = 0;
 
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(50); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
 
             System.Threading.Thread.Sleep(250);
 
@@ -107,15 +109,15 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void DoWork_NoThreadsAvailable_WaitForAvailableThreadThenDoesWork()
         {
-            _unitUnderTest = new ThreadManager(1);
+            _unitUnderTest = GetInstance(1);
 
             //Add long running job that will take up the only available thread
-            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(200));
+            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(20));
 
-            //This work should still get done
+            //This work should still get done, but after the first stops blocking
             int count = 0;
             _unitUnderTest.DoWork(() => count++);
-            System.Threading.Thread.Sleep(20);
+            System.Threading.Thread.Sleep(25);
 
             Assert.AreEqual(1, count);
         }
@@ -125,11 +127,11 @@ namespace Abot.Tests.Unit.Core
         {
             int count = 0;
 
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(100); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
 
             _unitUnderTest.AbortAll();
 

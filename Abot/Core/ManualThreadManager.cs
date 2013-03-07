@@ -35,13 +35,13 @@ namespace Abot.Core
         void AbortAll();
     }
 
-    public class ThreadManager : IThreadManager
+    public class ManualThreadManager : IThreadManager
     {
-        static ILog _logger = LogManager.GetLogger(typeof(ThreadManager).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);
         object _lock = new object();
         Thread[] _threads = new Thread[10];
 
-        public ThreadManager(int maxThreads)
+        public ManualThreadManager(int maxThreads)
         {
             if ((maxThreads > 100) || (maxThreads < 1))
                 throw new ArgumentException("MaxThreads must be from 1 to 100");

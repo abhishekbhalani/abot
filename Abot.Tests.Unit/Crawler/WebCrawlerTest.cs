@@ -18,7 +18,7 @@ namespace Abot.Tests.Unit.Crawler
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
         FifoScheduler _dummyScheduler;
-        ThreadManager _dummyThreadManager;
+        ManualThreadManager _dummyThreadManager;
         CrawlConfiguration _dummyConfiguration;
         Uri _rootUri;
 
@@ -30,7 +30,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
 
             _dummyScheduler = new FifoScheduler();
-            _dummyThreadManager = new ThreadManager(1);
+            _dummyThreadManager = new ManualThreadManager(1);
             _dummyConfiguration = new CrawlConfiguration();
             _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
@@ -232,7 +232,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
-            ThreadManager _dummyThreadManager = new ThreadManager(1);
+            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
             _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
@@ -294,7 +294,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = false, Reason = "aaa" });
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
-            ThreadManager _dummyThreadManager = new ThreadManager(1);
+            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
             _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
@@ -500,7 +500,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
-            ThreadManager _dummyThreadManager = new ThreadManager(1);
+            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
             _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
@@ -564,7 +564,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = false, Reason = "aaa" });
 
             FifoScheduler _dummyScheduler = new FifoScheduler();
-            ThreadManager _dummyThreadManager = new ThreadManager(1);
+            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
             _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
