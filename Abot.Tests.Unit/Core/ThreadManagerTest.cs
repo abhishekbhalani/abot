@@ -75,38 +75,6 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void DoWork_TaskCompletesBeforeTimeout_WorkCompleted()
-        {
-            int count = 0;
-
-            _unitUnderTest.DoWork(() => count++, 100);
-            _unitUnderTest.DoWork(() => count++, 100);
-            _unitUnderTest.DoWork(() => count++, 100);
-            _unitUnderTest.DoWork(() => count++, 100);
-            _unitUnderTest.DoWork(() => count++, 100);
-
-            System.Threading.Thread.Sleep(20);
-
-            Assert.AreEqual(5, count);
-        }
-
-        [Test]
-        public void DoWork_TaskDoesNotCompleteBeforeTimeout_WorkNeverCompleted()
-        {
-            int count = 0;
-
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
-            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; }, 10);
-
-            System.Threading.Thread.Sleep(250);
-
-            Assert.AreEqual(0, count);
-        }
-
-        [Test]
         public void DoWork_NoThreadsAvailable_WaitForAvailableThreadThenDoesWork()
         {
             _unitUnderTest = GetInstance(1);

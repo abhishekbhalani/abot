@@ -18,7 +18,7 @@ namespace Abot.Tests.Unit.Crawler
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
         FifoScheduler _dummyScheduler;
-        ManualThreadManager _dummyThreadManager;
+        ProducerConsumerThreadManager _dummyThreadManager;
         CrawlConfiguration _dummyConfiguration;
         Uri _rootUri;
 
@@ -30,7 +30,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
 
             _dummyScheduler = new FifoScheduler();
-            _dummyThreadManager = new ManualThreadManager(1);
+            _dummyThreadManager = new ProducerConsumerThreadManager(10);
             _dummyConfiguration = new CrawlConfiguration();
             _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
@@ -121,7 +121,23 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
-        public void Crawl_ExceptionThrownByCrawlDecisionMaker_SetsCrawlResultError()
+        public void Crawl_SingleThread_ExceptionThrownDuringProcessPage_SetsCrawlResultError()
+        {
+            _dummyThreadManager = new ProducerConsumerThreadManager(1);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
+            Exception ex = new Exception("oh no");
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Throws(ex);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
+            Assert.IsTrue(result.ErrorOccurred);
+            Assert.AreSame(ex, result.ErrorException);
+        }
+
+
+        [Test]
+        public void Crawl_MultiThread_ExceptionThrownDuringProcessPage_SetsCrawlResultError()
         {
             Exception ex = new Exception("oh no");
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Throws(ex);
@@ -131,6 +147,9 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Exactly(1));
             Assert.IsTrue(result.ErrorOccurred);
             Assert.AreSame(ex, result.ErrorException);
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
         #region Synchronous Event Tests
@@ -231,10 +250,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
-            FifoScheduler _dummyScheduler = new FifoScheduler();
-            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
-
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
             int _pageCrawlDisallowedCount = 0;
@@ -246,7 +261,7 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageCrawlDisallowed += (s, e) => ++_pageCrawlDisallowedCount;
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
-            _unitUnderTest.Crawl(_rootUri);
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<CrawledPage>()), Times.Once());
@@ -257,6 +272,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(1, _pageCrawlCompletedCount);
             Assert.AreEqual(0, _pageCrawlDisallowedCount);
             Assert.AreEqual(0, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
         [Test]
@@ -275,7 +291,7 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageCrawlDisallowed += new EventHandler<PageCrawlDisallowedArgs>(ThrowExceptionWhen_PageCrawlDisallowed);
             _unitUnderTest.PageLinksCrawlDisallowed += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
-            _unitUnderTest.Crawl(_rootUri);
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
 
@@ -283,6 +299,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(0, _pageCrawlCompletedCount);
             Assert.AreEqual(1, _pageCrawlDisallowedCount);
             Assert.AreEqual(0, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
         [Test]
@@ -292,10 +309,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = false, Reason = "aaa" });
-
-            FifoScheduler _dummyScheduler = new FifoScheduler();
-            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
@@ -307,7 +320,7 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowed += (s, e) => ++_pageLinksCrawlDisallowedCount;
             _unitUnderTest.PageLinksCrawlDisallowed += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
-            _unitUnderTest.Crawl(_rootUri);
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
             _fakeHyperLinkParser.Verify(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>()), Times.Never());
@@ -318,6 +331,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(1, _pageCrawlCompletedCount);
             Assert.AreEqual(0, _pageCrawlDisallowedCount);
             Assert.AreEqual(1, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
 
@@ -499,10 +513,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
-            FifoScheduler _dummyScheduler = new FifoScheduler();
-            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
-
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
             int _pageCrawlDisallowedCount = 0;
@@ -514,7 +524,7 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageCrawlDisallowedAsync += (s, e) => ++_pageCrawlDisallowedCount;
             _unitUnderTest.PageLinksCrawlDisallowedAsync += (s, e) => ++_pageLinksCrawlDisallowedCount;
 
-            _unitUnderTest.Crawl(_rootUri);
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(1000);//sleep since the events are async and may not complete
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
@@ -526,6 +536,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(1, _pageCrawlCompletedCount);
             Assert.AreEqual(0, _pageCrawlDisallowedCount);
             Assert.AreEqual(0, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
         [Test]
@@ -544,8 +555,8 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageCrawlDisallowedAsync += new EventHandler<PageCrawlDisallowedArgs>(ThrowExceptionWhen_PageCrawlDisallowed);
             _unitUnderTest.PageLinksCrawlDisallowedAsync += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
-            _unitUnderTest.Crawl(_rootUri);
-            System.Threading.Thread.Sleep(1000);//sleep since the events are async and may not complete
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+            System.Threading.Thread.Sleep(1500);//sleep since the events are async and may not complete
 
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()), Times.Once());
 
@@ -553,6 +564,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(0, _pageCrawlCompletedCount);
             Assert.AreEqual(1, _pageCrawlDisallowedCount);
             Assert.AreEqual(0, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
         [Test]
@@ -562,10 +574,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHyperLinkParser.Setup(f => f.GetLinks(It.IsAny<Uri>(), It.IsAny<string>())).Returns(new List<Uri>());
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = false, Reason = "aaa" });
-
-            FifoScheduler _dummyScheduler = new FifoScheduler();
-            ManualThreadManager _dummyThreadManager = new ManualThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, new CrawlConfiguration());
 
             int _pageCrawlStartingCount = 0;
             int _pageCrawlCompletedCount = 0;
@@ -577,7 +585,7 @@ namespace Abot.Tests.Unit.Crawler
             _unitUnderTest.PageLinksCrawlDisallowedAsync += (s, e) => ++_pageLinksCrawlDisallowedCount;
             //_unitUnderTest.PageLinksCrawlDisallowed += new EventHandler<PageLinksCrawlDisallowedArgs>(ThrowExceptionWhen_PageLinksCrawlDisallowed);
 
-            _unitUnderTest.Crawl(_rootUri);
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
             System.Threading.Thread.Sleep(2000);//sleep since the events are async and may not complete, set to 2 seconds since this test was mysteriously failing only when run with code coverage
 
             _fakeHttpRequester.Verify(f => f.MakeRequest(It.IsAny<Uri>(), It.IsAny<Func<CrawledPage, CrawlDecision>>()), Times.Once());
@@ -589,6 +597,7 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(1, _pageCrawlCompletedCount);
             Assert.AreEqual(0, _pageCrawlDisallowedCount);
             Assert.AreEqual(1, _pageLinksCrawlDisallowedCount);
+            Assert.IsFalse(result.ErrorOccurred);
         }
 
 
@@ -839,11 +848,27 @@ namespace Abot.Tests.Unit.Crawler
             Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
-        [Test, Ignore]
+        [Test]
         public void Crawl_HardStopRequested_CrawlIsStoppedBeforeCompletion()
         {
-            //Nothing calls hard stop due to thread aborting is a bad way to stop threads
-            //Waiting for tpl impl so we can use a cancellation token
+            PageToCrawl pageToReturn = new PageToCrawl(_rootUri);
+            for (int i = 0; i < 100; i++)
+                _dummyScheduler.Add(pageToReturn);
+
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
+                .Callback<PageToCrawl, CrawlContext>((p, c) =>
+                {
+                    c.IsCrawlHardStopRequested = true;
+                    System.Threading.Thread.Sleep(500);
+                })
+                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter." });
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(pageToReturn, It.IsAny<CrawlContext>()), Times.Exactly(1));
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
         [Test]

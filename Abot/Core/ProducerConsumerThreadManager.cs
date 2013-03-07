@@ -6,25 +6,52 @@ using System.Threading.Tasks;
 
 namespace Abot.Core
 {
+    public interface IThreadManager
+    {
+        /// <summary>
+        /// Max number of threads to use. Note: if calling DoWork(Action, int) the actual number of threads used maybe up to two times this value.
+        /// </summary>
+        int MaxThreads { get; }
+
+        /// <summary>
+        /// Will perform the action asynchrously on a seperate thread
+        /// </summary>
+        /// <param name="action">The action to perform</param>
+        void DoWork(Action action);
+
+        /// <summary>
+        /// Whether there are running threads
+        /// </summary>
+        bool HasRunningThreads();
+
+        /// <summary>
+        /// Abort all running threads
+        /// </summary>
+        void AbortAll();
+    }
+
     public class ProducerConsumerThreadManager : IThreadManager
     {
         static ILog _logger = LogManager.GetLogger(typeof(ProducerConsumerThreadManager).FullName);
 
-        CancellationTokenSource[] _cancellationTokens;
-        BlockingCollection<ConsumerAction> _actionsToExecute = new BlockingCollection<ConsumerAction>();
-        ConcurrentStack<ConsumerAction> _inProcessActionsToExecute = new ConcurrentStack<ConsumerAction>();
+        CancellationTokenSource[] _consumerThreadCancellationTokens;
+        BlockingCollection<Action> _actionsToExecute = new BlockingCollection<Action>();
+        ConcurrentStack<int> _inProcessActionsToExecute = new ConcurrentStack<int>();
 
         public ProducerConsumerThreadManager(int maxThreads)
         {
             if ((maxThreads > 100) || (maxThreads < 1))
                 throw new ArgumentException("MaxThreads must be from 1 to 100");
             
-            _cancellationTokens = new CancellationTokenSource[maxThreads];
+            _consumerThreadCancellationTokens = new CancellationTokenSource[maxThreads];
 
-            for (int i = 0; i < maxThreads; i++)
+            if (maxThreads > 1)
             {
-                _cancellationTokens[i] = new CancellationTokenSource();
-                Task.Factory.StartNew(() => RunConsumer(i), _cancellationTokens[i].Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                for (int i = 0; i < maxThreads; i++)
+                {
+                    _consumerThreadCancellationTokens[i] = new CancellationTokenSource();
+                    Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                }
             }
         }
 
@@ -35,7 +62,7 @@ namespace Abot.Core
         {
             get
             {
-                return _cancellationTokens.Length;
+                return _consumerThreadCancellationTokens.Length;
             }
         }
 
@@ -44,19 +71,15 @@ namespace Abot.Core
         /// </summary>
         public void DoWork(Action action)
         {
-            DoWork(action, 0);
-        }
-
-        /// <summary>
-        /// Will perform the action asynchrously on a seperate thread with a timeout
-        /// </summary>
-        public void DoWork(Action action, int timeoutInMilliSecs)
-        {
             if (action == null)
                 throw new ArgumentNullException("action");
 
-            _actionsToExecute.Add(new ConsumerAction { Action = action, TimeoutInMillisecs = timeoutInMilliSecs });
+            if (MaxThreads > 1)
+                _actionsToExecute.Add(action);
+            else
+                action.Invoke();
         }
+
 
         /// <summary>
         /// Whether there are running threads
@@ -66,52 +89,53 @@ namespace Abot.Core
             return _inProcessActionsToExecute.Count > 0;
         }
 
+        /// <summary>
+        /// Abort all running threads
+        /// </summary>
         public void AbortAll()
         {
-            foreach (CancellationTokenSource cancellationTokenSource in _cancellationTokens)
-                cancellationTokenSource.Cancel();
+            _inProcessActionsToExecute.Clear();
+
+            foreach (CancellationTokenSource cancellationTokenSource in _consumerThreadCancellationTokens)
+            {
+                if(cancellationTokenSource != null && !cancellationTokenSource.IsCancellationRequested)
+                    cancellationTokenSource.Cancel();
+            }
+
+            _inProcessActionsToExecute.Clear();
         }
 
         private void RunConsumer(int i)
         {
-            foreach (ConsumerAction consumerAction in _actionsToExecute.GetConsumingEnumerable())
+            foreach (Action action in _actionsToExecute.GetConsumingEnumerable())
             {
-                ReportAsInProgress(consumerAction);
-                if (consumerAction.TimeoutInMillisecs > 0)
+                ReportAsInProgress(action);
+                try
                 {
-                    ActionTimer timer = new ActionTimer(consumerAction.TimeoutInMillisecs, i);
-                    timer.Elapsed += (sender, e) =>
-                    {
-                        ActionTimer elapsedTimer = sender as ActionTimer;
-                        if (elapsedTimer != null)
-                        {
-                            elapsedTimer.Stop();
-                            _cancellationTokens[elapsedTimer.TaskIndex].Cancel();
-                        }
-                    };
-                    timer.Start();
-                    consumerAction.Action.Invoke();
-                    timer.Stop();
+                    action.Invoke();
                 }
-                else
+                finally
                 {
-                    consumerAction.Action.Invoke();
+                    ReportAsProgressComplete(action);
                 }
-
-                ReportAsProgressComplete(consumerAction);
             }
         }
 
-        private void ReportAsInProgress(ConsumerAction consumerAction)
+        /// <summary>
+        /// Using a stack to keep track of in process actions. If _inprocessActions > 0 then we know there is a running thread
+        /// </summary>
+        private void ReportAsInProgress(Action action)
         {
-            _inProcessActionsToExecute.Push(consumerAction);
-
+            _inProcessActionsToExecute.Push(1);
         }
 
-        private void ReportAsProgressComplete(ConsumerAction consumerAction)
+        /// <summary>
+        /// Using a stack to keep track of in process actions. If _inprocessActions > 0 then we know there is a running thread
+        /// </summary>
+        private void ReportAsProgressComplete(Action action)
         {
-            ConsumerAction ddd;
-            _inProcessActionsToExecute.TryPop(out ddd);
+            int val;
+            _inProcessActionsToExecute.TryPop(out val);
         }
     }
 
@@ -119,17 +143,5 @@ namespace Abot.Core
     {
         public Action Action { get; set; }
         public int TimeoutInMillisecs { get; set; }
-        //public Task Task { get; set; }
-    }
-
-    internal class ActionTimer : System.Timers.Timer
-    {
-        public int  TaskIndex { get; set; }
-
-        public ActionTimer(double timeoutInMillisecs, int taskIndex)
-            :base(timeoutInMillisecs)
-        {
-            TaskIndex = taskIndex;
-        }
     }
 }

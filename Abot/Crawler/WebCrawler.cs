@@ -487,18 +487,21 @@ namespace Abot.Crawler
             {
                 if (!crawlStopReported)
                 {
-                    _logger.InfoFormat("Crawl stop requested!");
+                    if(_crawlContext.IsCrawlHardStopRequested)
+                        _logger.InfoFormat("Hard crawl stop requested!");
+                    else
+                        _logger.InfoFormat("Crawl stop requested!");
+
                     crawlStopReported = true;
                 }
                 _scheduler.Clear(); 
             }
 
-            //TODO Aborting these threads caused weird problems in 3rd party libs like NRobots (Uri formation exception) and Automapper (AutoMapper.AutoMapperMappingException)
-            //if (_crawlContext.IsCrawlHardStopRequested)
-            //{
-            //    _threadManager.AbortAll();
-            //    _scheduler.Clear();//to be sure nothing was scheduled since first calls
-            //}
+            if (_crawlContext.IsCrawlHardStopRequested)
+            {
+                _threadManager.AbortAll();
+                _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
+            }
         }
 
         protected virtual void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
@@ -518,22 +521,33 @@ namespace Abot.Crawler
 
         protected virtual void ProcessPage(PageToCrawl pageToCrawl)
         {
-            if (pageToCrawl == null)
-                return;
+            try
+            {
+                if (pageToCrawl == null)
+                    return;
 
-            if (!ShouldCrawlPage(pageToCrawl))
-                return;
+                if (!ShouldCrawlPage(pageToCrawl))
+                    return;
 
-            CrawledPage crawledPage = CrawlThePage(pageToCrawl);
+                CrawledPage crawledPage = CrawlThePage(pageToCrawl);
 
-            if (PageSizeIsAboveMax(crawledPage))
-                return;
+                if (PageSizeIsAboveMax(crawledPage))
+                    return;
 
-            FirePageCrawlCompletedEventAsync(crawledPage);
-            FirePageCrawlCompletedEvent(crawledPage);
+                FirePageCrawlCompletedEventAsync(crawledPage);
+                FirePageCrawlCompletedEvent(crawledPage);
 
-            if (ShouldCrawlPageLinks(crawledPage))
-                SchedulePageLinks(crawledPage);
+                if (ShouldCrawlPageLinks(crawledPage))
+                    SchedulePageLinks(crawledPage);
+            }
+            catch(Exception e)
+            {
+                _crawlResult.ErrorException = e;
+                _logger.FatalFormat("Error occurred during processing of page [{0}]", pageToCrawl.Uri);
+                _logger.Fatal(e);
+
+                _crawlContext.IsCrawlHardStopRequested = true;
+            }
         }
 
         protected virtual bool PageSizeIsAboveMax(CrawledPage crawledPage)
