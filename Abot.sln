@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abot", "Abot\Abot.csproj", "{0CDCD537-4B0E-4514-966F-F425CDC92BA4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abot.Tests.Unit", "Abot.Tests.Unit\Abot.Tests.Unit.csproj", "{61648674-8BE9-4CC6-BFFE-557C0CE54FAF}"
