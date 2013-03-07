@@ -63,9 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
-    <Compile Include="Core\ProducerConsumerThreadManager.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="Core\ProducerConsumerThreadManager.cs" />
     <Compile Include="Core\HapHyperLinkParser.cs" />
     <Compile Include="Core\CsQueryHyperLinkParser.cs" />
     <Compile Include="Core\CrawlDecisionMaker.cs" />
@@ -78,9 +76,7 @@
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlCompletedArgs.cs" />
     <Compile Include="Crawler\PageCrawlStartingArgs.cs" />
-    <Compile Include="Crawler\PoliteWebCrawler.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Crawler\PoliteWebCrawler.cs" />
     <Compile Include="Poco\CrawlConfiguration.cs" />
     <Compile Include="Poco\CrawlContext.cs" />
     <Compile Include="Poco\CrawlDecision.cs" />
