@@ -102,6 +102,7 @@ namespace Abot.Core
                     cancellationTokenSource.Cancel();
             }
 
+            _actionsToExecute.CompleteAdding();
             _inProcessActionsToExecute.Clear();
         }
 

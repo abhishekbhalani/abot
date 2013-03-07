@@ -1,6 +1,7 @@
 ﻿using Abot.Core;
 using NUnit.Framework;
 using System;
+using System.Threading;
 
 namespace Abot.Tests.Unit.Core
 {
@@ -8,20 +9,20 @@ namespace Abot.Tests.Unit.Core
     public abstract class ThreadManagerTest
     {
         IThreadManager _unitUnderTest;
-
+        const int MAXTHREADS = 10;
         protected abstract IThreadManager GetInstance(int maxThreads);
 
         [SetUp]
         public void SetUp()
         {
-            _unitUnderTest = GetInstance(10);
+            _unitUnderTest = GetInstance(MAXTHREADS);
         }
 
         [Test]
         public void Constructor_CreatesDefaultInstance()
         {
             Assert.IsNotNull(_unitUnderTest);
-            Assert.AreEqual(10, _unitUnderTest.MaxThreads);
+            Assert.AreEqual(MAXTHREADS, _unitUnderTest.MaxThreads);
         }
 
         [Test]
@@ -59,35 +60,73 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void DoWork_WorkCompleted()
+        public void DoWork_WorkItemsEqualToThreads_WorkIsCompletedAsync()
         {
             int count = 0;
 
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
+            for (int i = 0; i < MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
 
+            Assert.IsTrue(count < MAXTHREADS);
             System.Threading.Thread.Sleep(20);
-
-            Assert.AreEqual(5, count);
+            Assert.AreEqual(MAXTHREADS, count);
         }
 
         [Test]
-        public void DoWork_NoThreadsAvailable_WaitForAvailableThreadThenDoesWork()
+        public void DoWork_MoreWorkThenThreads_WorkIsCompletedAsync()
+        {
+            int count = 0;
+            for (int i = 0; i < 2 * MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
+
+            Assert.IsTrue(count < MAXTHREADS);
+            System.Threading.Thread.Sleep(20);
+            Assert.AreEqual(2 * MAXTHREADS, count);
+        }
+
+        [Test]
+        public void DoWork_SingleThreaded_WorkIsCompletedSynchronously()
         {
             _unitUnderTest = GetInstance(1);
 
-            //Add long running job that will take up the only available thread
-            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(20));
-
-            //This work should still get done, but after the first stops blocking
             int count = 0;
-            _unitUnderTest.DoWork(() => count++);
-            System.Threading.Thread.Sleep(25);
+            for (int i = 0; i < MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
 
-            Assert.AreEqual(1, count);
+            Assert.AreEqual(MAXTHREADS, count);
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void DoWork_ActionIsNull()
+        {
+            _unitUnderTest.DoWork(null);
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void DoWork_CalledAfterAbortAll()
+        {
+            _unitUnderTest.AbortAll();
+            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(10));
         }
 
         [Test]
