@@ -3,7 +3,6 @@ using Abot.Poco;
 using NUnit.Framework;
 using System;
 using System.IO;
-using System.Linq;
 
 namespace Abot.Tests.Unit.Poco
 {
@@ -96,13 +95,13 @@ namespace Abot.Tests.Unit.Poco
             Assert.IsTrue(unitUnderTest.CsQueryDocument.ToString().Length > 1);
         }
 
-        [Test, Ignore("Will attempt to fix this issue by patching CsQuery")]
+        [Test]
         public void CsQuery_EncodingChangedTwice_IsLoaded()
         {
             CrawledPage unitUnderTest = new CrawledPage(new Uri("http://a.com/")) { RawContent = @"<div>hehe</div><meta http-equiv=""Content-Type"" content=""text/html; charset=iso-8859-1""><meta http-equiv=""content-type"" content=""text/html; charset=utf-8"" /><div>hi</div>" };
 
             Assert.IsNotNull(unitUnderTest.CsQueryDocument);
-            Assert.IsTrue(unitUnderTest.CsQueryDocument.Elements.Count() > 0);
+            Assert.AreEqual(4, unitUnderTest.CsQueryDocument.Length);
         }
 
         [Test]
