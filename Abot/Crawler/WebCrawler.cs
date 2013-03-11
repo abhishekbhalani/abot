@@ -510,13 +510,8 @@ namespace Abot.Crawler
             if (elapsedTimer != null)
                 elapsedTimer.Stop();
 
-            _crawlContext.IsCrawlStopRequested = true;
-
-            //TODO Aborting these threads caused weird problems in 3rd party libs like NRobots (Uri formation exception) and Automapper (AutoMapper.AutoMapperMappingException)
-            //_logger.InfoFormat("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
-            //_scheduler.Clear();
-            //_threadManager.AbortAll();//TODO this was causing thread abort exceptions, waiting for TPL Task cancellation refactor
-            //_scheduler.Clear();//to be sure nothing was scheduled since first calls
+            _logger.InfoFormat("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
+            _crawlContext.IsCrawlHardStopRequested = true;
         }
 
         protected virtual void ProcessPage(PageToCrawl pageToCrawl)

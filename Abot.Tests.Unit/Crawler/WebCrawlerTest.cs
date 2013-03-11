@@ -892,8 +892,8 @@ namespace Abot.Tests.Unit.Crawler
 
             _fakeCrawlDecisionMaker.Verify(f => f.ShouldCrawlPage(pageToReturn, It.IsAny<CrawlContext>()), Times.Exactly(1));
             Assert.AreEqual(0, _dummyScheduler.Count);
-            Assert.IsTrue(result.CrawlContext.IsCrawlStopRequested, "should have been false");
-            Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
         [Test]
