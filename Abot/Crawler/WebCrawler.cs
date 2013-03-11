@@ -100,6 +100,7 @@ namespace Abot.Crawler
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
         protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
+        Timer _timeoutTimer;
 
         /// <summary>
         /// Dynamic object that can hold any value that needs to be available in the crawl context
@@ -213,9 +214,9 @@ namespace Abot.Crawler
 
             if (_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
             {
-                Timer timeoutTimer = new Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
-                timeoutTimer.Elapsed += HandleCrawlTimeout;
-                timeoutTimer.Start();
+                _timeoutTimer = new Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
+                _timeoutTimer.Elapsed += HandleCrawlTimeout;
+                _timeoutTimer.Start();
             }
 
             try
@@ -228,6 +229,10 @@ namespace Abot.Crawler
                 _logger.FatalFormat("An error occurred while crawling site [{0}]", uri);
                 _logger.Fatal(e);
             }
+
+            if(_timeoutTimer != null)
+                _timeoutTimer.Stop();
+
             timer.Stop();
 
             _crawlResult.Elapsed = timer.Elapsed;
@@ -488,9 +493,9 @@ namespace Abot.Crawler
                 if (!crawlStopReported)
                 {
                     if(_crawlContext.IsCrawlHardStopRequested)
-                        _logger.InfoFormat("Hard crawl stop requested!");
+                        _logger.InfoFormat("Hard crawl stop requested [{0}]!", _crawlContext.RootUri);
                     else
-                        _logger.InfoFormat("Crawl stop requested!");
+                        _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
 
                     crawlStopReported = true;
                 }
