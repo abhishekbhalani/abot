@@ -89,6 +89,8 @@ namespace Abot.Crawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         protected bool _crawlComplete = false;
+        protected bool _crawlStopReported = false;
+        protected Timer _timeoutTimer;
         protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
         protected IThreadManager _threadManager;
@@ -100,7 +102,6 @@ namespace Abot.Crawler
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
         protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
-        Timer _timeoutTimer;
 
         /// <summary>
         /// Dynamic object that can hold any value that needs to be available in the crawl context
@@ -487,17 +488,16 @@ namespace Abot.Crawler
 
         protected virtual void HandleCrawlStopRequest()
         {
-            bool crawlStopReported = false;
             if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
             {
-                if (!crawlStopReported)
+                if (!_crawlStopReported)
                 {
                     if(_crawlContext.IsCrawlHardStopRequested)
-                        _logger.InfoFormat("Hard crawl stop requested [{0}]!", _crawlContext.RootUri);
+                        _logger.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
                     else
                         _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
 
-                    crawlStopReported = true;
+                    _crawlStopReported = true;
                 }
                 _scheduler.Clear(); 
             }
