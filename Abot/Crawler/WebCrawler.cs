@@ -506,6 +506,16 @@ namespace Abot.Crawler
             {
                 _threadManager.AbortAll();
                 _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
+
+                //Set all events to null so no more events are fired
+                PageCrawlStarting = null;
+                PageCrawlCompleted = null;
+                PageCrawlDisallowed = null;
+                PageLinksCrawlDisallowed = null;
+                PageCrawlStartingAsync = null;
+                PageCrawlCompletedAsync = null;
+                PageCrawlDisallowedAsync = null;
+                PageLinksCrawlDisallowedAsync = null;
             }
         }
 
