@@ -77,7 +77,7 @@ namespace Abot.Core
             if (MaxThreads > 1)
                 _actionsToExecute.Add(action);
             else
-                action.Invoke();
+                InvokeAction(action);
         }
 
 
@@ -109,16 +109,19 @@ namespace Abot.Core
         private void RunConsumer(int i)
         {
             foreach (Action action in _actionsToExecute.GetConsumingEnumerable())
+                InvokeAction(action);
+        }
+
+        private void InvokeAction(Action action)
+        {
+            ReportAsInProgress(action);
+            try
             {
-                ReportAsInProgress(action);
-                try
-                {
-                    action.Invoke();
-                }
-                finally
-                {
-                    ReportAsProgressComplete(action);
-                }
+                action.Invoke();
+            }
+            finally
+            {
+                ReportAsProgressComplete(action);
             }
         }
 
