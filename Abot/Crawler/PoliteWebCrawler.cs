@@ -32,7 +32,7 @@ namespace Abot.Crawler
             : base(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, crawlConfiguration)
         {
             _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
-            _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString));
+            _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(new PageRequester(_crawlContext.CrawlConfiguration));
         }
 
         public override CrawlResult Crawl(Uri uri)

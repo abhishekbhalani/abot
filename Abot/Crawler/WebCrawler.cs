@@ -180,7 +180,7 @@ namespace Abot.Crawler
 
             _threadManager = threadManager ?? new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
-            _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration.UserAgentString);
+            _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
             _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();

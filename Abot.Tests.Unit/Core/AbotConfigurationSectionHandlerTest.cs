@@ -23,6 +23,11 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual("aaaa", _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(true, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
+            Assert.AreEqual(21, _config.CrawlBehavior.HttpServicePointConnectionLimit);
+            Assert.AreEqual(22, _config.CrawlBehavior.HttpRequestTimeoutInSeconds);
+            Assert.AreEqual(23, _config.CrawlBehavior.HttpRequestMaxAutoRedirects);
+            Assert.AreEqual(true, _config.CrawlBehavior.IsHttpRequestAutoRedirectsEnabled);
+            Assert.AreEqual(true, _config.CrawlBehavior.IsHttpRequestAutomaticDecompressionEnabled);
             
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
@@ -54,6 +59,11 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.UserAgentString, _config.CrawlBehavior.UserAgentString);
             Assert.AreEqual(result.IsExternalPageCrawlingEnabled, _config.CrawlBehavior.IsExternalPageCrawlingEnabled);
             Assert.AreEqual(result.IsExternalPageLinksCrawlingEnabled, _config.CrawlBehavior.IsExternalPageLinksCrawlingEnabled);
+            Assert.AreEqual(result.HttpServicePointConnectionLimit, _config.CrawlBehavior.HttpServicePointConnectionLimit);
+            Assert.AreEqual(result.HttpRequestTimeoutInSeconds, _config.CrawlBehavior.HttpRequestTimeoutInSeconds);
+            Assert.AreEqual(result.HttpRequestMaxAutoRedirects, _config.CrawlBehavior.HttpRequestMaxAutoRedirects);
+            Assert.AreEqual(true, _config.CrawlBehavior.IsHttpRequestAutoRedirectsEnabled);
+            Assert.AreEqual(true, _config.CrawlBehavior.IsHttpRequestAutomaticDecompressionEnabled);
 
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _config.Politeness.IsRespectRobotsDotTextEnabled);

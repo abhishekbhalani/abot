@@ -145,6 +145,36 @@ namespace Abot.Core
         {
             get { return (bool)this["isExternalPageLinksCrawlingEnabled"]; }
         }
+
+        [ConfigurationProperty("httpServicePointConnectionLimit", IsRequired = true)]
+        public int HttpServicePointConnectionLimit
+        {
+            get { return (int)this["httpServicePointConnectionLimit"]; }
+        }
+
+        [ConfigurationProperty("httpRequestTimeoutInSeconds", IsRequired = true)]
+        public int HttpRequestTimeoutInSeconds
+        {
+            get { return (int)this["httpRequestTimeoutInSeconds"]; }
+        }
+
+        [ConfigurationProperty("httpRequestMaxAutoRedirects", IsRequired = true)]
+        public int HttpRequestMaxAutoRedirects
+        {
+            get { return (int)this["httpRequestMaxAutoRedirects"]; }
+        }
+
+        [ConfigurationProperty("isHttpRequestAutoRedirectsEnabled", IsRequired = true)]
+        public bool IsHttpRequestAutoRedirectsEnabled
+        {
+            get { return (bool)this["isHttpRequestAutoRedirectsEnabled"]; }
+        }
+
+        [ConfigurationProperty("isHttpRequestAutomaticDecompressionEnabled", IsRequired = true)]
+        public bool IsHttpRequestAutomaticDecompressionEnabled
+        {
+            get { return (bool)this["isHttpRequestAutomaticDecompressionEnabled"]; }
+        }
     }
 
     public class ExtensionValueElement : ConfigurationElement

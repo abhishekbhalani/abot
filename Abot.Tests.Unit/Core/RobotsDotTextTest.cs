@@ -40,7 +40,7 @@ Sitemap: http://b.com/sitemap.xml
         public void SetUp()
         {
             _unitUnderTest = new RobotsDotText(_rootUri, _robotsContent);
-            _realPage = new PageRequester("aaa").MakeRequest(new Uri("http://localhost:1111/"));
+            _realPage = new PageRequester(new CrawlConfiguration{ UserAgentString = "aaa" }).MakeRequest(new Uri("http://localhost:1111/"));
         }
 
         [Test]

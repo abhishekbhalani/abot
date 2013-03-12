@@ -1,8 +1,8 @@
-﻿using System;
-using System.Reflection;
-using Abot.Core;
+﻿using Abot.Core;
 using Abot.Poco;
 using NUnit.Framework;
+using System;
+using System.Reflection;
 
 
 namespace Abot.Tests.Unit.Core
@@ -19,12 +19,13 @@ namespace Abot.Tests.Unit.Core
         Uri _503ErrorUri = new Uri("http://localhost:1111/HttpResponse/Status503");
         Uri _301To200Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=200");
         Uri _301To404Uri = new Uri("http://localhost:1111/HttpResponse/Redirect/?redirectHttpStatus=301&destinationHttpStatus=404");
-        string _userAgent = "someuseragentstringhere";
+
+        CrawlConfiguration _crawlConfig = new CrawlConfiguration { UserAgentString = "someuseragentstringhere" };
 
         [SetUp]
         public void SetUp()
         {
-            _unitUnderTest = new PageRequester(_userAgent);
+            _unitUnderTest = new PageRequester(_crawlConfig);
         }
 
         [Test]
@@ -37,13 +38,14 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void Constructor_SetsUserAgent()
         {
-            Assert.AreEqual("ha ha ha", new PageRequesterWrapper("ha ha ha").UserAgentWrapper);
+            Assert.AreEqual(_crawlConfig.UserAgentString, new PageRequesterWrapper(_crawlConfig).UserAgentWrapper);
         }
 
         [Test]
         public void Constructor_SetsUserAgentWithAssemblyVersion()
         {
-            Assert.AreEqual(string.Format("ha {0} ha", Assembly.GetExecutingAssembly().GetName().Version.ToString()), new PageRequesterWrapper("ha @ABOTASSEMBLYVERSION@ ha").UserAgentWrapper);
+            _crawlConfig.UserAgentString = "ha @ABOTASSEMBLYVERSION@ ha";
+            Assert.AreEqual(string.Format("ha {0} ha", Assembly.GetAssembly(this.GetType()).GetName().Version.ToString()), new PageRequesterWrapper(_crawlConfig).UserAgentWrapper);
         }
 
         [Test]
@@ -207,8 +209,8 @@ namespace Abot.Tests.Unit.Core
     public class PageRequesterWrapper : PageRequester
     {
         public string UserAgentWrapper { get{return base._userAgentString;} private set{} }
-        public PageRequesterWrapper(string userAgent)
-            :base(userAgent)
+        public PageRequesterWrapper(CrawlConfiguration config)
+            : base(config)
         {
         }
 

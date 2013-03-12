@@ -25,14 +25,19 @@ namespace Abot.Core
     {
         static ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
+        protected CrawlConfiguration _config;
         protected string _userAgentString;
 
-        public PageRequester(string userAgent)
+        public PageRequester(CrawlConfiguration config)
         {
-            if (string.IsNullOrWhiteSpace(userAgent))
-                throw new ArgumentNullException("userAgent");
+            if (config == null)
+                throw new ArgumentNullException("config");
 
-            _userAgentString = userAgent.Replace("@ABOTASSEMBLYVERSION@", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            _userAgentString = config.UserAgentString.Replace("@ABOTASSEMBLYVERSION@", Assembly.GetAssembly(this.GetType()).GetName().Version.ToString());
+            _config = config;
+
+            if (_config.HttpServicePointConnectionLimit > 0)
+                ServicePointManager.DefaultConnectionLimit = _config.HttpServicePointConnectionLimit;
         }
 
         /// <summary>
@@ -100,11 +105,18 @@ namespace Abot.Core
         protected virtual HttpWebRequest BuildRequestObject(Uri uri)
         {
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
-            request.AllowAutoRedirect = true;
-            request.MaximumAutomaticRedirections = 7;
+            request.AllowAutoRedirect = _config.IsHttpRequestAutoRedirectsEnabled;
             request.UserAgent = _userAgentString;
             request.Accept = "*/*";
-            //request.Timeout = 15000;
+
+            if(_config.HttpRequestMaxAutoRedirects > 0)
+                request.MaximumAutomaticRedirections = _config.HttpRequestMaxAutoRedirects;
+
+            if (_config.IsHttpRequestAutomaticDecompressionEnabled)
+                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+            if(_config.HttpRequestTimeoutInSeconds > 0)
+                request.Timeout = _config.HttpRequestTimeoutInSeconds * 1000;
 
             return request;
         }

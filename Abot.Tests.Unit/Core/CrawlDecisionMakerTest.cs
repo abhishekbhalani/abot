@@ -17,7 +17,7 @@ namespace Abot.Tests.Unit.Core
         public void SetUp()
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = new CrawlConfiguration();
+            _crawlContext.CrawlConfiguration = new CrawlConfiguration { UserAgentString = "aaa" };
             _unitUnderTest = new CrawlDecisionMaker();
         }
 
@@ -363,7 +363,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri valid200StatusUri = new Uri("http://localhost:1111/");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), _crawlContext);
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester(new CrawlConfiguration { UserAgentString = "aaa" }).MakeRequest(valid200StatusUri), _crawlContext);
 
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
@@ -407,7 +407,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri non200Uri = new Uri("http://localhost:1111/HttpResponse/Status403");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(non200Uri), new CrawlContext());
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester(_crawlContext.CrawlConfiguration).MakeRequest(non200Uri), new CrawlContext());
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("HttpStatusCode is not 200", result.Reason);
@@ -418,7 +418,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri imageUrl = new Uri("http://localhost:1111/Content/themes/base/images/ui-bg_flat_0_aaaaaa_40x100.png");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(imageUrl), _crawlContext);
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester(_crawlContext.CrawlConfiguration).MakeRequest(imageUrl), _crawlContext);
 
             Assert.AreEqual(false, result.Allow);
             Assert.AreEqual("Content type is not any of the following: text/html", result.Reason);
@@ -429,7 +429,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri valid200StatusUri = new Uri("http://localhost:1111/");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri), 
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester(_crawlContext.CrawlConfiguration).MakeRequest(valid200StatusUri), 
                 new CrawlContext
                 {
                     CrawlConfiguration = new CrawlConfiguration
@@ -447,7 +447,7 @@ namespace Abot.Tests.Unit.Core
         {
             Uri valid200StatusUri = new Uri("http://localhost:1111/");
 
-            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester("someuseragentstring").MakeRequest(valid200StatusUri),
+            CrawlDecision result = _unitUnderTest.ShouldDownloadPageContent(new PageRequester(_crawlContext.CrawlConfiguration).MakeRequest(valid200StatusUri),
                 new CrawlContext
                 {
                     CrawlConfiguration = new CrawlConfiguration

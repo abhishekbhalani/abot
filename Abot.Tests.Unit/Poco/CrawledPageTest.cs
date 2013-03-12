@@ -113,7 +113,7 @@ namespace Abot.Tests.Unit.Poco
         [Test]
         public void ToString_HttpResponseExists_MessageHasUriAndStatus()
         {
-            Assert.AreEqual("http://localhost:1111/[200]", new PageRequester("someuseragent").MakeRequest(new Uri("http://localhost:1111/")).ToString());
+            Assert.AreEqual("http://localhost:1111/[200]", new PageRequester(new CrawlConfiguration{ UserAgentString = "aaa" }).MakeRequest(new Uri("http://localhost:1111/")).ToString());
         }
 
         private string GetFileContent(string fileName)

@@ -13,6 +13,8 @@ namespace Abot.Poco
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
             MaxRobotsDotTextCrawlDelayInSeconds = 5;
+            HttpRequestMaxAutoRedirects = 7;
+            IsHttpRequestAutoRedirectsEnabled = true;
         }
 
         #region crawlBehavior
@@ -76,8 +78,36 @@ namespace Abot.Poco
         /// <summary>
         /// A comma seperated string that has content types that should have their page content downloaded. For each page, the content type is checked to see if it contains any of the values defined here.
         /// </summary>
-        public string DownloadableContentTypes { get; set; }
-        
+        public string DownloadableContentTypes { get; set; } 
+
+        /// <summary>
+        /// Gets or sets the maximum number of concurrent connections allowed by a System.Net.ServicePoint. The system default is 2. This means that only 2 concurrent http connections can be open to the same host.
+        /// If zero, this setting has no effect.
+        /// </summary>
+        public int HttpServicePointConnectionLimit { get; set; }
+
+        /// <summary>
+        /// Gets or sets the time-out value in milliseconds for the System.Net.HttpWebRequest.GetResponse() and System.Net.HttpWebRequest.GetRequestStream() methods.
+        /// If zero, this setting has no effect.
+        /// </summary>
+        public int HttpRequestTimeoutInSeconds { get; set; }
+
+        /// <summary>
+        /// Gets or sets the maximum number of redirects that the request follows.
+        /// If zero, this setting has no effect.
+        /// </summary>
+        public int HttpRequestMaxAutoRedirects { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether the request should follow redirection
+        /// </summary>
+        public bool IsHttpRequestAutoRedirectsEnabled { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value that indicates gzip and deflate will be automatically accepted and decompressed
+        /// </summary>
+        public bool IsHttpRequestAutomaticDecompressionEnabled { get; set; }
+
         #endregion
 
         #region politeness
