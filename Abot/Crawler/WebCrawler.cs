@@ -630,11 +630,15 @@ namespace Abot.Crawler
         protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
         {
             _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+
             int domainCount = 0;
-            if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
-                _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
-            else
-                _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
+            lock (_crawlContext.CrawlCountByDomain)
+            {
+                if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
+                    _crawlContext.CrawlCountByDomain[pageToCrawl.Uri.Authority] = domainCount + 1;
+                else
+                    _crawlContext.CrawlCountByDomain.TryAdd(pageToCrawl.Uri.Authority, 1);
+            }
         }
 
         protected virtual void SchedulePageLinks(CrawledPage crawledPage)
