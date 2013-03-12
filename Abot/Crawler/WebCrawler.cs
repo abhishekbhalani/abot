@@ -294,7 +294,7 @@ namespace Abot.Crawler
             {
                 if (!IsThreadAbortException(e))
                 {
-                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri, e);
+                    _logger.Error("An unhandled exception was thrown by a subscriber of the PageCrawlCompleted event for url:" + crawledPage.Uri.AbsoluteUri);
                     _logger.Error(e);
                 }
             }

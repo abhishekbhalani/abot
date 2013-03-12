@@ -104,7 +104,8 @@ namespace Abot.Core
                 }
                 catch (Exception e)
                 {
-                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValue, crawledPage.Uri, e);
+                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValue, crawledPage.Uri);
+                    _logger.Debug(e);
                 }
             }
 

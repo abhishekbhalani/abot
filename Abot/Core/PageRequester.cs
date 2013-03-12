@@ -72,11 +72,13 @@ namespace Abot.Core
                 if (e.Response != null)
                     response = (HttpWebResponse)e.Response;
 
-                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri, e);
+                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri);
+                _logger.Debug(e);
             }
             catch (Exception e)
             {
-                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri, e);
+                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri);
+                _logger.Debug(e);
             }
             finally
             {
@@ -134,7 +136,8 @@ namespace Abot.Core
             }
             catch (Exception e)
             {
-                _logger.WarnFormat("Error occurred while downloading content of url {0}", requestUri.AbsoluteUri, e);
+                _logger.WarnFormat("Error occurred while downloading content of url {0}", requestUri.AbsoluteUri);
+                _logger.Warn(e);
             }
 
             return rawHtml;
