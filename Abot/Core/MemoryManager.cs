@@ -6,9 +6,8 @@ namespace Abot.Core
 {
     public interface IMemoryManager : IMemoryMonitor, IDisposable
     {
-        bool IsCurrentUsageBelow(int sizeInMb);
         bool IsCurrentUsageAbove(int sizeInMb);
-        bool HasAvailable(int sizeInMb);
+        bool IsSpaceAvailable(int sizeInMb);
     }
 
     public class MemoryManager : IMemoryManager
@@ -23,18 +22,13 @@ namespace Abot.Core
 
             _memoryMonitor = memoryMonitor;
         }
-        
-        public virtual bool IsCurrentUsageBelow(int sizeInMb)
-        {
-            return GetCurrentUsageInMb() < sizeInMb;
-        }
 
         public virtual bool IsCurrentUsageAbove(int sizeInMb)
         {
-            return !IsCurrentUsageBelow(sizeInMb);
+            return GetCurrentUsageInMb() > sizeInMb;
         }
 
-        public virtual bool HasAvailable(int sizeInMb)
+        public virtual bool IsSpaceAvailable(int sizeInMb)
         {
             if (sizeInMb < 1)
                 return true;

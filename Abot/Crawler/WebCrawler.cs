@@ -471,7 +471,7 @@ namespace Abot.Crawler
             if (_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb < 1)
                 return;
 
-            if (!_memoryManager.HasAvailable(_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb))
+            if (!_memoryManager.IsSpaceAvailable(_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb))
                 throw new InsufficientMemoryException(string.Format("Process does not have the configured [{0}mb] of available memory to crawl site [{1}]. This is configurable through the minAvailableMemoryRequiredInMb in app.conf or CrawlConfiguration.MinAvailableMemoryRequiredInMb.", _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb, _crawlContext.RootUri));
         }
 
@@ -492,7 +492,7 @@ namespace Abot.Crawler
             if (_logger.IsDebugEnabled)
                 _logger.DebugFormat("Current memory usage for site [{0}] is [{1}mb]", _crawlContext.RootUri, currentMemoryUsage);
 
-            if (currentMemoryUsage > _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb)
+            if (_memoryManager.IsCurrentUsageAbove(_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb))
             {
                 _memoryManager.Dispose();
                 _memoryManager = null;
