@@ -36,7 +36,7 @@ namespace Abot.Tests.Unit.Crawler
             _dummyConfiguration = new CrawlConfiguration();
             _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object);
             _unitUnderTest.CrawlBag.SomeVal = "SomeVal";
             _unitUnderTest.CrawlBag.SomeList = new List<string>() { "a", "b" };
             _rootUri = new Uri("http://a.com/");
@@ -94,7 +94,7 @@ namespace Abot.Tests.Unit.Crawler
             Mock<IScheduler> fakeScheduler = new Mock<IScheduler>();
             Exception ex = new Exception("oh no");
             fakeScheduler.Setup(f => f.Count).Throws(ex);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object);
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
@@ -107,7 +107,7 @@ namespace Abot.Tests.Unit.Crawler
         public void Crawl_SingleThread_ExceptionThrownDuringProcessPage_SetsCrawlResultError()
         {
             _dummyThreadManager = new ProducerConsumerThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object);
             Exception ex = new Exception("oh no");
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Throws(ex);
 
@@ -907,7 +907,7 @@ namespace Abot.Tests.Unit.Crawler
         {
             _dummyConfiguration.MinAvailableMemoryRequiredInMb = int.MaxValue;
             _fakeMemoryManager.Setup(f => f.IsSpaceAvailable(It.IsAny<int>())).Returns(false);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object);
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
@@ -925,7 +925,7 @@ namespace Abot.Tests.Unit.Crawler
             _dummyConfiguration.MaxMemoryUsageInMb = 1;
             _fakeMemoryManager.Setup(f => f.GetCurrentUsageInMb()).Returns(2);
             _fakeMemoryManager.Setup(f => f.IsCurrentUsageAbove(It.IsAny<int>())).Returns(true);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object);
             
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 

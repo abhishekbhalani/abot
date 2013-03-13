@@ -30,7 +30,7 @@ namespace Abot.Crawler
             IMemoryManager memoryManager,
             IDomainRateLimiter domainRateLimiter,
             IRobotsDotTextFinder robotsDotTextFinder)
-            : base(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, memoryManager, crawlConfiguration)
+            : base(crawlConfiguration, crawlDecisionMaker, threadManager, scheduler, httpRequester, hyperLinkParser, memoryManager)
         {
             _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
             _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(new PageRequester(_crawlContext.CrawlConfiguration));

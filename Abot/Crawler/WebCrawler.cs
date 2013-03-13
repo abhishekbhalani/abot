@@ -128,13 +128,13 @@ namespace Abot.Crawler
         /// <param name="hyperLinkParser">Parses a crawled page for it's hyperlinks</param>
         /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
         /// <param name="crawlConfiguration">Configurable crawl values</param>
-        public WebCrawler(IThreadManager threadManager,
-            IScheduler scheduler,
-            IPageRequester httpRequester,
-            IHyperLinkParser hyperLinkParser,
-            ICrawlDecisionMaker crawlDecisionMaker,
-            IMemoryManager memoryManager,
-            CrawlConfiguration crawlConfiguration)
+        public WebCrawler(CrawlConfiguration crawlConfiguration, 
+            ICrawlDecisionMaker crawlDecisionMaker, 
+            IThreadManager threadManager, 
+            IScheduler scheduler, 
+            IPageRequester httpRequester, 
+            IHyperLinkParser hyperLinkParser, 
+            IMemoryManager memoryManager)
         {
             _crawlContext = new CrawlContext();
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
