@@ -66,8 +66,7 @@ namespace Abot.Core
 
         public void Dispose()
         {
-            if (_memoryMonitor is IDisposable)
-                (_memoryMonitor as IDisposable).Dispose();
+            _memoryMonitor.Dispose();
         }
     }
 }

@@ -902,6 +902,40 @@ namespace Abot.Tests.Unit.Crawler
             Assert.AreEqual(2, actualCrawlContext.CrawlBag.SomeList.Count);
         }
 
+        [Test]
+        public void Crawl_NotEnoughAvailableMemoryToStartTheCrawl_CrawlIsStoppedBeforeStarting()
+        {
+            _dummyConfiguration.MinAvailableMemoryRequiredInMb = int.MaxValue;
+            _fakeMemoryManager.Setup(f => f.HasAvailable(It.IsAny<int>())).Returns(false);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            Assert.AreEqual(1, _dummyScheduler.Count);//no need to clear the scheduler since the crawl was never started
+            Assert.IsTrue(result.ErrorOccurred);
+            Assert.IsTrue(result.ErrorException is InsufficientMemoryException);
+            Assert.AreEqual("Process does not have the configured [2147483647mb] of available memory to crawl site [http://a.com/]. This is configurable through the minAvailableMemoryRequiredInMb in app.conf or CrawlConfiguration.MinAvailableMemoryRequiredInMb.", result.ErrorException.Message);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
+        }
+
+        [Test]
+        public void Crawl_CrawlHasExceededMaxMemoryUsageInMb_CrawlIsStoppedBeforeCompletion()
+        {
+            _dummyConfiguration.MaxMemoryUsageInMb = 1;
+            _fakeMemoryManager.Setup(f => f.GetCurrentUsageInMb()).Returns(2);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
+
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsTrue(result.ErrorOccurred);
+            Assert.IsTrue(result.ErrorException is InsufficientMemoryException);
+            Assert.AreEqual("Process is using [2mb] of memory which is above the max configured of [1mb] for site [http://a.com/]. This is configurable through the maxMemoryUsageInMb in app.conf or CrawlConfiguration.MaxMemoryUsageInMb.", result.ErrorException.Message);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
+        }
+
         private void ThrowExceptionWhen_PageCrawlStarting(object sender, PageCrawlStartingArgs e)
         {
             throw new Exception("no!!!");

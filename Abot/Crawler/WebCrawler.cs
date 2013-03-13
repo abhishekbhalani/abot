@@ -171,14 +171,12 @@ namespace Abot.Crawler
             _crawlResult.CrawlContext = _crawlContext;
             _crawlComplete = false;
 
-            VerifyRequiredAvailableMemory();
-
             _logger.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
 
             if (_memoryManager != null)
             {
                 _crawlContext.MemoryUsageBeforeCrawlInMb = _memoryManager.GetCurrentUsageInMb();
-                _logger.InfoFormat("Starting memory usage for site [{0}] is [{1}]mb", uri.AbsoluteUri, _crawlContext.MemoryUsageBeforeCrawlInMb);
+                _logger.InfoFormat("Starting memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageBeforeCrawlInMb);
             }
 
             PrintConfigValues(_crawlContext.CrawlConfiguration);
@@ -197,6 +195,7 @@ namespace Abot.Crawler
 
             try
             {
+                VerifyRequiredAvailableMemory();
                 CrawlSite();
             }
             catch (Exception e)
@@ -214,7 +213,7 @@ namespace Abot.Crawler
             if (_memoryManager != null)
             {
                 _crawlContext.MemoryUsageAfterCrawlInMb = _memoryManager.GetCurrentUsageInMb();
-                _logger.InfoFormat("Ending memory usage for site [{0}] is [{1}]mb", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
+                _logger.InfoFormat("Ending memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
             }
            
             _crawlResult.Elapsed = timer.Elapsed;
@@ -473,12 +472,7 @@ namespace Abot.Crawler
                 return;
 
             if (!_memoryManager.HasAvailable(_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb))
-            {
-                string message = string.Format("Process does not have [{0}]mb of available memory to crawl site [{1}].", _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb, _crawlContext.RootUri);
-                _logger.Fatal(message);
-
-                throw new InsufficientMemoryException(message);
-            }
+                throw new InsufficientMemoryException(string.Format("Process does not have the configured [{0}mb] of available memory to crawl site [{1}]. This is configurable through the minAvailableMemoryRequiredInMb in app.conf or CrawlConfiguration.MinAvailableMemoryRequiredInMb.", _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb, _crawlContext.RootUri));
         }
 
         protected virtual void RunPreWorkChecks()
@@ -496,17 +490,15 @@ namespace Abot.Crawler
 
             int currentMemoryUsage = _memoryManager.GetCurrentUsageInMb();
             if (_logger.IsDebugEnabled)
-                _logger.DebugFormat("Current memory usage for site [{0}] is [{1}]mb", _crawlContext.RootUri, currentMemoryUsage);
+                _logger.DebugFormat("Current memory usage for site [{0}] is [{1}mb]", _crawlContext.RootUri, currentMemoryUsage);
 
             if (currentMemoryUsage > _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb)
             {
-                if (_memoryManager is IDisposable)
-                    (_memoryManager as IDisposable).Dispose();
-                
+                _memoryManager.Dispose();
                 _memoryManager = null;
 
-                string message = string.Format("Process is using [{0}]mb of memory which is above the max configured of [{1}]mb for site [{2}]", _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb, currentMemoryUsage, _crawlContext.RootUri);
-                _crawlResult.ErrorException = new ApplicationException(message);
+                string message = string.Format("Process is using [{0}mb] of memory which is above the max configured of [{1}mb] for site [{2}]. This is configurable through the maxMemoryUsageInMb in app.conf or CrawlConfiguration.MaxMemoryUsageInMb.", currentMemoryUsage, _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb, _crawlContext.RootUri);
+                _crawlResult.ErrorException = new InsufficientMemoryException(message);
 
                 _logger.Fatal(_crawlResult.ErrorException);
                 _crawlContext.IsCrawlHardStopRequested = true;

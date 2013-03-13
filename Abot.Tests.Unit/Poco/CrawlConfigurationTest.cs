@@ -33,7 +33,9 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(7, unitUnderTest.HttpRequestMaxAutoRedirects);
             Assert.AreEqual(true, unitUnderTest.IsHttpRequestAutoRedirectsEnabled);
             Assert.AreEqual(false, unitUnderTest.IsHttpRequestAutomaticDecompressionEnabled);
-
+            Assert.AreEqual(0, unitUnderTest.MaxMemoryUsageCacheTimeInSeconds);
+            Assert.AreEqual(0, unitUnderTest.MaxMemoryUsageInMb);
+            Assert.AreEqual(0, unitUnderTest.MinAvailableMemoryRequiredInMb);
         }
     }
 }

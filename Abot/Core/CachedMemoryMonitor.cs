@@ -17,7 +17,7 @@ namespace Abot.Core
                 throw new ArgumentNullException("memoryMonitor");
 
             if (cacheExpirationInSeconds < 1)
-                throw new ArgumentException("cacheExpirationInSeconds must be between greater than zero");
+                cacheExpirationInSeconds = 5;
 
             _memoryMonitor = memoryMonitor;
 
@@ -32,7 +32,7 @@ namespace Abot.Core
         {
             int oldUsage = _cachedCurrentUsageInMb;
             _cachedCurrentUsageInMb = _memoryMonitor.GetCurrentUsageInMb();
-            _logger.DebugFormat("Updated cached memory usage value from [{0}]mb to [{1}]mb", oldUsage, _cachedCurrentUsageInMb);
+            _logger.DebugFormat("Updated cached memory usage value from [{0}mb] to [{1}mb]", oldUsage, _cachedCurrentUsageInMb);
         }
 
         public virtual int GetCurrentUsageInMb()
@@ -42,6 +42,7 @@ namespace Abot.Core
 
         public void Dispose()
         {
+            _usageRefreshTimer.Stop();
             _usageRefreshTimer.Dispose();
         }
     }

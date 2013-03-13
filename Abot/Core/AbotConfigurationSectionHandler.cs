@@ -175,6 +175,24 @@ namespace Abot.Core
         {
             get { return (bool)this["isHttpRequestAutomaticDecompressionEnabled"]; }
         }
+
+        [ConfigurationProperty("minAvailableMemoryRequiredInMb", IsRequired = true)]
+        public int MinAvailableMemoryRequiredInMb
+        {
+            get { return (int)this["minAvailableMemoryRequiredInMb"]; }
+        }
+
+        [ConfigurationProperty("maxMemoryUsageInMb", IsRequired = true)]
+        public int MaxMemoryUsageInMb
+        {
+            get { return (int)this["maxMemoryUsageInMb"]; }
+        }
+
+        [ConfigurationProperty("maxMemoryUsageCacheTimeInSeconds", IsRequired = true)]
+        public int MaxMemoryUsageCacheTimeInSeconds
+        {
+            get { return (int)this["maxMemoryUsageCacheTimeInSeconds"]; }
+        }
     }
 
     public class ExtensionValueElement : ConfigurationElement
