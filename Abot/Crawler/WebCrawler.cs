@@ -98,6 +98,7 @@ namespace Abot.Crawler
         protected IPageRequester _httpRequester;
         protected IHyperLinkParser _hyperLinkParser;
         protected ICrawlDecisionMaker _crawlDecisionMaker;
+        protected IMemoryManager _memoryManager;
         protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
@@ -110,51 +111,11 @@ namespace Abot.Crawler
 
         #region Constructors
 
-        [Obsolete("No longer supported, IDomainRateLimiter is no longer a dependency and is used in the PoliteWebCrawler")]
-        public WebCrawler(IThreadManager threadManager,
-            IScheduler scheduler,
-            IPageRequester httpRequester,
-            IHyperLinkParser hyperLinkParser,
-            ICrawlDecisionMaker crawlDecisionMaker,
-            IDomainRateLimiter domaintRateLimiter,
-            CrawlConfiguration crawlConfiguration)
-            : this(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, crawlConfiguration)
-        {
-
-        }
-
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
         public WebCrawler()
-            : this(null, null, null, null, null, null)
-        {
-        }
-
-        /// <summary>
-        /// Creates a crawler instance with the default implementations but a custom crawl configuration.
-        /// </summary>
-        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
-        public WebCrawler(CrawlConfiguration crawlConfiguration)
-            : this(null, null, null, null, null, crawlConfiguration)
-        {
-        }
-
-        /// <summary>
-        /// Creates a crawler instance with the default settings and implementations except a custom CrawlDecisionMaker.
-        /// </summary>
-        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
-        public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker)
-            : this(null, null, null, null, crawlDecisionMaker, null)
-        {
-        }
-
-        /// <summary>
-        /// Creates a crawler instance with the default implementations except a custom CrawlDecisionMaker, and custom settings.
-        /// </summary>
-        [Obsolete("No longer supported, Use the full constructor and pass null for all implementations except those you want to provide a custom value/implementation for. The default impl will be used for all null params")]
-        public WebCrawler(ICrawlDecisionMaker crawlDecisionMaker, CrawlConfiguration crawlConfiguration)
-            : this(null, null, null, null, crawlDecisionMaker, crawlConfiguration)
+            : this(null, null, null, null, null, null, null)
         {
         }
 
@@ -172,6 +133,7 @@ namespace Abot.Crawler
             IPageRequester httpRequester,
             IHyperLinkParser hyperLinkParser,
             ICrawlDecisionMaker crawlDecisionMaker,
+            IMemoryManager memoryManager,
             CrawlConfiguration crawlConfiguration)
         {
             _crawlContext = new CrawlContext();
@@ -182,6 +144,10 @@ namespace Abot.Crawler
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
+
+            if(_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb > 0
+                || _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb > 0)
+                _memoryManager = memoryManager ?? new MemoryManager(new CachedMemoryMonitor(new GcMemoryMonitor(), _crawlContext.CrawlConfiguration.MaxMemoryUsageCacheTimeInSeconds));
 
             _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();
 
@@ -205,7 +171,16 @@ namespace Abot.Crawler
             _crawlResult.CrawlContext = _crawlContext;
             _crawlComplete = false;
 
+            VerifyRequiredAvailableMemory();
+
             _logger.InfoFormat("About to crawl site [{0}]", uri.AbsoluteUri);
+
+            if (_memoryManager != null)
+            {
+                _crawlContext.MemoryUsageBeforeCrawlInMb = _memoryManager.GetCurrentUsageInMb();
+                _logger.InfoFormat("Starting memory usage for site [{0}] is [{1}]mb", uri.AbsoluteUri, _crawlContext.MemoryUsageBeforeCrawlInMb);
+            }
+
             PrintConfigValues(_crawlContext.CrawlConfiguration);
 
             _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true, IsRoot = true });
@@ -236,6 +211,12 @@ namespace Abot.Crawler
 
             timer.Stop();
 
+            if (_memoryManager != null)
+            {
+                _crawlContext.MemoryUsageAfterCrawlInMb = _memoryManager.GetCurrentUsageInMb();
+                _logger.InfoFormat("Ending memory usage for site [{0}] is [{1}]mb", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
+            }
+           
             _crawlResult.Elapsed = timer.Elapsed;
             _logger.InfoFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
@@ -468,7 +449,7 @@ namespace Abot.Crawler
         {
             while (!_crawlComplete)
             {
-                HandleCrawlStopRequest();
+                RunPreWorkChecks();
 
                 if (_scheduler.Count > 0)
                 {
@@ -486,7 +467,53 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void HandleCrawlStopRequest()
+        protected virtual void VerifyRequiredAvailableMemory()
+        {
+            if (_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb < 1)
+                return;
+
+            if (!_memoryManager.HasAvailable(_crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb))
+            {
+                string message = string.Format("Process does not have [{0}]mb of available memory to crawl site [{1}].", _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb, _crawlContext.RootUri);
+                _logger.Fatal(message);
+
+                throw new InsufficientMemoryException(message);
+            }
+        }
+
+        protected virtual void RunPreWorkChecks()
+        {
+            CheckMemoryUsage();
+            CheckForStopRequest();
+        }
+
+        protected virtual void CheckMemoryUsage()
+        {
+            if (_memoryManager == null 
+                || _crawlContext.IsCrawlHardStopRequested
+                || _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb < 1)
+                return;
+
+            int currentMemoryUsage = _memoryManager.GetCurrentUsageInMb();
+            if (_logger.IsDebugEnabled)
+                _logger.DebugFormat("Current memory usage for site [{0}] is [{1}]mb", _crawlContext.RootUri, currentMemoryUsage);
+
+            if (currentMemoryUsage > _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb)
+            {
+                if (_memoryManager is IDisposable)
+                    (_memoryManager as IDisposable).Dispose();
+                
+                _memoryManager = null;
+
+                string message = string.Format("Process is using [{0}]mb of memory which is above the max configured of [{1}]mb for site [{2}]", _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb, currentMemoryUsage, _crawlContext.RootUri);
+                _crawlResult.ErrorException = new ApplicationException(message);
+
+                _logger.Fatal(_crawlResult.ErrorException);
+                _crawlContext.IsCrawlHardStopRequested = true;
+            }
+        }
+
+        protected virtual void CheckForStopRequest()
         {
             if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
             {

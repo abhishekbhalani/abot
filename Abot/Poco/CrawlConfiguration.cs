@@ -25,23 +25,27 @@ namespace Abot.Poco
         public int MaxConcurrentThreads { get; set; }
 
         /// <summary>
-        /// Maximum number of pages to crawl
+        /// Maximum number of pages to crawl.
+        /// This value is required.
         /// </summary>
         public long MaxPagesToCrawl { get; set; }
 
         /// <summary>
         /// Maximum number of pages to crawl per domain
+        /// If zero, this setting has no effect.
         /// </summary>
         public long MaxPagesToCrawlPerDomain { get; set; }
 
         /// <summary>
         /// Maximum size of page. If the page size is above this value, it will not be downloaded or processed
+        /// If zero, this setting has no effect.
         /// </summary>
         public long MaxPageSizeInBytes { get; set; }
 
         /// <summary>
-        /// The maximum numer of seconds to respect in the robots.txt "Crawl-delay: X" directive. If set to 0 will always follow this directive no matter how high the value. 
+        /// The maximum numer of seconds to respect in the robots.txt "Crawl-delay: X" directive. 
         /// IsRespectRobotsDotTextEnabled must be true for this value to be used.
+        /// If zero, will use whatever the robots.txt crawl delay requests no matter how high the value is.
         /// </summary>
         public int MaxRobotsDotTextCrawlDelayInSeconds { get; set; }
 
@@ -51,7 +55,8 @@ namespace Abot.Poco
         public string UserAgentString { get; set; }
 
         /// <summary>
-        /// Maximum seconds before the crawl times out and stops. A value of zero means no timeout
+        /// Maximum seconds before the crawl times out and stops. 
+        /// If zero, this setting has no effect.
         /// </summary>
         public long CrawlTimeoutSeconds { get; set; }
 
@@ -107,6 +112,25 @@ namespace Abot.Poco
         /// Gets or sets a value that indicates gzip and deflate will be automatically accepted and decompressed
         /// </summary>
         public bool IsHttpRequestAutomaticDecompressionEnabled { get; set; }
+
+        /// <summary>
+        /// Uses closest mulitple of 16 to the value set. If there is not at least this much memory available before starting a crawl, throws InsufficientMemoryException.
+        /// If zero, this setting has no effect.
+        /// </summary>
+        /// <exception cref="http://msdn.microsoft.com/en-us/library/system.insufficientmemoryexception.aspx">InsufficientMemoryException</exception>
+        public int MinAvailableMemoryRequiredInMb { get; set; }
+
+        /// <summary>
+        /// The max amout of memory to allow the process to use. If this limit is exceeded the crawler will stop prematurely.
+        /// If zero, this setting has no effect.
+        /// </summary>
+        public int MaxMemoryUsageInMb { get; set; }
+
+        /// <summary>
+        /// The max amount of time before refreshing the value used to determine the amount of memory being used by the process that hosts the crawler instance.
+        /// This value has no effect if MaxMemoryUsageInMb is zero.
+        /// </summary>
+        public int MaxMemoryUsageCacheTimeInSeconds { get; set; }
 
         #endregion
 

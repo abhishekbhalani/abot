@@ -33,7 +33,7 @@ namespace Abot.Tests.Integration
 
             int pagesCrawledCount = 0;
 
-            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null);
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null, null);
             crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));
@@ -52,7 +52,7 @@ namespace Abot.Tests.Integration
 
             int pagesCrawledCount = 0;
 
-            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null);
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null, null);
             crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));

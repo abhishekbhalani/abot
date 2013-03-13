@@ -58,5 +58,15 @@ namespace Abot.Poco
         /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages and abort any threads that are currently crawling.
         /// </summary>
         public bool IsCrawlHardStopRequested { get; set; }
+
+        /// <summary>
+        /// The memory usage in mb at the start of the crawl
+        /// </summary>
+        public int MemoryUsageBeforeCrawlInMb { get; set; }
+
+        /// <summary>
+        /// The memory usage in mb at the end of the crawl
+        /// </summary>
+        public int MemoryUsageAfterCrawlInMb { get; set; }
     }
 }

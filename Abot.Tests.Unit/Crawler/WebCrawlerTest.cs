@@ -17,6 +17,7 @@ namespace Abot.Tests.Unit.Crawler
         Mock<IPageRequester> _fakeHttpRequester;
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
+        Mock<IMemoryManager> _fakeMemoryManager;
         FifoScheduler _dummyScheduler;
         ProducerConsumerThreadManager _dummyThreadManager;
         CrawlConfiguration _dummyConfiguration;
@@ -28,13 +29,14 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHyperLinkParser = new Mock<IHyperLinkParser>();
             _fakeHttpRequester = new Mock<IPageRequester>();
             _fakeCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
+            _fakeMemoryManager = new Mock<IMemoryManager>();
 
             _dummyScheduler = new FifoScheduler();
             _dummyThreadManager = new ProducerConsumerThreadManager(10);
             _dummyConfiguration = new CrawlConfiguration();
             _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
             _unitUnderTest.CrawlBag.SomeVal = "SomeVal";
             _unitUnderTest.CrawlBag.SomeList = new List<string>() { "a", "b" };
             _rootUri = new Uri("http://a.com/");
@@ -45,25 +47,6 @@ namespace Abot.Tests.Unit.Crawler
         {
             Assert.IsNotNull(new WebCrawler());
         }
-
-        [Test]
-        public void Constructor_WithConfiguration()
-        {
-            Assert.IsNotNull(new WebCrawler(null, null, null, null, null, new CrawlConfiguration()));
-        }
-
-        [Test]
-        public void Constructor_WithDecisionMaker()
-        {
-            Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), null));
-        }
-
-        [Test]
-        public void Constructor_WithDecisionMakerAndConfiguration()
-        {
-            Assert.IsNotNull(new WebCrawler(null, null, null, null, new CrawlDecisionMaker(), new CrawlConfiguration()));
-        }
-
 
         [Test]
         public void Crawl_CallsDependencies()
@@ -111,7 +94,7 @@ namespace Abot.Tests.Unit.Crawler
             Mock<IScheduler> fakeScheduler = new Mock<IScheduler>();
             Exception ex = new Exception("oh no");
             fakeScheduler.Setup(f => f.Count).Throws(ex);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
@@ -124,7 +107,7 @@ namespace Abot.Tests.Unit.Crawler
         public void Crawl_SingleThread_ExceptionThrownDuringProcessPage_SetsCrawlResultError()
         {
             _dummyThreadManager = new ProducerConsumerThreadManager(1);
-            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _dummyConfiguration);
+            _unitUnderTest = new WebCrawler(_dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeCrawlDecisionMaker.Object, _fakeMemoryManager.Object, _dummyConfiguration);
             Exception ex = new Exception("oh no");
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Throws(ex);
 

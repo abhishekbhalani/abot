@@ -16,7 +16,7 @@ namespace Abot.Crawler
         protected IRobotsDotText _robotsDotText;
 
         public PoliteWebCrawler()
-            : this(null, null, null, null, null, null, null, null)
+            : this(null, null, null, null, null, null, null, null, null)
         {
         }
 
@@ -27,9 +27,10 @@ namespace Abot.Crawler
             IScheduler scheduler,
             IPageRequester httpRequester,
             IHyperLinkParser hyperLinkParser,
+            IMemoryManager memoryManager,
             IDomainRateLimiter domainRateLimiter,
             IRobotsDotTextFinder robotsDotTextFinder)
-            : base(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, crawlConfiguration)
+            : base(threadManager, scheduler, httpRequester, hyperLinkParser, crawlDecisionMaker, memoryManager, crawlConfiguration)
         {
             _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
             _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(new PageRequester(_crawlContext.CrawlConfiguration));
