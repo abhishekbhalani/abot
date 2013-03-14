@@ -205,6 +205,11 @@ namespace Abot.Crawler
                 _logger.FatalFormat("An error occurred while crawling site [{0}]", uri);
                 _logger.Fatal(e);
             }
+            finally
+            {
+                if(_threadManager != null)
+                    _threadManager.Dispose();
+            }
 
             if(_timeoutTimer != null)
                 _timeoutTimer.Stop();

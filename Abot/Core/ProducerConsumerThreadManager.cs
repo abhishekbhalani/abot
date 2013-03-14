@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Abot.Core
 {
-    public interface IThreadManager
+    public interface IThreadManager : IDisposable
     {
         /// <summary>
         /// Max number of threads to use. Note: if calling DoWork(Action, int) the actual number of threads used maybe up to two times this value.
@@ -104,6 +104,11 @@ namespace Abot.Core
 
             _actionsToExecute.CompleteAdding();
             _inProcessActionsToExecute.Clear();
+        }
+
+        public void Dispose()
+        {
+            AbortAll();
         }
 
         private void RunConsumer(int i)

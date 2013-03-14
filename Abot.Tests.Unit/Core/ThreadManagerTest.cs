@@ -18,6 +18,13 @@ namespace Abot.Tests.Unit.Core
             _unitUnderTest = GetInstance(MAXTHREADS);
         }
 
+        [TearDown]
+        public void TearDown()
+        {
+            if (_unitUnderTest != null)
+                _unitUnderTest.Dispose();
+        }
+
         [Test]
         public void Constructor_CreatesDefaultInstance()
         {
@@ -144,6 +151,12 @@ namespace Abot.Tests.Unit.Core
 
             System.Threading.Thread.Sleep(250);
             Assert.AreEqual(0, count);
+        }
+
+        [Test]
+        public void Dispose()
+        {
+            Assert.IsTrue(_unitUnderTest is IDisposable);
         }
     }
 }
