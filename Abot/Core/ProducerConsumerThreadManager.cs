@@ -50,7 +50,7 @@ namespace Abot.Core
                 for (int i = 0; i < maxThreads; i++)
                 {
                     _consumerThreadCancellationTokens[i] = new CancellationTokenSource();
-                    Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token);//, TaskCreationOptions.LongRunning, TaskScheduler.Default);//Adding longrunning option eats up a TON of threads if many crawler instances are created
                 }
             }
         }
@@ -86,7 +86,7 @@ namespace Abot.Core
         /// </summary>
         public bool HasRunningThreads()
         {
-            return _inProcessActionsToExecute.Count > 0;
+            return (_inProcessActionsToExecute.Count + _actionsToExecute.Count) > 0;
         }
 
         /// <summary>
@@ -146,11 +146,5 @@ namespace Abot.Core
             int val;
             _inProcessActionsToExecute.TryPop(out val);
         }
-    }
-
-    internal class ConsumerAction
-    {
-        public Action Action { get; set; }
-        public int TimeoutInMillisecs { get; set; }
     }
 }

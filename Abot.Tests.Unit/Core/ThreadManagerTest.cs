@@ -98,7 +98,7 @@ namespace Abot.Tests.Unit.Core
                 });
             }
 
-            Assert.IsTrue(count < MAXTHREADS);
+            //Assert.IsTrue(count < MAXTHREADS);//Manual has completed more then the thread count by the time it gets here
             System.Threading.Thread.Sleep(20);
             Assert.AreEqual(2 * MAXTHREADS, count);
         }
