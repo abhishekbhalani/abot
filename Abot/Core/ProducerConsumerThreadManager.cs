@@ -50,7 +50,12 @@ namespace Abot.Core
                 for (int i = 0; i < maxThreads; i++)
                 {
                     _consumerThreadCancellationTokens[i] = new CancellationTokenSource();
-                    Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token);//, TaskCreationOptions.LongRunning, TaskScheduler.Default);//Adding longrunning option eats up a TON of threads if many crawler instances are created
+                    
+                    //This is to slow and unit tests fail because the sleep time to wait for this to process is not long enough
+                    //Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token);
+
+                    //longrunning option eats up a TON of threads if many crawler instances are created, especially when the number of pages to crawl is low (1-5) per instance
+                    Task.Factory.StartNew(() => RunConsumer(i), _consumerThreadCancellationTokens[i].Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 }
             }
         }
