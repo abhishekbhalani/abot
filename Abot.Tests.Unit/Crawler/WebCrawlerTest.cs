@@ -924,13 +924,12 @@ namespace Abot.Tests.Unit.Crawler
         {
             _dummyConfiguration.MaxMemoryUsageInMb = 1;
             _fakeMemoryManager.Setup(f => f.GetCurrentUsageInMb()).Returns(2);
-            _fakeMemoryManager.Setup(f => f.IsCurrentUsageAbove(It.IsAny<int>())).Returns(true);
             _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
             
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
             _fakeMemoryManager.Verify(f => f.GetCurrentUsageInMb(), Times.Exactly(2));
-            _fakeMemoryManager.Verify(f => f.IsCurrentUsageAbove(It.IsAny<int>()), Times.Exactly(1));
+
             Assert.AreEqual(0, _dummyScheduler.Count);
             Assert.IsTrue(result.ErrorOccurred);
             Assert.IsTrue(result.ErrorException is InsufficientMemoryException);

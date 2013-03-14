@@ -481,7 +481,7 @@ namespace Abot.Crawler
             if (_logger.IsDebugEnabled)
                 _logger.DebugFormat("Current memory usage for site [{0}] is [{1}mb]", _crawlContext.RootUri, currentMemoryUsage);
 
-            if (_memoryManager.IsCurrentUsageAbove(_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb))
+            if (currentMemoryUsage > _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb)
             {
                 _memoryManager.Dispose();
                 _memoryManager = null;
