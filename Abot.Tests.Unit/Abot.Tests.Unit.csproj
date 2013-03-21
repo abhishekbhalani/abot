@@ -71,6 +71,7 @@
     <Compile Include="Core\GcMemoryMonitorTest.cs" />
     <Compile Include="Core\MemoryManagerTest.cs" />
     <Compile Include="Core\ProducerConsumerThreadManagerTest.cs" />
+    <Compile Include="Core\TaskThreadManagerTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />
     <Compile Include="Core\HapHyperLinkParserTest.cs" />
     <Compile Include="Core\CrawlDecisionMakerTest.cs" />
