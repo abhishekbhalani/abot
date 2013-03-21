@@ -40,7 +40,7 @@ namespace Abot.Core
             {
                 _memoryFailPoint = new MemoryFailPoint(sizeInMb);
             }
-            catch (InsufficientMemoryException e)
+            catch (InsufficientMemoryException)
             {
                 isAvailable = false;
             }

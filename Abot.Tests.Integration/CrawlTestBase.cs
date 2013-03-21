@@ -157,6 +157,11 @@ namespace Abot.Tests.Integration
             return false;
         }
 
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
+        }
+
         public override string ToString()
         {
             return Url + " " + HttpStatusCode;
