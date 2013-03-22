@@ -68,10 +68,7 @@
   <ItemGroup>
     <Compile Include="AssemblySetup.cs" />
     <Compile Include="Core\AbotConfigurationSectionHandlerTest.cs" />
-    <Compile Include="Core\CachedMemoryMonitorTest.cs" />
     <Compile Include="Core\ManualThreadManagerTest.cs" />
-    <Compile Include="Core\GcMemoryMonitorTest.cs" />
-    <Compile Include="Core\MemoryManagerTest.cs" />
     <Compile Include="Core\ProducerConsumerThreadManagerTest.cs" />
     <Compile Include="Core\TaskThreadManagerTest.cs" />
     <Compile Include="Core\ThreadManagerTest.cs" />

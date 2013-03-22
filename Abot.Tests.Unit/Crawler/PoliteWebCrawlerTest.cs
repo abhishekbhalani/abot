@@ -16,7 +16,6 @@ namespace Abot.Tests.Unit.Crawler
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
         Mock<IDomainRateLimiter> _fakeDomainRateLimiter;
-        Mock<IMemoryManager> _fakeMemoryManager;
         Mock<IRobotsDotTextFinder> _fakeRobotsDotTextFinder;
         Mock<IRobotsDotText> _fakeRobotsDotText;
         FifoScheduler _dummyScheduler;
@@ -31,7 +30,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHttpRequester = new Mock<IPageRequester>();
             _fakeCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
             _fakeDomainRateLimiter = new Mock<IDomainRateLimiter>();
-            _fakeMemoryManager = new Mock<IMemoryManager>();
             _fakeRobotsDotTextFinder = new Mock<IRobotsDotTextFinder>();
             _fakeRobotsDotText = new Mock<IRobotsDotText>();
 
@@ -52,7 +50,7 @@ namespace Abot.Tests.Unit.Crawler
         [Test]
         public void Constructor_ZeroMinCrawlDelay_DoesNotThrowExceptionCreatingAnIDomainRateLimiterWithLessThan1Millisec()
         {
-            new PoliteWebCrawler(new CrawlConfiguration { MinCrawlDelayPerDomainMilliSeconds = 0 }, null, null, null, null, null, null, null, null);
+            new PoliteWebCrawler(new CrawlConfiguration { MinCrawlDelayPerDomainMilliSeconds = 0 }, null, null, null, null, null, null, null);
         }
 
         [Test]
@@ -74,7 +72,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -101,7 +99,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPageLinks(It.IsAny<CrawledPage>(), It.IsAny<CrawlContext>())).Returns(new CrawlDecision { Allow = true });
 
             _dummyConfiguration.MinCrawlDelayPerDomainMilliSeconds = 1;//BY HAVING A CRAWL DELAY ABOVE ZERO WE EXPECT THE IDOMAINRATELIMITER TO BE CALLED
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -132,7 +130,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeRobotsDotTextFinder.Setup(f => f.Find(It.IsAny<Uri>())).Returns(_fakeRobotsDotText.Object);
 
             _dummyConfiguration.IsRespectRobotsDotTextEnabled = true;
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -168,7 +166,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeRobotsDotTextFinder.Setup(f => f.Find(It.IsAny<Uri>())).Returns(_fakeRobotsDotText.Object);
 
             _dummyConfiguration.IsRespectRobotsDotTextEnabled = true;//BY HAVING A THIS EQUAL TO TRUE WE EXPECT THE IDOMAINRATELIMITER TO BE CALLED
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -205,7 +203,7 @@ namespace Abot.Tests.Unit.Crawler
 
             _dummyConfiguration.IsRespectRobotsDotTextEnabled = true;//BY HAVING A THIS EQUAL TO TRUE WE EXPECT THE IDOMAINRATELIMITER TO BE CALLED
             _dummyConfiguration.MaxRobotsDotTextCrawlDelayInSeconds = 2; //This is less than the crawl delay (Should Be used)
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -234,7 +232,7 @@ namespace Abot.Tests.Unit.Crawler
             _fakeRobotsDotTextFinder.Setup(f => f.Find(It.IsAny<Uri>())).Returns(_fakeRobotsDotText.Object);
 
             _dummyConfiguration.IsRespectRobotsDotTextEnabled = true;
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 
@@ -270,7 +268,7 @@ namespace Abot.Tests.Unit.Crawler
 
             _dummyConfiguration.IsRespectRobotsDotTextEnabled = true;
             _dummyConfiguration.RobotsDotTextUserAgentString = "abcd";
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             _unitUnderTest.Crawl(_rootUri);
 

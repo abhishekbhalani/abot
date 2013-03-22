@@ -28,7 +28,7 @@ namespace Abot.Tests.Integration
 
 			int pagesCrawledCount = 0;
 
-			PoliteWebCrawler crawler = new PoliteWebCrawler (configuration, null, null, null, null, null, null, null, null);
+			PoliteWebCrawler crawler = new PoliteWebCrawler (configuration, null, null, null, null, null, null, null);
 			crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
 			CrawlResult result = crawler.Crawl (new Uri ("http://wvtesting2.com/"));

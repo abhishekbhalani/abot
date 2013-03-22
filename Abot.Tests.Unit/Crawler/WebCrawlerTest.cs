@@ -17,7 +17,6 @@ namespace Abot.Tests.Unit.Crawler
         Mock<IPageRequester> _fakeHttpRequester;
         Mock<IHyperLinkParser> _fakeHyperLinkParser;
         Mock<ICrawlDecisionMaker> _fakeCrawlDecisionMaker;
-        Mock<IMemoryManager> _fakeMemoryManager;
         Mock<IDomainRateLimiter> _fakeDomainRateLimiter;
         Mock<IRobotsDotTextFinder> _fakeRobotsDotTextFinder;
         
@@ -32,7 +31,6 @@ namespace Abot.Tests.Unit.Crawler
             _fakeHyperLinkParser = new Mock<IHyperLinkParser>();
             _fakeHttpRequester = new Mock<IPageRequester>();
             _fakeCrawlDecisionMaker = new Mock<ICrawlDecisionMaker>();
-            _fakeMemoryManager = new Mock<IMemoryManager>();
             _fakeDomainRateLimiter = new Mock<IDomainRateLimiter>();
             _fakeRobotsDotTextFinder = new Mock<IRobotsDotTextFinder>();
 
@@ -42,7 +40,7 @@ namespace Abot.Tests.Unit.Crawler
             _dummyConfiguration = new CrawlConfiguration();
             _dummyConfiguration.ConfigurationExtensions.Add("somekey", "someval");
 
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
             _unitUnderTest.CrawlBag.SomeVal = "SomeVal";
             _unitUnderTest.CrawlBag.SomeList = new List<string>() { "a", "b" };
             _rootUri = new Uri("http://a.com/");
@@ -94,7 +92,7 @@ namespace Abot.Tests.Unit.Crawler
             Mock<IScheduler> fakeScheduler = new Mock<IScheduler>();
             Exception ex = new Exception("oh no");
             fakeScheduler.Setup(f => f.Count).Throws(ex);
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, fakeScheduler.Object, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
@@ -107,7 +105,7 @@ namespace Abot.Tests.Unit.Crawler
         public void Crawl_SingleThread_ExceptionThrownDuringProcessPage_SetsCrawlResultError()
         {
             _dummyThreadManager = new ProducerConsumerThreadManager(1);
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
             Exception ex = new Exception("oh no");
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>())).Throws(ex);
 
@@ -900,42 +898,6 @@ namespace Abot.Tests.Unit.Crawler
 
             Assert.AreEqual("SomeVal", actualCrawlContext.CrawlBag.SomeVal);
             Assert.AreEqual(2, actualCrawlContext.CrawlBag.SomeList.Count);
-        }
-
-        [Test]
-        public void Crawl_NotEnoughAvailableMemoryToStartTheCrawl_CrawlIsStoppedBeforeStarting()
-        {
-            _dummyConfiguration.MinAvailableMemoryRequiredInMb = int.MaxValue;
-            _fakeMemoryManager.Setup(f => f.IsSpaceAvailable(It.IsAny<int>())).Returns(false);
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
-
-            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
-
-            Assert.AreEqual(1, _dummyScheduler.Count);//no need to clear the scheduler since the crawl was never started
-            Assert.IsTrue(result.ErrorOccurred);
-            Assert.IsTrue(result.ErrorException is InsufficientMemoryException);
-            Assert.AreEqual("Process does not have the configured [2147483647mb] of available memory to crawl site [http://a.com/]. This is configurable through the minAvailableMemoryRequiredInMb in app.conf or CrawlConfiguration.MinAvailableMemoryRequiredInMb.", result.ErrorException.Message);
-            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
-            Assert.IsFalse(result.CrawlContext.IsCrawlHardStopRequested);
-        }
-
-        [Test]
-        public void Crawl_CrawlHasExceededMaxMemoryUsageInMb_CrawlIsStoppedBeforeCompletion()
-        {
-            _dummyConfiguration.MaxMemoryUsageInMb = 1;
-            _fakeMemoryManager.Setup(f => f.GetCurrentUsageInMb()).Returns(2);
-            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, _dummyThreadManager, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
-            
-            CrawlResult result = _unitUnderTest.Crawl(_rootUri);
-
-            _fakeMemoryManager.Verify(f => f.GetCurrentUsageInMb(), Times.Exactly(2));
-
-            Assert.AreEqual(0, _dummyScheduler.Count);
-            Assert.IsTrue(result.ErrorOccurred);
-            Assert.IsTrue(result.ErrorException is InsufficientMemoryException);
-            Assert.AreEqual("Process is using [2mb] of memory which is above the max configured of [1mb] for site [http://a.com/]. This is configurable through the maxMemoryUsageInMb in app.conf or CrawlConfiguration.MaxMemoryUsageInMb.", result.ErrorException.Message);
-            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
-            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
 
         private void ThrowExceptionWhen_PageCrawlStarting(object sender, PageCrawlStartingArgs e)

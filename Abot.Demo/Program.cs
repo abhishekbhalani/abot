@@ -68,7 +68,7 @@ namespace Abot.Demo
 
             //Initialize the crawler with custom configuration created above.
             //This override the app.config file values
-            return new PoliteWebCrawler(config, null, null, null, null, null, null, null, null);
+            return new PoliteWebCrawler(config, null, null, null, null, null, null, null);
         }
 
         private static IWebCrawler GetCustomBehaviorUsingLambdaWebCrawler()
