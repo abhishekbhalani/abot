@@ -5,7 +5,7 @@ using System.Threading;
 namespace Abot.Core
 {
 
-    public class ManualThreadManager : IThreadManager
+    public class ManualThreadManager : IWorkScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);
         object _lock = new object();
@@ -84,7 +84,7 @@ namespace Abot.Core
         /// <summary>
         /// Whether there are running threads
         /// </summary>
-        public bool HasRunningThreads()
+        public bool HasRunningJobs()
         {
             lock (_lock)
             {

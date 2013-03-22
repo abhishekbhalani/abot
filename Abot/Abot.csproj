@@ -71,7 +71,7 @@
     <Compile Include="Core\HapHyperLinkParser.cs" />
     <Compile Include="Core\CsQueryHyperLinkParser.cs" />
     <Compile Include="Core\CrawlDecisionMaker.cs" />
-    <Compile Include="Core\TaskThreadManager.cs" />
+    <Compile Include="Core\ThreadPoolWorkScheduler.cs" />
     <Compile Include="Crawler\CrawlArgs.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />

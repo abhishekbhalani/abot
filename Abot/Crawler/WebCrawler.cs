@@ -93,7 +93,7 @@ namespace Abot.Crawler
         protected Timer _timeoutTimer;
         protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
-        protected IThreadManager _threadManager;
+        protected IWorkScheduler _workScheduler;
         protected ICrawlList _crawlList;
         protected IPageRequester _httpRequester;
         protected IHyperLinkParser _hyperLinkParser;
@@ -121,7 +121,7 @@ namespace Abot.Crawler
         /// <summary>
         /// Creates a crawler instance with custom settings or implementation. Passing in null for all params is the equivalent of the empty constructor.
         /// </summary>
-        /// <param name="threadManager">Distributes http requests over multiple threads</param>
+        /// <param name="workScheduler">Handles scheduling of and crawling tasks that need to be performed</param>
         /// <param name="crawlList">Decides what link should be crawled next</param>
         /// <param name="httpRequester">Makes the raw http requests</param>
         /// <param name="hyperLinkParser">Parses a crawled page for it's hyperlinks</param>
@@ -130,7 +130,7 @@ namespace Abot.Crawler
         public WebCrawler(
             CrawlConfiguration crawlConfiguration, 
             ICrawlDecisionMaker crawlDecisionMaker, 
-            IThreadManager threadManager, 
+            IWorkScheduler workScheduler, 
             ICrawlList crawlList, 
             IPageRequester httpRequester, 
             IHyperLinkParser hyperLinkParser)
@@ -139,7 +139,7 @@ namespace Abot.Crawler
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
             CrawlBag = _crawlContext.CrawlBag;
 
-            _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            _workScheduler = workScheduler ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _crawlList = crawlList ?? new FifoCrawlList(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
@@ -194,8 +194,8 @@ namespace Abot.Crawler
             }
             finally
             {
-                if(_threadManager != null)
-                    _threadManager.Dispose();
+                if(_workScheduler != null)
+                    _workScheduler.Dispose();
             }
 
             if(_timeoutTimer != null)
@@ -425,9 +425,9 @@ namespace Abot.Crawler
             {
                 if (_crawlList.Count > 0)
                 {
-                    _threadManager.DoWork(() => ProcessPage(_crawlList.GetNext()));
+                    _workScheduler.DoWork(() => ProcessPage(_crawlList.GetNext()));
                 }
-                else if (!_threadManager.HasRunningThreads())
+                else if (!_workScheduler.HasRunningJobs())
                 {
                     _crawlComplete = true;
                 }
@@ -456,7 +456,7 @@ namespace Abot.Crawler
 
             if (_crawlContext.IsCrawlHardStopRequested)
             {
-                _threadManager.AbortAll();
+                _workScheduler.AbortAll();
 
                 //Set all events to null so no more events are fired
                 PageCrawlStarting = null;

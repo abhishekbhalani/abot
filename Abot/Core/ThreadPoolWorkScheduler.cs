@@ -5,36 +5,35 @@ using System.Threading.Tasks;
 
 namespace Abot.Core
 {
-    public class TaskThreadManager : IThreadManager
+    public class ThreadPoolWorkScheduler : IWorkScheduler
     {
-        static ILog _logger = LogManager.GetLogger(typeof(TaskThreadManager));
+        static ILog _logger = LogManager.GetLogger(typeof(ThreadPoolWorkScheduler));
 
         /// <summary>
         /// Maximum number of concurrently running tasks allowed.
-        /// Note that 1 task does not equal 1 thread.
         /// </summary>
-        public int MaxThreads
+        public int MaxConcurrentTasks
         {
             get;
             private set;
         }
 
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
-        private object _freeTaskLock = new object();
-        private int _freeTaskCount;
+        object _freeTaskLock = new object();
+        int _freeTaskCount;
 
         /// <summary>
-        /// Create a new thread manager that will use Tasks to handle concurrency.
+        /// Create a new work scheduler that will use Tasks to handle concurrency.
         /// </summary>
         /// <param name="maxConcurrentTasks">The maximum number of concurrently running tasks allowed</param>
-        public TaskThreadManager(int maxConcurrentTasks)
+        public ThreadPoolWorkScheduler(int maxConcurrentTasks)
         {
             if (maxConcurrentTasks <= 0)
                 throw new ArgumentException("Max concurrent tasks must be greater than 0.", "maxConcurrentTasks");
 
             _freeTaskCount = maxConcurrentTasks;
-            MaxThreads = maxConcurrentTasks;
+            MaxConcurrentTasks = maxConcurrentTasks;
         }
 
         /// <summary>
@@ -78,9 +77,9 @@ namespace Abot.Core
         /// <summary>
         /// Whether there are any tasks currently executing
         /// </summary>
-        public bool HasRunningThreads()
+        public bool HasRunningJobs()
         {
-            return _freeTaskCount < MaxThreads;
+            return _freeTaskCount < MaxConcurrentTasks;
         }
 
         /// <summary>

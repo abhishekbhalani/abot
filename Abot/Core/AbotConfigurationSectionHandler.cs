@@ -44,12 +44,6 @@ namespace Abot.Core
 
     public class CrawlBehaviorElement : ConfigurationElement
     {
-        [ConfigurationProperty("maxConcurrentThreads", IsRequired = true)]
-        public int MaxConcurrentThreads
-        {
-            get { return (int)this["maxConcurrentThreads"]; }
-        }
-
         [ConfigurationProperty("maxPagesToCrawl", IsRequired = true)]
         public int MaxPagesToCrawl
         {

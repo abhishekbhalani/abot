@@ -6,31 +6,25 @@ using System.Threading.Tasks;
 
 namespace Abot.Core
 {
-    public interface IThreadManager : IDisposable
+    public interface IWorkScheduler : IDisposable
     {
         /// <summary>
-        /// Max number of threads to use. Note: if calling DoWork(Action, int) the actual number of threads used maybe up to two times this value.
+        /// Schedule some work to be completed
         /// </summary>
-        int MaxThreads { get; }
-
-        /// <summary>
-        /// Will perform the action asynchrously on a seperate thread
-        /// </summary>
-        /// <param name="action">The action to perform</param>
         void DoWork(Action action);
 
         /// <summary>
-        /// Whether there are running threads
+        /// Whether there are running jobs
         /// </summary>
-        bool HasRunningThreads();
+        bool HasRunningJobs();
 
         /// <summary>
-        /// Abort all running threads
+        /// Abort all running tasks
         /// </summary>
         void AbortAll();
     }
 
-    public class ProducerConsumerThreadManager : IThreadManager
+    public class ProducerConsumerThreadManager : IWorkScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(ProducerConsumerThreadManager).FullName);
 
@@ -89,7 +83,7 @@ namespace Abot.Core
         /// <summary>
         /// Whether there are running threads
         /// </summary>
-        public bool HasRunningThreads()
+        public bool HasRunningJobs()
         {
             return (_inProcessActionsToExecute.Count + _actionsToExecute.Count) > 0;
         }
