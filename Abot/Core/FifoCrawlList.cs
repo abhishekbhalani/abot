@@ -3,10 +3,11 @@ using log4net;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Abot.Core
 {
-    public interface IScheduler
+    public interface ICrawlList
     {
         /// <summary>
         /// Count of remaining items that are currently scheduled
@@ -19,34 +20,21 @@ namespace Abot.Core
         void Add(PageToCrawl page);
 
         /// <summary>
-        /// Schedules the param to be crawled
-        /// </summary>
-        void Add(IEnumerable<PageToCrawl> pages);
-
-        /// <summary>
         /// Gets the next page to crawl
         /// </summary>
         PageToCrawl GetNext();
-
-        /// <summary>
-        /// Clear all currently scheduled pages
-        /// </summary>
-        void Clear();
     }
 
-    public class FifoScheduler : IScheduler
+    public class FifoCrawlList : ICrawlList
     {
-        static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(FifoCrawlList).FullName);
         ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
-        ConcurrentDictionary<string, object> _scheduledOrCrawled = new ConcurrentDictionary<string, object>();
+        HashSet<string> _visitedUris = new HashSet<string>();
+        ReaderWriterLockSlim _visitedLock = new ReaderWriterLockSlim();
          
         bool _allowUriRecrawling = false;
 
-        public FifoScheduler()
-        {
-        }
-
-        public FifoScheduler(bool allowUriRecrawling)
+        public FifoCrawlList(bool allowUriRecrawling)
         {
             _allowUriRecrawling = allowUriRecrawling;
         }
@@ -72,26 +60,21 @@ namespace Abot.Core
 
             if (_allowUriRecrawling)
             {
-                //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
                 _pagesToCrawl.Enqueue(page);
             }
             else
             {
-                if (_scheduledOrCrawled.TryAdd(page.Uri.AbsoluteUri, null))
+                _visitedLock.EnterUpgradeableReadLock();
+                if (!_visitedUris.Contains(page.Uri.AbsoluteUri))
                 {
-                    //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
+                    _visitedLock.EnterWriteLock();
+                    _visitedUris.Add(page.Uri.AbsoluteUri);
+                    _visitedLock.ExitWriteLock();
+
                     _pagesToCrawl.Enqueue(page);
                 }
+                _visitedLock.ExitUpgradeableReadLock();
             }
-        }
-
-        public void Add(IEnumerable<PageToCrawl> pages)
-        {
-            if(pages == null)
-                throw new ArgumentNullException("pages");
-
-            foreach (PageToCrawl page in pages)
-                Add(page);
         }
 
         /// <summary>
@@ -105,14 +88,6 @@ namespace Abot.Core
                 _pagesToCrawl.TryDequeue(out nextItem);
 
             return nextItem;
-        }
-
-        /// <summary>
-        /// Clear all currently scheduled pages
-        /// </summary>
-        public void Clear()
-        {
-            _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
         }
     }
 }

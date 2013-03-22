@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
+    <Compile Include="Core\FifoCrawlList.cs" />
     <Compile Include="Core\LightHyperLinkParser.cs" />
     <Compile Include="Core\ManualThreadManager.cs" />
     <Compile Include="Core\ProducerConsumerThreadManager.cs" />
@@ -81,7 +82,6 @@
     <Compile Include="Poco\CrawlDecision.cs" />
     <Compile Include="Poco\CrawledPage.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
-    <Compile Include="Core\FifoScheduler.cs" />
     <Compile Include="Core\HyperLinkParser.cs" />
     <Compile Include="Core\PageRequester.cs" />
     <Compile Include="Crawler\WebCrawler.cs" />

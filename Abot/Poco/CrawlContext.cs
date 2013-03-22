@@ -40,9 +40,9 @@ namespace Abot.Poco
         public CrawlConfiguration CrawlConfiguration { get; set; }
 
         /// <summary>
-        /// The scheduler that is being used
+        /// The page list that is being used
         /// </summary>
-        public IScheduler Scheduler { get; set; }
+        public ICrawlList CrawlList { get; set; }
 
         /// <summary>
         /// Random dynamic values

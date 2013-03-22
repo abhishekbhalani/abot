@@ -94,7 +94,7 @@ namespace Abot.Crawler
         protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
         protected IThreadManager _threadManager;
-        protected IScheduler _scheduler;
+        protected ICrawlList _crawlList;
         protected IPageRequester _httpRequester;
         protected IHyperLinkParser _hyperLinkParser;
         protected ICrawlDecisionMaker _crawlDecisionMaker;
@@ -122,7 +122,7 @@ namespace Abot.Crawler
         /// Creates a crawler instance with custom settings or implementation. Passing in null for all params is the equivalent of the empty constructor.
         /// </summary>
         /// <param name="threadManager">Distributes http requests over multiple threads</param>
-        /// <param name="scheduler">Decides what link should be crawled next</param>
+        /// <param name="crawlList">Decides what link should be crawled next</param>
         /// <param name="httpRequester">Makes the raw http requests</param>
         /// <param name="hyperLinkParser">Parses a crawled page for it's hyperlinks</param>
         /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
@@ -131,7 +131,7 @@ namespace Abot.Crawler
             CrawlConfiguration crawlConfiguration, 
             ICrawlDecisionMaker crawlDecisionMaker, 
             IThreadManager threadManager, 
-            IScheduler scheduler, 
+            ICrawlList crawlList, 
             IPageRequester httpRequester, 
             IHyperLinkParser hyperLinkParser)
         {
@@ -140,13 +140,13 @@ namespace Abot.Crawler
             CrawlBag = _crawlContext.CrawlBag;
 
             _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
-            _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
+            _crawlList = crawlList ?? new FifoCrawlList(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
             _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();
 
-            _crawlContext.Scheduler = _scheduler;
+            _crawlContext.CrawlList = _crawlList;
         }
 
         #endregion Constructors
@@ -170,7 +170,7 @@ namespace Abot.Crawler
 
             PrintConfigValues(_crawlContext.CrawlConfiguration);
 
-            _scheduler.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true, IsRoot = true });
+            _crawlList.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true, IsRoot = true });
 
             _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
@@ -423,9 +423,9 @@ namespace Abot.Crawler
         {
             while (!_crawlComplete)
             {
-                if (_scheduler.Count > 0)
+                if (_crawlList.Count > 0)
                 {
-                    _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
+                    _threadManager.DoWork(() => ProcessPage(_crawlList.GetNext()));
                 }
                 else if (!_threadManager.HasRunningThreads())
                 {
@@ -434,7 +434,7 @@ namespace Abot.Crawler
                 else
                 {
                     _logger.DebugFormat("Waiting for links to be scheduled...");
-                    System.Threading.Thread.Sleep(2500);
+                    System.Threading.Thread.Sleep(50);
                 }
             }
         }
@@ -452,13 +452,11 @@ namespace Abot.Crawler
 
                     _crawlStopReported = true;
                 }
-                _scheduler.Clear(); 
             }
 
             if (_crawlContext.IsCrawlHardStopRequested)
             {
                 _threadManager.AbortAll();
-                _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
 
                 //Set all events to null so no more events are fired
                 PageCrawlStarting = null;
@@ -501,7 +499,7 @@ namespace Abot.Crawler
                 FirePageCrawlCompletedEvent(crawledPage);
 
                 if (ShouldCrawlPageLinks(crawledPage))
-                    SchedulePageLinks(crawledPage);
+                    EnqueueChildLinksForCrawling(crawledPage);
             }
             catch(Exception e)
             {
@@ -594,7 +592,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void SchedulePageLinks(CrawledPage crawledPage)
+        protected virtual void EnqueueChildLinksForCrawling(CrawledPage crawledPage)
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
             foreach (Uri uri in crawledPageLinks)
@@ -607,7 +605,7 @@ namespace Abot.Crawler
                     page.CrawlDepth = crawledPage.CrawlDepth + 1;
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
                     page.IsRoot = false;
-                    _scheduler.Add(page);
+                    _crawlList.Add(page);
                 }
                 catch{}
             }
