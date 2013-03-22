@@ -170,7 +170,7 @@ namespace Abot.Crawler
 
             PrintConfigValues(_crawlContext.CrawlConfiguration);
 
-            _crawlList.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true, IsRoot = true });
+            _crawlList.Add(new PageToCrawl(uri) { ParentUri = uri, IsInternal = true });
 
             _crawlContext.CrawlStartDate = DateTime.Now;
             Stopwatch timer = Stopwatch.StartNew();
@@ -604,7 +604,6 @@ namespace Abot.Crawler
                     page.ParentUri = crawledPage.Uri;
                     page.CrawlDepth = crawledPage.CrawlDepth + 1;
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
-                    page.IsRoot = false;
                     _crawlList.Add(page);
                 }
                 catch{}
