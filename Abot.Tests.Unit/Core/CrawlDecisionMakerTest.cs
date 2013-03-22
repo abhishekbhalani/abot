@@ -248,6 +248,51 @@ namespace Abot.Tests.Unit.Core
             Assert.IsFalse(crawlContext.IsCrawlStopRequested);
         }
 
+        [Test]
+        public void ShouldCrawlPage_OverMaxCrawlDepth_ReturnsFalse()
+        {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlConfiguration = new CrawlConfiguration
+                {
+                    MaxCrawlDepth = 2
+                }
+            };
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = true,
+                    CrawlDepth = 3
+                },
+                crawlContext);
+
+            Assert.IsFalse(result.Allow);
+            Assert.AreEqual("Crawl depth is above max", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPage_EqualToMaxCrawlDepth_ReturnsTrue()
+        {
+            CrawlContext crawlContext = new CrawlContext
+            {
+                CrawlConfiguration = new CrawlConfiguration
+                {
+                    MaxCrawlDepth = 2
+                }
+            };
+
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPage(
+                new PageToCrawl(new Uri("http://a.com/"))
+                {
+                    IsInternal = true,
+                    CrawlDepth = 2
+                },
+                crawlContext);
+
+            Assert.IsTrue(result.Allow);
+        }
+
 
         [Test]
         public void ShouldCrawlPageLinks_NullCrawledPage_ReturnsFalse()
@@ -355,6 +400,50 @@ namespace Abot.Tests.Unit.Core
                 });
             Assert.AreEqual(true, result.Allow);
             Assert.AreEqual("", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPageLinks_IsEqualToMaxCrawlDepth_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
+                new CrawledPage(new Uri("http://b.com/a.html"))
+                {
+                    RawContent = "aaaa",
+                    IsInternal = true,
+                    CrawlDepth = 2
+                },
+                new CrawlContext
+                {
+                    RootUri = new Uri("http://a.com/ "),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        MaxCrawlDepth = 2
+                    }
+                });
+            Assert.AreEqual(false, result.Allow);
+            Assert.AreEqual("Crawl depth is above max", result.Reason);
+        }
+
+        [Test]
+        public void ShouldCrawlPageLinks_IsAboveMaxCrawlDepth_ReturnsFalse()
+        {
+            CrawlDecision result = _unitUnderTest.ShouldCrawlPageLinks(
+                new CrawledPage(new Uri("http://b.com/a.html"))
+                {
+                    RawContent = "aaaa",
+                    IsInternal = true,
+                    CrawlDepth = 3
+                },
+                new CrawlContext
+                {
+                    RootUri = new Uri("http://a.com/ "),
+                    CrawlConfiguration = new CrawlConfiguration
+                    {
+                        MaxCrawlDepth = 2
+                    }
+                });
+            Assert.AreEqual(false, result.Allow);
+            Assert.AreEqual("Crawl depth is above max", result.Reason);
         }
 
 

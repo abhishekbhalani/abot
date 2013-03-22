@@ -15,6 +15,7 @@ namespace Abot.Poco
             MaxRobotsDotTextCrawlDelayInSeconds = 5;
             HttpRequestMaxAutoRedirects = 7;
             IsHttpRequestAutoRedirectsEnabled = true;
+            MaxCrawlDepth = 100;
         }
 
         #region crawlBehavior
@@ -131,6 +132,11 @@ namespace Abot.Poco
         /// This value has no effect if MaxMemoryUsageInMb is zero.
         /// </summary>
         public int MaxMemoryUsageCacheTimeInSeconds { get; set; }
+
+        /// <summary>
+        /// Maximum levels below root page to crawl. If value is 0, the homepage will be crawled but none of its links will be crawled. If the level is 1, the homepage and its links will be crawled but none of the links links will be crawled.
+        /// </summary>
+        public int MaxCrawlDepth { get; set; }
 
         #endregion
 

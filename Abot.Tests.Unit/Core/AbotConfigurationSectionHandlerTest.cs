@@ -31,6 +31,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(25, _config.CrawlBehavior.MinAvailableMemoryRequiredInMb);
             Assert.AreEqual(26, _config.CrawlBehavior.MaxMemoryUsageInMb);
             Assert.AreEqual(27, _config.CrawlBehavior.MaxMemoryUsageCacheTimeInSeconds);
+            Assert.AreEqual(28, _config.CrawlBehavior.MaxCrawlDepth);
             
             Assert.IsNotNull(_config.Politeness);
             Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
@@ -70,6 +71,7 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.MinAvailableMemoryRequiredInMb, _config.CrawlBehavior.MinAvailableMemoryRequiredInMb);
             Assert.AreEqual(result.MaxMemoryUsageInMb, _config.CrawlBehavior.MaxMemoryUsageInMb);
             Assert.AreEqual(result.MaxMemoryUsageCacheTimeInSeconds, _config.CrawlBehavior.MaxMemoryUsageCacheTimeInSeconds);
+            Assert.AreEqual(result.MaxCrawlDepth, _config.CrawlBehavior.MaxCrawlDepth);
             
             Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _config.Politeness.IsRespectRobotsDotTextEnabled);

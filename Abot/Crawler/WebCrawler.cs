@@ -664,6 +664,7 @@ namespace Abot.Crawler
                 {
                     PageToCrawl page = new CrawledPage(uri);
                     page.ParentUri = crawledPage.Uri;
+                    page.CrawlDepth = crawledPage.CrawlDepth + 1;
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
                     page.IsRoot = false;
                     _scheduler.Add(page);

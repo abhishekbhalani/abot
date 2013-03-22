@@ -30,7 +30,10 @@ namespace Abot.Core
                 return new CrawlDecision { Allow = false, Reason = "Null page to crawl" };
 
             if (crawlContext == null)
-                return new CrawlDecision { Allow = false, Reason = "Null crawl context" };            
+                return new CrawlDecision { Allow = false, Reason = "Null crawl context" };
+
+            if(pageToCrawl.CrawlDepth > crawlContext.CrawlConfiguration.MaxCrawlDepth)
+                return new CrawlDecision { Allow = false, Reason = "Crawl depth is above max" };
 
             if (!pageToCrawl.Uri.Scheme.StartsWith("http"))
                 return new CrawlDecision { Allow = false, Reason = "Scheme does not begin with http" };
@@ -66,14 +69,17 @@ namespace Abot.Core
                 return new CrawlDecision{Allow = false, Reason = "Null crawled page"};
 
             if (crawlContext == null)
-                return new CrawlDecision { Allow = false, Reason = "Null crawl context" };            
+                return new CrawlDecision { Allow = false, Reason = "Null crawl context" };
 
             if(string.IsNullOrWhiteSpace(crawledPage.RawContent))
                 return new CrawlDecision { Allow = false, Reason = "Page has no content" };
 
             if (!crawlContext.CrawlConfiguration.IsExternalPageLinksCrawlingEnabled && !crawledPage.IsInternal)
                 return new CrawlDecision { Allow = false, Reason = "Link is external" };
-            
+
+            if (crawledPage.CrawlDepth >= crawlContext.CrawlConfiguration.MaxCrawlDepth)
+                return new CrawlDecision { Allow = false, Reason = "Crawl depth is above max" };
+
             return new CrawlDecision{Allow = true};
         }
 

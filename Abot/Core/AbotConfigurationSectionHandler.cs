@@ -193,6 +193,12 @@ namespace Abot.Core
         {
             get { return (int)this["maxMemoryUsageCacheTimeInSeconds"]; }
         }
+
+        [ConfigurationProperty("maxCrawlDepth", IsRequired = true)]
+        public int MaxCrawlDepth
+        {
+            get { return (int)this["maxCrawlDepth"]; }
+        }
     }
 
     public class ExtensionValueElement : ConfigurationElement
