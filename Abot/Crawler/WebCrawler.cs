@@ -606,7 +606,7 @@ namespace Abot.Crawler
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
                     _crawlList.Add(page);
                 }
-                catch{}
+                catch (UriFormatException) {}
             }
         }
 
