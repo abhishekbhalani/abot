@@ -12,31 +12,12 @@ namespace Abot.Core
         /// <summary>
         /// Parses html to extract hyperlinks, converts each into an absolute url
         /// </summary>
-        IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml);
-
-        /// <summary>
-        /// Parses html to extract hyperlinks, converts each into an absolute url
-        /// </summary>
         IEnumerable<Uri> GetLinks(CrawledPage crawledPage);
     }
 
     public abstract class HyperLinkParser : IHyperLinkParser
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
-
-        /// <summary>
-        /// Parses html to extract hyperlinks, converts each into an absolute url
-        /// </summary>
-        public virtual IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml)
-        {
-            if (pageUri == null)
-                throw new ArgumentNullException("pageUri");
-
-            if (pageHtml == null)
-                throw new ArgumentNullException("pageHtml");
-
-            return GetLinks(GetCrawledWebPage(pageUri, pageHtml));
-        }
 
         /// <summary>
         /// Parses html to extract hyperlinks, converts each into an absolute url
