@@ -16,12 +16,6 @@ namespace Abot.Core
             get { return (CrawlBehaviorElement)this["crawlBehavior"]; }
         }
 
-        [ConfigurationProperty("politeness")]
-        public PolitenessElement Politeness
-        {
-            get { return (PolitenessElement)this["politeness"]; }
-        }
-
         [ConfigurationProperty("extensionValues")]
         [ConfigurationCollection(typeof(ExtensionValueCollection), AddItemName = "add")]
         public ExtensionValueCollection ExtensionValues
@@ -32,12 +26,9 @@ namespace Abot.Core
         public CrawlConfiguration Convert()
         {
             AutoMapper.Mapper.CreateMap<CrawlBehaviorElement, CrawlConfiguration>();
-            AutoMapper.Mapper.CreateMap<PolitenessElement, CrawlConfiguration>();
-
 
             CrawlConfiguration config = new CrawlConfiguration();
             AutoMapper.Mapper.Map<CrawlBehaviorElement, CrawlConfiguration>(CrawlBehavior, config);
-            AutoMapper.Mapper.Map<PolitenessElement, CrawlConfiguration>(Politeness, config);
 
             foreach (ExtensionValueElement element in ExtensionValues)
                 config.ConfigurationExtensions.Add(element.Key, element.Value);
@@ -48,39 +39,6 @@ namespace Abot.Core
         public static AbotConfigurationSectionHandler LoadFromXml()
         {
             return ((AbotConfigurationSectionHandler)System.Configuration.ConfigurationManager.GetSection("abot"));
-        }
-    }
-
-    public class PolitenessElement : ConfigurationElement
-    {
-        [ConfigurationProperty("isThrottlingEnabled", IsRequired = true)]
-        public bool IsThrottlingEnabled
-        {
-            get { return (bool)this["isThrottlingEnabled"]; }
-        }
-
-        [ConfigurationProperty("isRespectRobotsDotTextEnabled", IsRequired = true)]
-        public bool IsRespectRobotsDotTextEnabled
-        {
-            get { return (bool)this["isRespectRobotsDotTextEnabled"]; }
-        }
-
-        [ConfigurationProperty("robotsDotTextUserAgentString", IsRequired = true)]
-        public string RobotsDotTextUserAgentString
-        {
-            get { return (string)this["robotsDotTextUserAgentString"]; }
-        }
-
-        [ConfigurationProperty("maxRobotsDotTextCrawlDelayInSeconds", IsRequired = true)]
-        public int MaxRobotsDotTextCrawlDelayInSeconds
-        {
-            get { return (int)this["maxRobotsDotTextCrawlDelayInSeconds"]; }
-        }
-
-        [ConfigurationProperty("minCrawlDelayPerDomainMilliSeconds", IsRequired = true)]
-        public long MinCrawlDelayPerDomainMilliSeconds
-        {
-            get { return (long)this["minCrawlDelayPerDomainMilliSeconds"]; }
         }
     }
 

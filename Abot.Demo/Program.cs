@@ -1,5 +1,4 @@
-﻿
-using Abot.Crawler;
+﻿using Abot.Crawler;
 using Abot.Poco;
 using System;
 
@@ -41,7 +40,7 @@ namespace Abot.Demo
 
         private static IWebCrawler GetDefaultWebCrawler()
         {
-            return new PoliteWebCrawler();
+            return new WebCrawler();
         }
 
         private static IWebCrawler GetManuallyConfiguredWebCrawler()
@@ -52,13 +51,10 @@ namespace Abot.Demo
             config.DownloadableContentTypes = "text/html, text/plain";
             config.IsExternalPageCrawlingEnabled = false;
             config.IsExternalPageLinksCrawlingEnabled = false;
-            config.IsThrottlingEnabled = false;
-            config.IsRespectRobotsDotTextEnabled = false;
             config.IsUriRecrawlingEnabled = false;
             config.MaxConcurrentThreads = 10;
             config.MaxPagesToCrawl = 10;
             config.MaxPagesToCrawlPerDomain = 0;
-            config.MinCrawlDelayPerDomainMilliSeconds = 1000;
             config.UserAgentString = "abot v@ABOTASSEMBLYVERSION@ http://code.google.com/p/abot";
 
             //Add you own values without modifying Abot's source code.
@@ -68,7 +64,7 @@ namespace Abot.Demo
 
             //Initialize the crawler with custom configuration created above.
             //This override the app.config file values
-            return new PoliteWebCrawler(config, null, null, null, null, null, null, null);
+            return new WebCrawler(config, null, null, null, null, null);
         }
 
         private static IWebCrawler GetCustomBehaviorUsingLambdaWebCrawler()

@@ -8,11 +8,9 @@ namespace Abot.Poco
         {
             MaxConcurrentThreads = 10;
             UserAgentString = "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; abot v@ABOTASSEMBLYVERSION@ http://code.google.com/p/abot)";
-            RobotsDotTextUserAgentString = "abot";
             MaxPagesToCrawl = 1000;
             DownloadableContentTypes = "text/html";
             ConfigurationExtensions = new Dictionary<string, string>();
-            MaxRobotsDotTextCrawlDelayInSeconds = 5;
             HttpRequestMaxAutoRedirects = 7;
             IsHttpRequestAutoRedirectsEnabled = true;
             MaxCrawlDepth = 100;
@@ -42,13 +40,6 @@ namespace Abot.Poco
         /// If zero, this setting has no effect.
         /// </summary>
         public long MaxPageSizeInBytes { get; set; }
-
-        /// <summary>
-        /// The maximum numer of seconds to respect in the robots.txt "Crawl-delay: X" directive. 
-        /// IsRespectRobotsDotTextEnabled must be true for this value to be used.
-        /// If zero, will use whatever the robots.txt crawl delay requests no matter how high the value is.
-        /// </summary>
-        public int MaxRobotsDotTextCrawlDelayInSeconds { get; set; }
 
         /// <summary>
         /// The user agent string to use for http requests
@@ -138,30 +129,6 @@ namespace Abot.Poco
         /// </summary>
         public int MaxCrawlDepth { get; set; }
 
-        #endregion
-
-        #region politeness
-
-        /// <summary>
-        /// Whether the crawler should attempt to slow down http web requests if it detects the website is under stress.
-        /// </summary>
-        public bool IsThrottlingEnabled { get; set; }
-
-        /// <summary>
-        /// Whether the crawler should retrieve and respect the robotsdottext file.
-        /// </summary>
-        public bool IsRespectRobotsDotTextEnabled { get; set; }
-
-        /// <summary>
-        /// The user agent string to use when checking robots.txt file for specific directives.  Some examples of other crawler's user agent values are "googlebot", "slurp" etc...
-        /// </summary>
-        public string RobotsDotTextUserAgentString { get; set; }
-
-        /// <summary>
-        /// The number of milliseconds to wait in between http requests to the same domain. Note: This will set the crawl to a single thread no matter what the MaxConcurrentThreads value is.
-        /// </summary>
-        public long MinCrawlDelayPerDomainMilliSeconds { get; set; }
-        
         #endregion
     }
 }
