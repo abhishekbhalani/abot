@@ -9,106 +9,20 @@ using System.Timers;
 
 namespace Abot.Crawler
 {
-    public interface IWebCrawler
-    {
-        /// <summary>
-        /// Synchronous event that is fired before a page is crawled.
-        /// </summary>
-        event EventHandler<PageCrawlStartingArgs> PageCrawlStarting;
-
-        /// <summary>
-        /// Synchronous event that is fired when an individual page has been crawled.
-        /// </summary>
-        event EventHandler<PageCrawlCompletedArgs> PageCrawlCompleted;
-
-        /// <summary>
-        /// Synchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawl impl returned false. This means the page or its links were not crawled.
-        /// </summary>
-        event EventHandler<PageCrawlDisallowedArgs> PageCrawlDisallowed;
-
-        /// <summary>
-        /// Synchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
-        /// </summary>
-        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
-
-        /// <summary>
-        /// Asynchronous event that is fired before a page is crawled.
-        /// </summary>
-        event EventHandler<PageCrawlStartingArgs> PageCrawlStartingAsync;
-
-        /// <summary>
-        /// Asynchronous event that is fired when an individual page has been crawled.
-        /// </summary>
-        event EventHandler<PageCrawlCompletedArgs> PageCrawlCompletedAsync;
-
-        /// <summary>
-        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawl impl returned false. This means the page or its links were not crawled.
-        /// </summary>
-        event EventHandler<PageCrawlDisallowedArgs> PageCrawlDisallowedAsync;
-
-        /// <summary>
-        /// Asynchronous event that is fired when the ICrawlDecisionMaker.ShouldCrawlLinks impl returned false. This means the page's links were not crawled.
-        /// </summary>
-        event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowedAsync;
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
-        /// </summary>
-        void ShouldCrawlPage(Func<PageToCrawl, CrawlContext, CrawlDecision> decisionMaker);
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether the page's content should be dowloaded
-        /// </summary>
-        /// <param name="shouldDownloadPageContent"></param>
-        void ShouldDownloadPageContent(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker);
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether a page's links should be crawled or not
-        /// </summary>
-        /// <param name="shouldCrawlPageLinksDelegate"></param>
-        void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker);
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
-        /// </summary>
-        /// <param name="decisionMaker delegate"></param>
-        void IsInternalUri(Func<Uri, Uri, bool> decisionMaker);
-
-        /// <summary>
-        /// Begins a crawl using the uri param
-        /// </summary>
-        CrawlResult Crawl(Uri uri);
-
-        /// <summary>
-        /// Dynamic object that can hold any value that needs to be available in the crawl context
-        /// </summary>
-        dynamic CrawlBag { get; set; }
-    }
-
-    public class WebCrawler : IWebCrawler
+    public sealed class WebCrawler
     {
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
-        protected bool _crawlComplete = false;
-        protected bool _crawlStopReported = false;
-        protected Timer _timeoutTimer;
-        protected CrawlResult _crawlResult = null;
-        protected CrawlContext _crawlContext;
-        protected IWorkScheduler _workScheduler;
-        protected ICrawlList _crawlList;
-        protected IPageFetcher _httpRequester;
-        protected IHyperLinkParser _hyperLinkParser;
-        protected ICrawlDecisionMaker _crawlDecisionMaker;
-        protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
-        protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
-        protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
-        protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
 
-        /// <summary>
-        /// Dynamic object that can hold any value that needs to be available in the crawl context
-        /// </summary>
-        public dynamic CrawlBag { get; set; }
-
-        #region Constructors
+        bool _crawlComplete = false;
+        bool _crawlStopReported = false;
+        Timer _timeoutTimer;
+        CrawlResult _crawlResult = null;
+        CrawlContext _crawlContext;
+        IWorkScheduler _workScheduler;
+        ICrawlList _crawlList;
+        IPageFetcher _httpRequester;
+        IHyperLinkParser _hyperLinkParser;
+        ICrawlDecisionMaker _crawlDecisionMaker;
 
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations.
@@ -137,7 +51,6 @@ namespace Abot.Crawler
         {
             _crawlContext = new CrawlContext();
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
-            CrawlBag = _crawlContext.CrawlBag;
 
             _workScheduler = workScheduler ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _crawlList = crawlList ?? new FifoCrawlList(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
@@ -149,12 +62,10 @@ namespace Abot.Crawler
             _crawlContext.CrawlList = _crawlList;
         }
 
-        #endregion Constructors
-
         /// <summary>
         /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
         /// </summary>
-        public virtual CrawlResult Crawl(Uri uri)
+        public CrawlResult Crawl(Uri uri)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");
@@ -231,7 +142,7 @@ namespace Abot.Crawler
         /// </summary>
         public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowed;
 
-        protected virtual void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
+        private void FirePageCrawlStartingEvent(PageToCrawl pageToCrawl)
         {
             try
             {
@@ -246,7 +157,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
+        private void FirePageCrawlCompletedEvent(CrawledPage crawledPage)
         {
             try
             {
@@ -261,7 +172,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
+        private void FirePageCrawlDisallowedEvent(PageToCrawl pageToCrawl, string reason)
         {
             try
             {
@@ -276,7 +187,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
+        private void FirePageLinksCrawlDisallowedEvent(CrawledPage crawledPage, string reason)
         {
             try
             {
@@ -315,7 +226,7 @@ namespace Abot.Crawler
         /// </summary>
         public event EventHandler<PageLinksCrawlDisallowedArgs> PageLinksCrawlDisallowedAsync;
 
-        protected virtual void FirePageCrawlStartingEventAsync(PageToCrawl pageToCrawl)
+        private void FirePageCrawlStartingEventAsync(PageToCrawl pageToCrawl)
         {
             EventHandler<PageCrawlStartingArgs> threadSafeEvent = PageCrawlStartingAsync;
             if (threadSafeEvent != null)
@@ -328,7 +239,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageCrawlCompletedEventAsync(CrawledPage crawledPage)
+        private void FirePageCrawlCompletedEventAsync(CrawledPage crawledPage)
         {
             EventHandler<PageCrawlCompletedArgs> threadSafeEvent = PageCrawlCompletedAsync;
             if (threadSafeEvent != null)
@@ -341,7 +252,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageCrawlDisallowedEventAsync(PageToCrawl pageToCrawl, string reason)
+        private void FirePageCrawlDisallowedEventAsync(PageToCrawl pageToCrawl, string reason)
         {
             EventHandler<PageCrawlDisallowedArgs> threadSafeEvent = PageCrawlDisallowedAsync;
             if (threadSafeEvent != null)
@@ -354,7 +265,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void FirePageLinksCrawlDisallowedEventAsync(CrawledPage crawledPage, string reason)
+        private void FirePageLinksCrawlDisallowedEventAsync(CrawledPage crawledPage, string reason)
         {
             EventHandler<PageLinksCrawlDisallowedArgs> threadSafeEvent = PageLinksCrawlDisallowedAsync;
             if (threadSafeEvent != null)
@@ -368,41 +279,6 @@ namespace Abot.Crawler
         }
 
         #endregion
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
-        /// </summary>
-        public void ShouldCrawlPage(Func<PageToCrawl, CrawlContext, CrawlDecision> decisionMaker)
-        {
-            _shouldCrawlPageDecisionMaker = decisionMaker;
-        }
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether the page's content should be dowloaded
-        /// </summary>
-        /// <param name="shouldDownloadPageContent"></param>
-        public void ShouldDownloadPageContent(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker)
-        {
-            _shouldDownloadPageContentDecisionMaker = decisionMaker;
-        }
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether a page's links should be crawled or not
-        /// </summary>
-        /// <param name="shouldCrawlPageLinksDelegate"></param>
-        public void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker)
-        {
-            _shouldCrawlPageLinksDecisionMaker = decisionMaker;
-        }
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
-        /// </summary>
-        /// <param name="decisionMaker delegate"></param>     
-        public void IsInternalUri(Func<Uri, Uri, bool> decisionMaker)
-        {
-            _isInternalDecisionMaker = decisionMaker;
-        }
 
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
@@ -419,13 +295,14 @@ namespace Abot.Crawler
             return configFromFile.Convert();
         }
 
-        protected virtual void CrawlSite()
+        private void CrawlSite()
         {
             while (!_crawlComplete)
             {
                 if (_crawlList.Count > 0)
                 {
-                    _workScheduler.DoWork(() => ProcessPage(_crawlList.GetNext()));
+                    PageToCrawl page = _crawlList.GetNext();
+                    _workScheduler.DoWork(() => ProcessPage(page));
                 }
                 else if (!_workScheduler.HasRunningJobs())
                 {
@@ -434,12 +311,14 @@ namespace Abot.Crawler
                 else
                 {
                     _logger.DebugFormat("Waiting for links to be scheduled...");
-                    System.Threading.Thread.Sleep(50);
+                    System.Threading.Thread.Sleep(1000);
                 }
+
+                System.Threading.Thread.Sleep(0);
             }
         }
 
-        protected virtual void CheckForStopRequest()
+        private void CheckForStopRequest()
         {
             if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
             {
@@ -470,7 +349,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
+        private void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
         {
             Timer elapsedTimer = sender as Timer;
             if (elapsedTimer != null)
@@ -480,7 +359,7 @@ namespace Abot.Crawler
             _crawlContext.IsCrawlHardStopRequested = true;
         }
 
-        protected virtual void ProcessPage(PageToCrawl pageToCrawl)
+        private void ProcessPage(PageToCrawl pageToCrawl)
         {
             try
             {
@@ -490,7 +369,7 @@ namespace Abot.Crawler
                 if (!ShouldCrawlPage(pageToCrawl))
                     return;
 
-                CrawledPage crawledPage = CrawlThePage(pageToCrawl);
+                CrawledPage crawledPage = CrawlPage(pageToCrawl);
 
                 if (PageSizeIsAboveMax(crawledPage))
                     return;
@@ -511,7 +390,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual bool PageSizeIsAboveMax(CrawledPage crawledPage)
+        private bool PageSizeIsAboveMax(CrawledPage crawledPage)
         {
             bool isAboveMax = false;
             if (_crawlContext.CrawlConfiguration.MaxPageSizeInBytes > 0 &&
@@ -523,11 +402,9 @@ namespace Abot.Crawler
             return isAboveMax;
         }
 
-        protected virtual bool ShouldCrawlPageLinks(CrawledPage crawledPage)
+        private bool ShouldCrawlPageLinks(CrawledPage crawledPage)
         {
             CrawlDecision shouldCrawlPageLinksDecision = _crawlDecisionMaker.ShouldCrawlPageLinks(crawledPage, _crawlContext);
-            if (shouldCrawlPageLinksDecision.Allow)
-                shouldCrawlPageLinksDecision = (_shouldCrawlPageLinksDecisionMaker != null) ? _shouldCrawlPageLinksDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
 
             if (!shouldCrawlPageLinksDecision.Allow)
             {
@@ -539,11 +416,9 @@ namespace Abot.Crawler
             return shouldCrawlPageLinksDecision.Allow;
         }
 
-        protected virtual bool ShouldCrawlPage(PageToCrawl pageToCrawl)
+        private bool ShouldCrawlPage(PageToCrawl pageToCrawl)
         {
             CrawlDecision shouldCrawlPageDecision = _crawlDecisionMaker.ShouldCrawlPage(pageToCrawl, _crawlContext);
-            if (shouldCrawlPageDecision.Allow)
-                shouldCrawlPageDecision = (_shouldCrawlPageDecisionMaker != null) ? _shouldCrawlPageDecisionMaker.Invoke(pageToCrawl, _crawlContext) : new CrawlDecision { Allow = true };
 
             if (shouldCrawlPageDecision.Allow)
             {
@@ -559,13 +434,13 @@ namespace Abot.Crawler
             return shouldCrawlPageDecision.Allow;
         }
 
-        protected virtual CrawledPage CrawlThePage(PageToCrawl pageToCrawl)
+        private CrawledPage CrawlPage(PageToCrawl pageToCrawl)
         {
             _logger.DebugFormat("About to crawl page [{0}]", pageToCrawl.Uri.AbsoluteUri);
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
 
-            CrawledPage crawledPage = _httpRequester.FetchPage(pageToCrawl.Uri, (x) => ShouldDownloadPageContentWrapper(x));
+            CrawledPage crawledPage = _httpRequester.FetchPage(pageToCrawl.Uri, (x) => _crawlDecisionMaker.ShouldDownloadPageContent(x, _crawlContext));
             AutoMapper.Mapper.CreateMap<PageToCrawl, CrawledPage>();
             AutoMapper.Mapper.Map(pageToCrawl, crawledPage);
 
@@ -578,7 +453,7 @@ namespace Abot.Crawler
 
         }
 
-        protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
+        private void AddPageToContext(PageToCrawl pageToCrawl)
         {
             _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
 
@@ -592,7 +467,7 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void EnqueueChildLinksForCrawling(CrawledPage crawledPage)
+        private void EnqueueChildLinksForCrawling(CrawledPage crawledPage)
         {
             IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
             foreach (Uri uri in crawledPageLinks)
@@ -603,23 +478,14 @@ namespace Abot.Crawler
                     PageToCrawl page = new CrawledPage(uri);
                     page.ParentUri = crawledPage.Uri;
                     page.CrawlDepth = crawledPage.CrawlDepth + 1;
-                    page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
+                    page.IsInternal = uri.Authority == _crawlContext.RootUri.Authority;
                     _crawlList.Add(page);
                 }
                 catch (UriFormatException) {}
             }
         }
 
-        protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
-        {
-            CrawlDecision decision = _crawlDecisionMaker.ShouldDownloadPageContent(crawledPage, _crawlContext);
-            if (decision.Allow)
-                decision = (_shouldDownloadPageContentDecisionMaker != null) ? _shouldDownloadPageContentDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
-
-            return decision;
-        }
-
-        protected virtual void PrintConfigValues(CrawlConfiguration config)
+        private void PrintConfigValues(CrawlConfiguration config)
         {
             _logger.Info("Configuration Values:");
 
