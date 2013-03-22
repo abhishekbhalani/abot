@@ -7,8 +7,8 @@ namespace Abot.Crawler
     {
         public string DisallowedReason { get; private set; }
 
-        public PageLinksCrawlDisallowedArgs(CrawledPage crawledPage, string disallowedReason)
-            : base(crawledPage)
+        public PageLinksCrawlDisallowedArgs(CrawlContext crawlContext, CrawledPage crawledPage, string disallowedReason)
+            : base(crawlContext, crawledPage)
         {
             if (string.IsNullOrWhiteSpace(disallowedReason))
                 throw new ArgumentNullException("disallowedReason");

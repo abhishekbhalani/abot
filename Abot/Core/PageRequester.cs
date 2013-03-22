@@ -3,6 +3,8 @@ using log4net;
 using System;
 using System.IO;
 using System.Net;
+using System.Reflection;
+using System.Text;
 
 namespace Abot.Core
 {
@@ -21,16 +23,21 @@ namespace Abot.Core
 
     public class PageRequester : IPageRequester
     {
-        ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
 
-        string _userAgentString;
+        protected CrawlConfiguration _config;
+        protected string _userAgentString;
 
-        public PageRequester(string userAgent)
+        public PageRequester(CrawlConfiguration config)
         {
-            if (string.IsNullOrWhiteSpace(userAgent))
-                throw new ArgumentNullException("userAgent");
+            if (config == null)
+                throw new ArgumentNullException("config");
 
-            _userAgentString = userAgent;
+            _userAgentString = config.UserAgentString.Replace("@ABOTASSEMBLYVERSION@", Assembly.GetAssembly(this.GetType()).GetName().Version.ToString());
+            _config = config;
+
+            if (_config.HttpServicePointConnectionLimit > 0)
+                ServicePointManager.DefaultConnectionLimit = _config.HttpServicePointConnectionLimit;
         }
 
         /// <summary>
@@ -55,12 +62,7 @@ namespace Abot.Core
             HttpWebResponse response = null;
             try
             {
-                request = (HttpWebRequest)WebRequest.Create(uri);
-                request.AllowAutoRedirect = true;
-                request.MaximumAutomaticRedirections = 7;
-                request.UserAgent = _userAgentString;
-                request.Accept = "*/*";
-
+                request = BuildRequestObject(uri);
                 response = (HttpWebResponse)request.GetResponse();
             }
             catch (WebException e)
@@ -70,11 +72,13 @@ namespace Abot.Core
                 if (e.Response != null)
                     response = (HttpWebResponse)e.Response;
 
-                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri, e);
+                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri);
+                _logger.Debug(e);
             }
             catch (Exception e)
             {
-                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri, e);
+                _logger.DebugFormat("Error occurred requesting url [{0}]", uri.AbsoluteUri);
+                _logger.Debug(e);
             }
             finally
             {
@@ -86,9 +90,8 @@ namespace Abot.Core
                     CrawlDecision shouldDownloadContentDecision = shouldDownloadContent(crawledPage);
                     if (shouldDownloadContentDecision.Allow)
                     {
-                        string rawHtml = GetRawHtml(response, uri);
-                        if (!string.IsNullOrWhiteSpace(rawHtml))
-                            crawledPage.RawContent = rawHtml;
+                        crawledPage.RawContent = GetRawHtml(response, uri);
+                        crawledPage.PageSizeInBytes = Encoding.UTF8.GetBytes(crawledPage.RawContent).Length;
                     }
                     else
                     {
@@ -97,8 +100,27 @@ namespace Abot.Core
                     response.Close();
                 }
             }
-
+            
             return crawledPage;
+        }
+
+        protected virtual HttpWebRequest BuildRequestObject(Uri uri)
+        {
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+            request.AllowAutoRedirect = _config.IsHttpRequestAutoRedirectsEnabled;
+            request.UserAgent = _userAgentString;
+            request.Accept = "*/*";
+
+            if(_config.HttpRequestMaxAutoRedirects > 0)
+                request.MaximumAutomaticRedirections = _config.HttpRequestMaxAutoRedirects;
+
+            if (_config.IsHttpRequestAutomaticDecompressionEnabled)
+                request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+            if(_config.HttpRequestTimeoutInSeconds > 0)
+                request.Timeout = _config.HttpRequestTimeoutInSeconds * 1000;
+
+            return request;
         }
 
         protected virtual string GetRawHtml(HttpWebResponse response, Uri requestUri)
@@ -114,7 +136,8 @@ namespace Abot.Core
             }
             catch (Exception e)
             {
-                _logger.WarnFormat("Error occurred while downloading content of url {0}", requestUri.AbsoluteUri, e);
+                _logger.WarnFormat("Error occurred while downloading content of url {0}", requestUri.AbsoluteUri);
+                _logger.Warn(e);
             }
 
             return rawHtml;

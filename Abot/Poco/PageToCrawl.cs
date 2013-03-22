@@ -37,6 +37,12 @@ namespace Abot.Poco
         /// </summary>
         public bool IsInternal { get; set; }
 
+
+        /// <summary>
+        /// The depth from the root of the crawl. If this page is the homepage this value will be zero, if this page was found on the homepage this value will be 1 and so on.
+        /// </summary>
+        public int CrawlDepth { get; set; }
+
         public override string ToString()
         {
             return Uri.AbsoluteUri;

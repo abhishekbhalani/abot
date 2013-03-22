@@ -1,7 +1,9 @@
-﻿using HtmlAgilityPack;
+﻿using Abot.Poco;
 using log4net;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Abot.Core
 {
@@ -11,16 +13,21 @@ namespace Abot.Core
         /// Parses html to extract hyperlinks, converts each into an absolute url
         /// </summary>
         IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml);
+
+        /// <summary>
+        /// Parses html to extract hyperlinks, converts each into an absolute url
+        /// </summary>
+        IEnumerable<Uri> GetLinks(CrawledPage crawledPage);
     }
 
-    public class HyperLinkParser : IHyperLinkParser
+    public abstract class HyperLinkParser : IHyperLinkParser
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
 
         /// <summary>
-        /// Parses html to extract anchor and area tag href values
+        /// Parses html to extract hyperlinks, converts each into an absolute url
         /// </summary>
-        public IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml)
+        public virtual IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml)
         {
             if (pageUri == null)
                 throw new ArgumentNullException("pageUri");
@@ -28,16 +35,53 @@ namespace Abot.Core
             if (pageHtml == null)
                 throw new ArgumentNullException("pageHtml");
 
-            HtmlDocument htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(pageHtml);
+            return GetLinks(GetCrawledWebPage(pageUri, pageHtml));
+        }
 
-            HtmlNodeCollection aTags = htmlDoc.DocumentNode.SelectNodes("//a[@href]");
-            HtmlNodeCollection areaTags = htmlDoc.DocumentNode.SelectNodes("//area[@href]");
+        /// <summary>
+        /// Parses html to extract hyperlinks, converts each into an absolute url
+        /// </summary>
+        public virtual IEnumerable<Uri> GetLinks(CrawledPage crawledPage)
+        {
+            CheckParams(crawledPage);
 
-            Uri uriToUse = pageUri;
+            Stopwatch timer = Stopwatch.StartNew();
+
+            List<Uri> uris = GetUris(crawledPage, GetHrefValues(crawledPage));
+            
+            timer.Stop();
+            _logger.DebugFormat("{0} parsed links from [{1}] in [{2}] milliseconds", ParserType, crawledPage.Uri, timer.ElapsedMilliseconds);
+
+            return uris;
+        }
+
+        #region Abstract
+
+        protected abstract string ParserType { get; }
+
+        protected abstract CrawledPage GetCrawledWebPage(Uri pageUri, string pageHtml);
+
+        protected abstract IEnumerable<string> GetHrefValues(CrawledPage crawledPage);
+
+        protected abstract string GetBaseHrefValue(CrawledPage crawledPage);
+
+        #endregion
+
+        protected virtual void CheckParams(CrawledPage crawledPage)
+        {
+            if (crawledPage == null)
+                throw new ArgumentNullException("crawledPage");
+        }
+
+        protected virtual List<Uri> GetUris(CrawledPage crawledPage, IEnumerable<string> hrefValues)
+        {
+            List<Uri> uris = new List<Uri>();
+            if (hrefValues == null || hrefValues.Count() < 1)
+                return uris;
 
             //If html base tag exists use it instead of page uri for relative links
-            string baseHref = GetBaseTagHref(htmlDoc);
+            Uri uriToUse = crawledPage.Uri;
+            string baseHref = GetBaseHrefValue(crawledPage);
             if (!string.IsNullOrEmpty(baseHref))
             {
                 try
@@ -47,49 +91,25 @@ namespace Abot.Core
                 catch { }
             }
 
-            List<Uri> hyperlinks = GetLinks(aTags, uriToUse);
-            hyperlinks.AddRange(GetLinks(areaTags, uriToUse));
-
-            return hyperlinks;
-        }
-
-        private List<Uri> GetLinks(HtmlNodeCollection nodes, Uri page)
-        {
-            List<Uri> uris = new List<Uri>();
-
-            if (nodes == null)
-                return uris;
-
-            string hrefValue = "";
-            foreach (HtmlNode node in nodes)
+            string href = "";
+            foreach (string hrefValue in hrefValues)
             {
-                hrefValue = node.Attributes["href"].Value;
-
                 try
                 {
-                    Uri newUri = new Uri(page, hrefValue.Split('#')[0]);
+                    href = hrefValue.Split('#')[0];
+                    Uri newUri = new Uri(uriToUse, href);
+
                     if (!uris.Contains(newUri))
                         uris.Add(newUri);
                 }
                 catch (Exception e)
                 {
-                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValue, page.AbsoluteUri, e);
+                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValue, crawledPage.Uri);
+                    _logger.Debug(e);
                 }
             }
 
             return uris;
-        }
-
-        private string GetBaseTagHref(HtmlDocument doc)
-        {
-            string hrefValue = "";
-            HtmlNode node = doc.DocumentNode.SelectSingleNode("//base");
-
-            //Must use node.InnerHtml instead of node.InnerText since "aaa<br />bbb" will be returned as "aaabbb"
-            if (node != null)
-                hrefValue = node.GetAttributeValue("href", "").Trim();
-
-            return hrefValue;
         }
     }
 }
