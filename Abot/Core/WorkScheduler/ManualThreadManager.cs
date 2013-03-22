@@ -4,7 +4,6 @@ using System.Threading;
 
 namespace Abot.Core
 {
-
     public class ManualThreadManager : IWorkScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);

@@ -64,14 +64,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
-    <Compile Include="Core\FifoCrawlList.cs" />
-    <Compile Include="Core\LightHyperLinkParser.cs" />
-    <Compile Include="Core\ManualThreadManager.cs" />
-    <Compile Include="Core\ProducerConsumerThreadManager.cs" />
-    <Compile Include="Core\HapHyperLinkParser.cs" />
-    <Compile Include="Core\CsQueryHyperLinkParser.cs" />
-    <Compile Include="Core\CrawlDecisionMaker.cs" />
-    <Compile Include="Core\ThreadPoolWorkScheduler.cs" />
+    <Compile Include="Core\CrawlDecisionMaker\CrawlDecisionMaker.cs" />
+    <Compile Include="Core\CrawlDecisionMaker\ICrawlDecisionMaker.cs" />
+    <Compile Include="Core\CrawlList\FifoCrawlList.cs" />
+    <Compile Include="Core\CrawlList\ICrawlList.cs" />
+    <Compile Include="Core\HyperlinkParser\CsQueryHyperLinkParser.cs" />
+    <Compile Include="Core\HyperlinkParser\HapHyperLinkParser.cs" />
+    <Compile Include="Core\HyperlinkParser\HyperLinkParser.cs" />
+    <Compile Include="Core\HyperlinkParser\IHyperlinkParser.cs" />
+    <Compile Include="Core\HyperlinkParser\LightHyperLinkParser.cs" />
+    <Compile Include="Core\PageFetcher\IPageFetcher.cs" />
+    <Compile Include="Core\PageFetcher\PageFetcher.cs" />
+    <Compile Include="Core\WorkScheduler\IWorkScheduler.cs" />
+    <Compile Include="Core\WorkScheduler\ManualThreadManager.cs" />
+    <Compile Include="Core\WorkScheduler\ProducerConsumerThreadManager.cs" />
+    <Compile Include="Core\WorkScheduler\ThreadPoolWorkScheduler.cs" />
     <Compile Include="Crawler\CrawlArgs.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
@@ -82,8 +89,6 @@
     <Compile Include="Poco\CrawlDecision.cs" />
     <Compile Include="Poco\CrawledPage.cs" />
     <Compile Include="Poco\CrawlResult.cs" />
-    <Compile Include="Core\HyperLinkParser.cs" />
-    <Compile Include="Core\PageRequester.cs" />
     <Compile Include="Crawler\WebCrawler.cs" />
     <Compile Include="Poco\PageToCrawl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

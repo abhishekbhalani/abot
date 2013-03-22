@@ -8,27 +8,14 @@ using System.Text;
 
 namespace Abot.Core
 {
-    public interface IPageRequester
+    public class PageFetcher : IPageFetcher
     {
-        /// <summary>
-        /// Make an http web request to the url and download its content
-        /// </summary>
-        CrawledPage MakeRequest(Uri uri);
-
-        /// <summary>
-        /// Make an http web request to the url and download its content based on the param func decision
-        /// </summary>
-        CrawledPage MakeRequest(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent);
-    }
-
-    public class PageRequester : IPageRequester
-    {
-        static ILog _logger = LogManager.GetLogger(typeof(PageRequester).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(PageFetcher).FullName);
 
         protected CrawlConfiguration _config;
         protected string _userAgentString;
 
-        public PageRequester(CrawlConfiguration config)
+        public PageFetcher(CrawlConfiguration config)
         {
             if (config == null)
                 throw new ArgumentNullException("config");
@@ -43,15 +30,15 @@ namespace Abot.Core
         /// <summary>
         /// Make an http web request to the url and download its content
         /// </summary>
-        public virtual CrawledPage MakeRequest(Uri uri)
+        public virtual CrawledPage FetchPage(Uri uri)
         {
-            return MakeRequest(uri, (x) => new CrawlDecision { Allow = true });
+            return FetchPage(uri, (x) => new CrawlDecision { Allow = true });
         }
 
         /// <summary>
         /// Make an http web request to the url and download its content based on the param func decision
         /// </summary>
-        public virtual CrawledPage MakeRequest(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent)
+        public virtual CrawledPage FetchPage(Uri uri, Func<CrawledPage, CrawlDecision> shouldDownloadContent)
         {
             if (uri == null)
                 throw new ArgumentNullException("uri");

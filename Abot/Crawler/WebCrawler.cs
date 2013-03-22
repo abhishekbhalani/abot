@@ -95,7 +95,7 @@ namespace Abot.Crawler
         protected CrawlContext _crawlContext;
         protected IWorkScheduler _workScheduler;
         protected ICrawlList _crawlList;
-        protected IPageRequester _httpRequester;
+        protected IPageFetcher _httpRequester;
         protected IHyperLinkParser _hyperLinkParser;
         protected ICrawlDecisionMaker _crawlDecisionMaker;
         protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
@@ -132,7 +132,7 @@ namespace Abot.Crawler
             ICrawlDecisionMaker crawlDecisionMaker, 
             IWorkScheduler workScheduler, 
             ICrawlList crawlList, 
-            IPageRequester httpRequester, 
+            IPageFetcher httpRequester, 
             IHyperLinkParser hyperLinkParser)
         {
             _crawlContext = new CrawlContext();
@@ -141,7 +141,7 @@ namespace Abot.Crawler
 
             _workScheduler = workScheduler ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _crawlList = crawlList ?? new FifoCrawlList(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
-            _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
+            _httpRequester = httpRequester ?? new PageFetcher(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
             _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();
@@ -565,7 +565,7 @@ namespace Abot.Crawler
             FirePageCrawlStartingEventAsync(pageToCrawl);
             FirePageCrawlStartingEvent(pageToCrawl);
 
-            CrawledPage crawledPage = _httpRequester.MakeRequest(pageToCrawl.Uri, (x) => ShouldDownloadPageContentWrapper(x));
+            CrawledPage crawledPage = _httpRequester.FetchPage(pageToCrawl.Uri, (x) => ShouldDownloadPageContentWrapper(x));
             AutoMapper.Mapper.CreateMap<PageToCrawl, CrawledPage>();
             AutoMapper.Mapper.Map(pageToCrawl, crawledPage);
 
