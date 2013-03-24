@@ -11,8 +11,9 @@ namespace Abot.Core
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoCrawlList).FullName);
         ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
-        HashSet<string> _visitedUris = new HashSet<string>();
-        ReaderWriterLockSlim _visitedLock = new ReaderWriterLockSlim();
+        //HashSet<string> _visitedUris = new HashSet<string>();
+        //ReaderWriterLockSlim _visitedLock = new ReaderWriterLockSlim();
+        ConcurrentDictionary<string, byte> _visitedUris = new ConcurrentDictionary<string, byte>();
          
         bool _allowUriRecrawling = false;
 
@@ -46,16 +47,10 @@ namespace Abot.Core
             }
             else
             {
-                _visitedLock.EnterUpgradeableReadLock();
-                if (!_visitedUris.Contains(page.Uri.AbsoluteUri))
+                if (_visitedUris.TryAdd(page.Uri.AbsoluteUri, 0))
                 {
-                    _visitedLock.EnterWriteLock();
-                    _visitedUris.Add(page.Uri.AbsoluteUri);
-                    _visitedLock.ExitWriteLock();
-
                     _pagesToCrawl.Enqueue(page);
                 }
-                _visitedLock.ExitUpgradeableReadLock();
             }
         }
 
