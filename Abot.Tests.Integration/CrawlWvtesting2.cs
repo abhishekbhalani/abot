@@ -779,12 +779,12 @@ namespace Abot.Tests.Integration
 	                new PageResult { Url = "http://search.barnesandnoble.com/booksearch/isbnInquiry.asp?userid=tV42r3YDJ%0D9&isbn=1591840414&itm=1", HttpStatusCode = 0},
 	                new PageResult { Url = "http://wvtesting2.com/misc-tests/tests/http-codes/http_code-504.php", HttpStatusCode = 504},
 	                new PageResult { Url = "http://neednot2know.com/Bndry1.html", HttpStatusCode = 404},
-					new PageResult { Url = "http://wvtesting2.com/bugs/me%20inc%20with_dot/urlWithDot_folderNameEnd.html", HttpStatusCode = 404},
-	                new PageResult { Url = "http://wvtesting2.com/level2/www", HttpStatusCode = 404},
+					new PageResult { Url = "http://wvtesting2.com/bugs/me%20inc%20with_dot./urlWithDot_folderNameEnd.html", HttpStatusCode = 200},
+	                new PageResult { Url = "http://wvtesting2.com/level2/www.", HttpStatusCode = 404},
 	                new PageResult { Url = "http://wvtesting2.com/www.wvtesting2.com", HttpStatusCode = 404},
-	                new PageResult { Url = "http://wvtesting2.com/product/1335-WNBA_Uniform_2_pc", HttpStatusCode = 404},
-					new PageResult { Url = "http://wvtesting2.com/product/1707-Army_Officer_Uniform_3_pc", HttpStatusCode = 404},
-	                new PageResult { Url = "http://wvtesting2.com/product/1690-Air_Service_Uniform_3_pc", HttpStatusCode = 404},
+	                new PageResult { Url = "http://wvtesting2.com/product/1335-WNBA_Uniform_2_pc.", HttpStatusCode = 404},
+					new PageResult { Url = "http://wvtesting2.com/product/1707-Army_Officer_Uniform_3_pc.", HttpStatusCode = 404},
+	                new PageResult { Url = "http://wvtesting2.com/product/1690-Air_Service_Uniform_3_pc.", HttpStatusCode = 404},
                     new PageResult { Url = "http://wvtesting2.com/bugs/me%20inc%20without_dot/urlReachableWith_FwdSlash.html", HttpStatusCode = 200}
 	            };
 

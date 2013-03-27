@@ -66,7 +66,8 @@ namespace Abot.Tests.Unit.Core
         [Test]
         public void ShouldCrawlPage_Duplicate_ReturnsFalse()
         {
-            _crawlContext.CrawledUrls = new ConcurrentBag<string> { "http://a.com/" };
+            _crawlContext.CrawledUrls = new ConcurrentDictionary<string, byte>();
+            _crawlContext.CrawledUrls.TryAdd("http://a.com/", 0);
 
             CrawlDecision result = _unitUnderTest.ShouldCrawlPage(new PageToCrawl(new Uri("http://a.com/")), _crawlContext);
 

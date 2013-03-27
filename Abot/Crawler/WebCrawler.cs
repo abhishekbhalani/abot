@@ -111,6 +111,28 @@ namespace Abot.Crawler
 
         #region Constructors
 
+        static WebCrawler()
+        {
+            //This is a workaround for dealing with periods in urls (http://stackoverflow.com/questions/856885/httpwebrequest-to-url-with-dot-at-the-end)
+            //Will not be needed when this project is upgraded to 4.5
+            MethodInfo getSyntax = typeof(UriParser).GetMethod("GetSyntax", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            FieldInfo flagsField = typeof(UriParser).GetField("m_Flags", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            if (getSyntax != null && flagsField != null)
+            {
+                foreach (string scheme in new[] { "http", "https" })
+                {
+                    UriParser parser = (UriParser)getSyntax.Invoke(null, new object[] { scheme });
+                    if (parser != null)
+                    {
+                        int flagsValue = (int)flagsField.GetValue(parser);
+                        // Clear the CanonicalizeAsFilePath attribute
+                        if ((flagsValue & 0x1000000) != 0)
+                            flagsField.SetValue(parser, flagsValue & ~0x1000000);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Creates a crawler instance with the default settings and implementations.
         /// </summary>
@@ -642,7 +664,7 @@ namespace Abot.Crawler
 
         protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
         {
-            _crawlContext.CrawledUrls.Add(pageToCrawl.Uri.AbsoluteUri);
+            _crawlContext.CrawledUrls.TryAdd(pageToCrawl.Uri.AbsoluteUri, 0);
 
             int domainCount = 0;
             lock (_crawlContext.CrawlCountByDomain)

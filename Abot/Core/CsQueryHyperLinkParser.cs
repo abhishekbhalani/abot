@@ -1,5 +1,4 @@
 ﻿using Abot.Poco;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,11 +12,6 @@ namespace Abot.Core
         protected override string ParserType
         {
             get { return "CsQuery"; }
-        }
-
-        protected override CrawledPage GetCrawledWebPage(Uri pageUri, string pageHtml)
-        {
-            return new CrawledPage(pageUri) { RawContent = pageHtml };
         }
 
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)

@@ -9,7 +9,7 @@ namespace Abot.Poco
     {
         public CrawlContext()
         {
-            CrawledUrls = new ConcurrentBag<string>();
+            CrawledUrls = new ConcurrentDictionary<string, byte>();
             CrawlCountByDomain = new ConcurrentDictionary<string, int>();
             CrawlBag = new ExpandoObject();
         }
@@ -27,7 +27,7 @@ namespace Abot.Poco
         /// <summary>
         /// Threadsafe collection of urls that have been crawled
         /// </summary>
-        public ConcurrentBag<string> CrawledUrls { get; set; }
+        public ConcurrentDictionary<string, byte> CrawledUrls { get; set; }
         
         /// <summary>
         /// Threadsafe dictionary of domains and how many pages were crawled in that domain

@@ -12,31 +12,12 @@ namespace Abot.Core
         /// <summary>
         /// Parses html to extract hyperlinks, converts each into an absolute url
         /// </summary>
-        IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml);
-
-        /// <summary>
-        /// Parses html to extract hyperlinks, converts each into an absolute url
-        /// </summary>
         IEnumerable<Uri> GetLinks(CrawledPage crawledPage);
     }
 
     public abstract class HyperLinkParser : IHyperLinkParser
     {
         ILog _logger = LogManager.GetLogger(typeof(HyperLinkParser));
-
-        /// <summary>
-        /// Parses html to extract hyperlinks, converts each into an absolute url
-        /// </summary>
-        public virtual IEnumerable<Uri> GetLinks(Uri pageUri, string pageHtml)
-        {
-            if (pageUri == null)
-                throw new ArgumentNullException("pageUri");
-
-            if (pageHtml == null)
-                throw new ArgumentNullException("pageHtml");
-
-            return GetLinks(GetCrawledWebPage(pageUri, pageHtml));
-        }
 
         /// <summary>
         /// Parses html to extract hyperlinks, converts each into an absolute url
@@ -59,8 +40,6 @@ namespace Abot.Core
 
         protected abstract string ParserType { get; }
 
-        protected abstract CrawledPage GetCrawledWebPage(Uri pageUri, string pageHtml);
-
         protected abstract IEnumerable<string> GetHrefValues(CrawledPage crawledPage);
 
         protected abstract string GetBaseHrefValue(CrawledPage crawledPage);
@@ -79,8 +58,11 @@ namespace Abot.Core
             if (hrefValues == null || hrefValues.Count() < 1)
                 return uris;
 
+            //Use the uri of the page that actually responded to the request instead of crawledPage.Uri (Issue 82).
+            //Using HttpWebRequest.Address instead of HttpWebResonse.ResponseUri since this is the best practice and mentioned on http://msdn.microsoft.com/en-us/library/system.net.httpwebresponse.responseuri.aspx
+            Uri uriToUse = crawledPage.HttpWebRequest.Address ?? crawledPage.Uri;
+
             //If html base tag exists use it instead of page uri for relative links
-            Uri uriToUse = crawledPage.Uri;
             string baseHref = GetBaseHrefValue(crawledPage);
             if (!string.IsNullOrEmpty(baseHref))
             {

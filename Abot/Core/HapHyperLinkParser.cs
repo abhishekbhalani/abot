@@ -1,6 +1,5 @@
 ﻿using Abot.Poco;
 using HtmlAgilityPack;
-using System;
 using System.Collections.Generic;
 
 namespace Abot.Core
@@ -13,14 +12,6 @@ namespace Abot.Core
         protected override string ParserType
         {
             get { return "HtmlAgilityPack"; }
-        }
-
-        protected override CrawledPage GetCrawledWebPage(Uri pageUri, string pageHtml)
-        {
-            HtmlDocument htmlDoc = new HtmlDocument();
-            htmlDoc.LoadHtml(pageHtml);
-
-            return new CrawledPage(pageUri) { Uri = pageUri, RawContent = pageHtml };
         }
 
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)

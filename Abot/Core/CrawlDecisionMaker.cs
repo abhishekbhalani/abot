@@ -39,7 +39,7 @@ namespace Abot.Core
                 return new CrawlDecision { Allow = false, Reason = "Scheme does not begin with http" };
 
             if (!crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled && 
-                crawlContext.CrawledUrls.Contains(pageToCrawl.Uri.AbsoluteUri))
+                crawlContext.CrawledUrls.ContainsKey(pageToCrawl.Uri.AbsoluteUri))
                 return new CrawlDecision { Allow = false, Reason = "Link already crawled" };
 
             if (crawlContext.CrawledUrls.Count + 1 > crawlContext.CrawlConfiguration.MaxPagesToCrawl)
