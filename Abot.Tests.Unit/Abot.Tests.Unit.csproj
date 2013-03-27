@@ -118,6 +118,9 @@
     <None Include="App.config" />
     <Fakes Include="Fakes\System.fakes" />
     <Fakes Include="Fakes\mscorlib.fakes" />
+    <None Include="FakesAssemblies\mscorlib.4.0.0.0.Fakes.fakesconfig" />
+    <None Include="FakesAssemblies\mscorlib.4.0.0.0.Fakes.messages" />
+    <None Include="FakesAssemblies\System.4.0.0.0.Fakes.fakesconfig" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Abot.SiteSimulator\Abot.SiteSimulator.csproj">
@@ -130,6 +133,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="FakesAssemblies\mscorlib.4.0.0.0.Fakes.dll" />
+    <Content Include="FakesAssemblies\mscorlib.4.0.0.0.Fakes.xml" />
+    <Content Include="FakesAssemblies\System.4.0.0.0.Fakes.dll" />
+    <Content Include="FakesAssemblies\System.4.0.0.0.Fakes.xml" />
     <Content Include="HtmlAgilityPackStackOverflow1.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -137,9 +144,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="FakesAssemblies\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
