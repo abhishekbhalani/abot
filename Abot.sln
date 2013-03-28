@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abot.Tests.Integration", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abot.SiteSimulator", "Abot.SiteSimulator\Abot.SiteSimulator.csproj", "{48CBD934-4E30-4F48-ABD4-BC10EEA239A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MvcApplication1", "MvcApplication1\MvcApplication1.csproj", "{1A205CBF-3BDA-41C8-B8B0-63153702B80E}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,10 +37,6 @@ Global
 		{48CBD934-4E30-4F48-ABD4-BC10EEA239A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48CBD934-4E30-4F48-ABD4-BC10EEA239A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48CBD934-4E30-4F48-ABD4-BC10EEA239A3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A205CBF-3BDA-41C8-B8B0-63153702B80E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A205CBF-3BDA-41C8-B8B0-63153702B80E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A205CBF-3BDA-41C8-B8B0-63153702B80E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A205CBF-3BDA-41C8-B8B0-63153702B80E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
