@@ -113,15 +113,7 @@ namespace Abot.Tests.Unit.Core
 
                 IEnumerable<Uri> result = _unitUnderTest.GetLinks(crawledPage);
 
-                if (AssemblySetup.IsWindows())
-                {
-                    Assert.AreEqual(0, result.Count());
-                }
-                else
-                {
-                    Assert.AreEqual(1, result.Count());
-                    Assert.AreEqual("http://a.com/http://////", result.ElementAt(0).AbsoluteUri);
-                }
+                Assert.AreEqual(0, result.Count());
             }
         }
 
@@ -320,18 +312,9 @@ namespace Abot.Tests.Unit.Core
 
                 IEnumerable<Uri> result = _unitUnderTest.GetLinks(crawledPage);
 
-                if (AssemblySetup.IsWindows())
-                {
-                    Assert.AreEqual(2, result.Count());
-                    Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-                    Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
-                }
-                else
-                {
-                    Assert.AreEqual(2, result.Count());
-                    Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-                    Assert.AreEqual("file:///aaa/a.html", result.ElementAt(1).AbsoluteUri);
-                }
+                Assert.AreEqual(2, result.Count());
+                Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
+                Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
             }
         }
 
@@ -348,18 +331,9 @@ namespace Abot.Tests.Unit.Core
 
                 IEnumerable<Uri> result = _unitUnderTest.GetLinks(crawledPage);
 
-                if (AssemblySetup.IsWindows())
-                {
-                    Assert.AreEqual(2, result.Count());
-                    Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-                    Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
-                }
-                else
-                {
-                    Assert.AreEqual(2, result.Count());
-                    Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
-                    Assert.AreEqual("http://http/aaa/a.html", result.ElementAt(1).AbsoluteUri);
-                }
+                Assert.AreEqual(2, result.Count());
+                Assert.AreEqual("http://aaa.com/", result.ElementAt(0).AbsoluteUri);
+                Assert.AreEqual("http://a.com/aaa/a.html", result.ElementAt(1).AbsoluteUri);
             }
         }
 
