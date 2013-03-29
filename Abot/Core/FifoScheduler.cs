@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Handles managing the priority of what pages need to be crawled
+    /// </summary>
     public interface IScheduler
     {
         /// <summary>

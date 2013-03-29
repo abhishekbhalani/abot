@@ -1,9 +1,11 @@
 ﻿using Abot.Poco;
-using System.Linq;
 using System.Net;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Determines what pages should be crawled, whether the raw content should be downloaded and if the links on a page should be crawled
+    /// </summary>
     public interface ICrawlDecisionMaker
     {
         /// <summary>

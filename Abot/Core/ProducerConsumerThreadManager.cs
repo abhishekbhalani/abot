@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Handles the multithreading implementation details
+    /// </summary>
     public interface IThreadManager : IDisposable
     {
         /// <summary>
-        /// Max number of threads to use. Note: if calling DoWork(Action, int) the actual number of threads used maybe up to two times this value.
+        /// Max number of threads to use.
         /// </summary>
         int MaxThreads { get; }
 

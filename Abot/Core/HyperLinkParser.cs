@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Handles parsing hyperlinks out of the raw html
+    /// </summary>
     public interface IHyperLinkParser
     {
         /// <summary>
