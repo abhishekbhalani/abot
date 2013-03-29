@@ -163,7 +163,7 @@ namespace Abot.Crawler
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
             CrawlBag = _crawlContext.CrawlBag;
 
-            _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);//new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            _threadManager = threadManager ?? new ProducerConsumerThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
