@@ -1,5 +1,6 @@
 ﻿using Abot.Core;
 using Abot.Poco;
+using Commoner.Core.Testing;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -245,7 +246,7 @@ namespace Abot.Tests.Unit.Core
             _crawledPage.RawContent = "<a href=\"/aaa/a.html\" ></a><a href=\"/bbb/b.html\" /></a>";
 
             //This sets the Address properties backing field which does not have a public set method
-            Commoner.Core.Testing.ValueHelper.SetFieldValue(_crawledPage.HttpWebRequest, "_Uri", new Uri("http://zzz.com/"));
+            ValueHelper.SetFieldValue(_crawledPage.HttpWebRequest, "_Uri", new Uri("http://zzz.com/"));
 
             IEnumerable<Uri> result = _unitUnderTest.GetLinks(_crawledPage);
 

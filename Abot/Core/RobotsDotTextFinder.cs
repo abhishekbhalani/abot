@@ -5,6 +5,9 @@ using System.Net;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Finds and builds the robots.txt file abstraction
+    /// </summary>
     public interface IRobotsDotTextFinder
     {
         /// <summary>

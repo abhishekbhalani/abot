@@ -143,11 +143,6 @@ namespace Abot.Poco
         #region politeness
 
         /// <summary>
-        /// Whether the crawler should attempt to slow down http web requests if it detects the website is under stress.
-        /// </summary>
-        public bool IsThrottlingEnabled { get; set; }
-
-        /// <summary>
         /// Whether the crawler should retrieve and respect the robotsdottext file.
         /// </summary>
         public bool IsRespectRobotsDotTextEnabled { get; set; }

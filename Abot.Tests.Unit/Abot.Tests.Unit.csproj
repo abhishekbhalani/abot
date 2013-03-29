@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Commoner.Core">
-      <HintPath>..\..\TFS\Charlie\CrawlDaddy\d0.3.0\ExternalLib\Commoner.Core.dll</HintPath>
+      <HintPath>..\ExternalLib\Commoner.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

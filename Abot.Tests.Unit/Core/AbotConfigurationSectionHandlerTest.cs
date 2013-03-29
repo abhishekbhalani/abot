@@ -34,7 +34,6 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(28, _config.CrawlBehavior.MaxCrawlDepth);
             
             Assert.IsNotNull(_config.Politeness);
-            Assert.AreEqual(true, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(true, _config.Politeness.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual("zzzz", _config.Politeness.RobotsDotTextUserAgentString);
             Assert.AreEqual(55, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);
@@ -73,7 +72,6 @@ namespace Abot.Tests.Unit.Core
             Assert.AreEqual(result.MaxMemoryUsageCacheTimeInSeconds, _config.CrawlBehavior.MaxMemoryUsageCacheTimeInSeconds);
             Assert.AreEqual(result.MaxCrawlDepth, _config.CrawlBehavior.MaxCrawlDepth);
             
-            Assert.AreEqual(result.IsThrottlingEnabled, _config.Politeness.IsThrottlingEnabled);
             Assert.AreEqual(result.IsRespectRobotsDotTextEnabled, _config.Politeness.IsRespectRobotsDotTextEnabled);
             Assert.AreEqual(result.RobotsDotTextUserAgentString, _config.Politeness.RobotsDotTextUserAgentString);
             Assert.AreEqual(result.MinCrawlDelayPerDomainMilliSeconds, _config.Politeness.MinCrawlDelayPerDomainMilliSeconds);

@@ -53,12 +53,6 @@ namespace Abot.Core
 
     public class PolitenessElement : ConfigurationElement
     {
-        [ConfigurationProperty("isThrottlingEnabled", IsRequired = true)]
-        public bool IsThrottlingEnabled
-        {
-            get { return (bool)this["isThrottlingEnabled"]; }
-        }
-
         [ConfigurationProperty("isRespectRobotsDotTextEnabled", IsRequired = true)]
         public bool IsRespectRobotsDotTextEnabled
         {
