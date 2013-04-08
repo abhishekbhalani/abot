@@ -52,7 +52,6 @@ namespace Abot.Demo
             config.DownloadableContentTypes = "text/html, text/plain";
             config.IsExternalPageCrawlingEnabled = false;
             config.IsExternalPageLinksCrawlingEnabled = false;
-            config.IsThrottlingEnabled = false;
             config.IsRespectRobotsDotTextEnabled = false;
             config.IsUriRecrawlingEnabled = false;
             config.MaxConcurrentThreads = 10;
