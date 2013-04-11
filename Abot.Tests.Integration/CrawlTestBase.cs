@@ -1,9 +1,9 @@
 ﻿using Abot.Crawler;
 using Abot.Poco;
 using log4net;
-using log4net.Config;
 using NUnit.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,14 +13,9 @@ namespace Abot.Tests.Integration
     public abstract class CrawlTestBase
     {
         static ILog _logger = LogManager.GetLogger(typeof(CrawlTestBase).FullName);
-        List<PageResult> _actualCrawledPages = new List<PageResult>();
+        ConcurrentBag<PageResult> _actualCrawledPages = new ConcurrentBag<PageResult>();
         int _maxSecondsToCrawl;
         Uri _rootUri;
-
-        static CrawlTestBase()
-        {
-            XmlConfigurator.Configure();
-        }
 
         public CrawlTestBase(Uri rootUri, int maxSecondsToCrawl)
         {
@@ -28,17 +23,13 @@ namespace Abot.Tests.Integration
             _maxSecondsToCrawl = maxSecondsToCrawl;
         }
 
-
-        protected abstract List<PageResult> GetExpectedCrawlResult();
-
-
         public void CrawlAndAssert(IWebCrawler crawler)
         {
             crawler.PageCrawlCompletedAsync += crawler_PageCrawlCompleted;
 
             CrawlResult result = crawler.Crawl(_rootUri);
 
-            Assert.AreEqual("", result.ErrorMessage);
+            Assert.IsNull(result.ErrorException);
             Assert.IsFalse(result.ErrorOccurred);
             Assert.AreSame(_rootUri, result.RootUri);
 
@@ -48,6 +39,8 @@ namespace Abot.Tests.Integration
             Assert.AreEqual(0, descrepancies.Count, "There were discrepancies between expected and actual crawl results. See ouput window for details.");
             Assert.IsTrue(result.Elapsed.TotalSeconds < _maxSecondsToCrawl, string.Format("Elapsed Time to crawl {0}, over {1} second threshold", result.Elapsed.TotalSeconds, _maxSecondsToCrawl));
         }
+
+        protected abstract List<PageResult> GetExpectedCrawlResult();
 
         private void PrintDescrepancies(List<Discrepancy> allDescrepancies)
         {
@@ -77,15 +70,12 @@ namespace Abot.Tests.Integration
 
         private void crawler_PageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
         {
-            lock (_actualCrawledPages)
-            {
-                PageResult pageResult = new PageResult();
-                pageResult.Url = e.CrawledPage.Uri.AbsoluteUri;
-                if(e.CrawledPage.HttpWebResponse != null)
-                    pageResult.HttpStatusCode = Convert.ToInt32(e.CrawledPage.HttpWebResponse.StatusCode);
+            PageResult pageResult = new PageResult();
+            pageResult.Url = e.CrawledPage.Uri.AbsoluteUri;
+            if(e.CrawledPage.HttpWebResponse != null)
+                pageResult.HttpStatusCode = Convert.ToInt32(e.CrawledPage.HttpWebResponse.StatusCode);
 
-                _actualCrawledPages.Add(pageResult);
-            }
+            _actualCrawledPages.Add(pageResult);
         }
 
         private List<Discrepancy> GetDescrepancies()
@@ -165,6 +155,11 @@ namespace Abot.Tests.Integration
                 return true;
 
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return ToString().GetHashCode();
         }
 
         public override string ToString()

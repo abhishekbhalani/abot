@@ -57,25 +57,28 @@ namespace Abot.SiteSimulator.Controllers
 
             PageSpecs finalSpecs = new PageSpecs();
 
-            finalSpecs.Status200Count = pageSpecs.Status200Count;
-            _generatedPagesCounts[200] += pageSpecs.Status200Count;
-            finalSpecs.Status200StartingIndex = (_generatedPagesCounts[200] - pageSpecs.Status200Count) + 1;
+            lock (_generatedPagesCounts)
+            {
+                finalSpecs.Status200Count = pageSpecs.Status200Count;
+                _generatedPagesCounts[200] += pageSpecs.Status200Count;
+                finalSpecs.Status200StartingIndex = (_generatedPagesCounts[200] - pageSpecs.Status200Count) + 1;
 
-            finalSpecs.Status403Count = pageSpecs.Status403Count;
-            _generatedPagesCounts[403] += pageSpecs.Status403Count;
-            finalSpecs.Status403StartingIndex = (_generatedPagesCounts[403] - pageSpecs.Status403Count) + 1;
+                finalSpecs.Status403Count = pageSpecs.Status403Count;
+                _generatedPagesCounts[403] += pageSpecs.Status403Count;
+                finalSpecs.Status403StartingIndex = (_generatedPagesCounts[403] - pageSpecs.Status403Count) + 1;
 
-            finalSpecs.Status404Count = pageSpecs.Status404Count;
-            _generatedPagesCounts[404] += pageSpecs.Status404Count;
-            finalSpecs.Status404StartingIndex = (_generatedPagesCounts[404] - pageSpecs.Status404Count) + 1;
+                finalSpecs.Status404Count = pageSpecs.Status404Count;
+                _generatedPagesCounts[404] += pageSpecs.Status404Count;
+                finalSpecs.Status404StartingIndex = (_generatedPagesCounts[404] - pageSpecs.Status404Count) + 1;
 
-            finalSpecs.Status500Count = pageSpecs.Status500Count;
-            _generatedPagesCounts[500] += pageSpecs.Status500Count;
-            finalSpecs.Status500StartingIndex = (_generatedPagesCounts[500] - pageSpecs.Status500Count) + 1;
+                finalSpecs.Status500Count = pageSpecs.Status500Count;
+                _generatedPagesCounts[500] += pageSpecs.Status500Count;
+                finalSpecs.Status500StartingIndex = (_generatedPagesCounts[500] - pageSpecs.Status500Count) + 1;
 
-            finalSpecs.Status503Count = pageSpecs.Status503Count;
-            _generatedPagesCounts[503] += pageSpecs.Status503Count;
-            finalSpecs.Status503StartingIndex = (_generatedPagesCounts[503] - pageSpecs.Status503Count) + 1;
+                finalSpecs.Status503Count = pageSpecs.Status503Count;
+                _generatedPagesCounts[503] += pageSpecs.Status503Count;
+                finalSpecs.Status503StartingIndex = (_generatedPagesCounts[503] - pageSpecs.Status503Count) + 1;
+            }
 
             return View("GeneratedPage", finalSpecs);
         }

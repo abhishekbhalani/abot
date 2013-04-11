@@ -4,31 +4,14 @@ using System.Threading;
 
 namespace Abot.Core
 {
-    public interface IThreadManager
+    public class ManualThreadManager : IThreadManager
     {
-        /// <summary>
-        /// Max number of threads to use
-        /// </summary>
-        int MaxThreads { get; }
-
-        /// <summary>
-        /// Will perform the action asynchrously on a seperate thread
-        /// </summary>
-        void DoWork(Action action);
-
-        /// <summary>
-        /// Whether there are running threads
-        /// </summary>
-        bool HasRunningThreads();
-    }
-
-    public class ThreadManager : IThreadManager
-    {
-        static ILog _logger = LogManager.GetLogger(typeof(ThreadManager).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);
         object _lock = new object();
         Thread[] _threads = new Thread[10];
+        bool _abortAllCalled = false;
 
-        public ThreadManager(int maxThreads)
+        public ManualThreadManager(int maxThreads)
         {
             if ((maxThreads > 100) || (maxThreads < 1))
                 throw new ArgumentException("MaxThreads must be from 1 to 100");
@@ -52,6 +35,12 @@ namespace Abot.Core
         /// </summary>
         public void DoWork(Action action)
         {
+            if (action == null)
+                throw new ArgumentNullException("action");
+
+            if (_abortAllCalled)
+                throw new InvalidOperationException("Cannot call DoWork() after AbortAll() or Dispose() have been called.");
+
             lock (_lock)
             {
                 int freeThreadIndex = GetFreeThreadIndex();
@@ -75,6 +64,22 @@ namespace Abot.Core
             }
         }
 
+        public void AbortAll()
+        {
+            //Do nothing
+            _abortAllCalled = true;
+        }
+
+        public void Dispose()
+        {
+            AbortAll();
+        }
+
+        private object DoNothing()
+        {
+            return null;
+        }
+
         /// <summary>
         /// Whether there are running threads
         /// </summary>
@@ -82,7 +87,7 @@ namespace Abot.Core
         {
             lock (_lock)
             {
-                for(int i = 0; i < _threads.Length; i++)
+                for (int i = 0; i < _threads.Length; i++)
                 {
                     if (_threads[i] == null)
                     {
@@ -121,7 +126,7 @@ namespace Abot.Core
                     currentIndex++;
                 }
             }
-            return freeThreadIndex;;
+            return freeThreadIndex; ;
         }
     }
 }

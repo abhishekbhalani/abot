@@ -1,10 +1,14 @@
 ﻿using Abot.Poco;
 using log4net;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Handles managing the priority of what pages need to be crawled
+    /// </summary>
     public interface IScheduler
     {
         /// <summary>
@@ -18,16 +22,37 @@ namespace Abot.Core
         void Add(PageToCrawl page);
 
         /// <summary>
+        /// Schedules the param to be crawled
+        /// </summary>
+        void Add(IEnumerable<PageToCrawl> pages);
+
+        /// <summary>
         /// Gets the next page to crawl
         /// </summary>
         PageToCrawl GetNext();
+
+        /// <summary>
+        /// Clear all currently scheduled pages
+        /// </summary>
+        void Clear();
     }
 
     public class FifoScheduler : IScheduler
     {
         static ILog _logger = LogManager.GetLogger(typeof(FifoScheduler).FullName);
-        Queue<PageToCrawl> _pagesToCrawl = new Queue<PageToCrawl>();
-        Object locker = new Object();
+        ConcurrentQueue<PageToCrawl> _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
+        ConcurrentDictionary<string, object> _scheduledOrCrawled = new ConcurrentDictionary<string, object>();
+         
+        bool _allowUriRecrawling = false;
+
+        public FifoScheduler()
+        {
+        }
+
+        public FifoScheduler(bool allowUriRecrawling)
+        {
+            _allowUriRecrawling = allowUriRecrawling;
+        }
 
         /// <summary>
         /// Count of remaining items that are currently scheduled
@@ -36,10 +61,7 @@ namespace Abot.Core
         {
             get
             {
-                lock (locker)
-                {
-                    return _pagesToCrawl.Count;
-                }
+                return _pagesToCrawl.Count;
             }
         }
 
@@ -51,12 +73,28 @@ namespace Abot.Core
             if (page == null)
                 throw new ArgumentNullException("page");
 
-            _logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
-
-            lock (locker)
+            if (_allowUriRecrawling)
             {
+                //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
                 _pagesToCrawl.Enqueue(page);
             }
+            else
+            {
+                if (_scheduledOrCrawled.TryAdd(page.Uri.AbsoluteUri, null))
+                {
+                    //_logger.DebugFormat("Scheduling for crawl [{0}]", page.Uri.AbsoluteUri);
+                    _pagesToCrawl.Enqueue(page);
+                }
+            }
+        }
+
+        public void Add(IEnumerable<PageToCrawl> pages)
+        {
+            if(pages == null)
+                throw new ArgumentNullException("pages");
+
+            foreach (PageToCrawl page in pages)
+                Add(page);
         }
 
         /// <summary>
@@ -65,13 +103,19 @@ namespace Abot.Core
         public PageToCrawl GetNext()
         {
             PageToCrawl nextItem = null;
-            lock (locker)
-            {
-                if(_pagesToCrawl.Count > 0)//issue 14: have to check this again since it may have changed since calling this method
-                    nextItem = _pagesToCrawl.Dequeue();
-            }
+
+            if(_pagesToCrawl.Count > 0)//issue 14: have to check this again since it may have changed since calling this method
+                _pagesToCrawl.TryDequeue(out nextItem);
 
             return nextItem;
+        }
+
+        /// <summary>
+        /// Clear all currently scheduled pages
+        /// </summary>
+        public void Clear()
+        {
+            _pagesToCrawl = new ConcurrentQueue<PageToCrawl>();
         }
     }
 }

@@ -13,27 +13,46 @@ namespace Abot.Tests.Integration
         public CrawlSiteSimulator()
             :base(new Uri("http://localhost:1111/"), 15)
         {
-
+            
         }
 
         [Test]
         public void Crawl_VerifyCrawlResultIsAsExpected()
         {
-            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
-            base.CrawlAndAssert(new WebCrawler());
+            new PageRequester(new CrawlConfiguration{ UserAgentString = "aaa" }).MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+            base.CrawlAndAssert(new PoliteWebCrawler());
         }
 
         [Test]
         public void Crawl_MaxPagesTo5_OnlyCrawls5Pages()
         {
-            new PageRequester("someagentstring").MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+            new PageRequester(new CrawlConfiguration{ UserAgentString = "aaa" }).MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
             
             CrawlConfiguration configuration = new CrawlConfiguration();
             configuration.MaxPagesToCrawl = 5;
 
             int pagesCrawledCount = 0;
 
-            WebCrawler crawler = new WebCrawler(configuration);
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null, null);
+            crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
+
+            crawler.Crawl(new Uri("http://localhost:1111/"));
+
+            Assert.AreEqual(5, pagesCrawledCount);
+        }
+
+        [Test]
+        public void Crawl_MaxPagesTo5_WithCrawlDelay_OnlyCrawls5Pages()
+        {
+            new PageRequester(new CrawlConfiguration{ UserAgentString = "aaa" }).MakeRequest(new Uri("http://localhost:1111/PageGenerator/ClearCounters"));
+
+            CrawlConfiguration configuration = new CrawlConfiguration();
+            configuration.MinCrawlDelayPerDomainMilliSeconds = 1000; //adding delay since it increases the chance of issues with abot crawling more than MaxPagesToCrawl.
+            configuration.MaxPagesToCrawl = 5;
+
+            int pagesCrawledCount = 0;
+
+            PoliteWebCrawler crawler = new PoliteWebCrawler(configuration, null, null, null, null, null, null, null, null);
             crawler.PageCrawlCompletedAsync += (a, b) => pagesCrawledCount++;
 
             crawler.Crawl(new Uri("http://localhost:1111/"));

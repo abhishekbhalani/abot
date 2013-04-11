@@ -3,11 +3,12 @@ using System;
 
 namespace Abot.Crawler
 {
-    public class PageCrawlCompletedArgs : EventArgs
+    public class PageCrawlCompletedArgs : CrawlArgs
     {
         public CrawledPage CrawledPage { get; private set; }
 
-        public PageCrawlCompletedArgs(CrawledPage crawledPage)
+        public PageCrawlCompletedArgs(CrawlContext crawlContext, CrawledPage crawledPage)
+            : base(crawlContext)
         {
             if (crawledPage == null)
                 throw new ArgumentNullException("crawledPage");

@@ -11,7 +11,7 @@ namespace Abot.Tests.Unit.Crawler
         public void Constructor_ValidArg_SetsPublicProperty()
         {
             PageToCrawl page = new CrawledPage(new Uri("http://aaa.com/"));
-            PageCrawlStartingArgs args = new PageCrawlStartingArgs(page);
+            PageCrawlStartingArgs args = new PageCrawlStartingArgs(new CrawlContext(), page);
 
             Assert.AreSame(page, args.PageToCrawl);
         }
@@ -20,7 +20,7 @@ namespace Abot.Tests.Unit.Crawler
         [ExpectedException(typeof(ArgumentNullException))]
         public void Constructor_NullArg()
         {
-            new PageCrawlStartingArgs(null);
+            new PageCrawlStartingArgs(new CrawlContext(), null);
         }
     }
 }

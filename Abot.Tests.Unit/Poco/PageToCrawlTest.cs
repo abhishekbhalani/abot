@@ -16,6 +16,7 @@ namespace Abot.Tests.Unit.Poco
             Assert.AreEqual(false, unitUnderTest.IsInternal);
             Assert.AreEqual(null, unitUnderTest.ParentUri);
             Assert.AreEqual("http://a.com/", unitUnderTest.Uri.AbsoluteUri);
+            Assert.AreEqual(0, unitUnderTest.CrawlDepth);
         }
 
         [Test]

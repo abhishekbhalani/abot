@@ -1,39 +1,49 @@
 ﻿using Abot.Core;
 using NUnit.Framework;
 using System;
+using System.Threading;
 
 namespace Abot.Tests.Unit.Core
 {
     [TestFixture]
-    public class ThreadManagerTest
+    public abstract class ThreadManagerTest
     {
-        ThreadManager _unitUnderTest;
+        IThreadManager _unitUnderTest;
+        const int MAXTHREADS = 10;
+        protected abstract IThreadManager GetInstance(int maxThreads);
 
         [SetUp]
         public void SetUp()
         {
-            _unitUnderTest = new ThreadManager(10);
+            _unitUnderTest = GetInstance(MAXTHREADS);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (_unitUnderTest != null)
+                _unitUnderTest.Dispose();
         }
 
         [Test]
         public void Constructor_CreatesDefaultInstance()
         {
             Assert.IsNotNull(_unitUnderTest);
-            Assert.AreEqual(10, _unitUnderTest.MaxThreads);
+            Assert.AreEqual(MAXTHREADS, _unitUnderTest.MaxThreads);
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_OverMax()
         {
-            _unitUnderTest = new ThreadManager(101);
+            _unitUnderTest = GetInstance(101);
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentException))]
         public void Constructor_BelowMinimum()
         {
-            _unitUnderTest = new ThreadManager(0);
+            _unitUnderTest = GetInstance(0);
         }
 
         [Test]
@@ -57,35 +67,96 @@ namespace Abot.Tests.Unit.Core
         }
 
         [Test]
-        public void DoWork_CompleteWork()
+        public void DoWork_WorkItemsEqualToThreads_WorkIsCompletedAsync()
         {
             int count = 0;
 
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
-            _unitUnderTest.DoWork(() => count++);
+            for (int i = 0; i < MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
 
+            Assert.IsTrue(count < MAXTHREADS);
             System.Threading.Thread.Sleep(20);
-
-            Assert.AreEqual(5, count);
+            Assert.AreEqual(MAXTHREADS, count);
         }
 
         [Test]
-        public void DoWork_NoThreadsAvailable_WaitForAvailableThreadThenDoesWork()
+        public void DoWork_MoreWorkThenThreads_WorkIsCompletedAsync()
         {
-            _unitUnderTest = new ThreadManager(1);
-
-            //Add long running job that will take up the only available thread
-            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(200));
-
-            //This work should still get done
             int count = 0;
-            _unitUnderTest.DoWork(() => count++);
-            System.Threading.Thread.Sleep(20);
+            for (int i = 0; i < 2 * MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
 
-            Assert.AreEqual(1, count);
+            //Assert.IsTrue(count < MAXTHREADS);//Manual has completed more then the thread count by the time it gets here
+            System.Threading.Thread.Sleep(20);
+            Assert.AreEqual(2 * MAXTHREADS, count);
+        }
+
+        [Test]
+        public void DoWork_SingleThreaded_WorkIsCompletedSynchronously()
+        {
+            _unitUnderTest = GetInstance(1);
+
+            int count = 0;
+            for (int i = 0; i < MAXTHREADS; i++)
+            {
+                _unitUnderTest.DoWork(() =>
+                {
+                    System.Threading.Thread.Sleep(5);
+                    Interlocked.Increment(ref count);
+                });
+            }
+
+            Assert.AreEqual(MAXTHREADS, count);
+        }
+
+        [Test]
+        [ExpectedException(typeof(ArgumentNullException))]
+        public void DoWork_ActionIsNull()
+        {
+            _unitUnderTest.DoWork(null);
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))]
+        public void DoWork_CalledAfterAbortAll()
+        {
+            _unitUnderTest.AbortAll();
+            _unitUnderTest.DoWork(() => System.Threading.Thread.Sleep(10));
+        }
+
+        [Test]
+        public void AbortAll_WorkNeverCompleted()
+        {
+            int count = 0;
+
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+            _unitUnderTest.DoWork(() => { System.Threading.Thread.Sleep(1000); count++; });
+
+            _unitUnderTest.AbortAll();
+
+            System.Threading.Thread.Sleep(250);
+            Assert.AreEqual(0, count);
+        }
+
+        [Test]
+        public void Dispose()
+        {
+            Assert.IsTrue(_unitUnderTest is IDisposable);
         }
     }
 }

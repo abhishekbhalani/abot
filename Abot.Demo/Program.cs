@@ -1,9 +1,7 @@
 ﻿
 using Abot.Crawler;
 using Abot.Poco;
-using log4net.Config;
 using System;
-using System.Net;
 
 namespace Abot.Demo
 {
@@ -11,58 +9,157 @@ namespace Abot.Demo
     {
         static void Main(string[] args)
         {
-            XmlConfigurator.Configure();
+            log4net.Config.XmlConfigurator.Configure();
+            PrintDisclaimer();
 
-            //Initialize the crawler
-            WebCrawler crawler = new WebCrawler();
+            Uri uriToCrawl = GetSiteToCrawl(args);
 
-            //Subscribe to any of these asynchronous events, there are also sychronous versions of each
+            IWebCrawler crawler;
+
+            //Uncomment only one of the following to see that instance in action
+            crawler = GetDefaultWebCrawler();
+            //crawler = GetManuallyConfiguredWebCrawler();
+            //crawler = GetCustomBehaviorUsingLambdaWebCrawler();
+
+            //Subscribe to any of these asynchronous events, there are also sychronous versions of each.
+            //This is where you process data about specific events of the crawl
             crawler.PageCrawlStartingAsync += crawler_ProcessPageCrawlStarting;
             crawler.PageCrawlCompletedAsync += crawler_ProcessPageCrawlCompleted;
             crawler.PageCrawlDisallowedAsync += crawler_PageCrawlDisallowed;
             crawler.PageLinksCrawlDisallowedAsync += crawler_PageLinksCrawlDisallowed;
 
             //Start the crawl
-            CrawlResult result = crawler.Crawl(new Uri("http://localhost:1111/"));
+            //This is a synchronous call
+            CrawlResult result = crawler.Crawl(uriToCrawl);
 
-            //Print some result data
-            if (result.ErrorOccurred)
-                Console.WriteLine("Crawl of {0} completed with error: {1}", result.RootUri.AbsoluteUri, result.ErrorMessage);
+            //Now go view the log.txt file that is in the same directory as this executable. It has
+            //all the statements that you were trying to read in the console window :).
+            //Not enough data being logged? Change the app.config file's log4net log level from "INFO" TO "DEBUG"
+
+            PrintDisclaimer();
+        }
+
+        private static IWebCrawler GetDefaultWebCrawler()
+        {
+            return new PoliteWebCrawler();
+        }
+
+        private static IWebCrawler GetManuallyConfiguredWebCrawler()
+        {
+            //Create a config object manually
+            CrawlConfiguration config = new CrawlConfiguration();
+            config.CrawlTimeoutSeconds = 0; 
+            config.DownloadableContentTypes = "text/html, text/plain";
+            config.IsExternalPageCrawlingEnabled = false;
+            config.IsExternalPageLinksCrawlingEnabled = false;
+            config.IsRespectRobotsDotTextEnabled = false;
+            config.IsUriRecrawlingEnabled = false;
+            config.MaxConcurrentThreads = 10;
+            config.MaxPagesToCrawl = 10;
+            config.MaxPagesToCrawlPerDomain = 0;
+            config.MinCrawlDelayPerDomainMilliSeconds = 1000;
+            config.UserAgentString = "abot v@ABOTASSEMBLYVERSION@ http://code.google.com/p/abot";
+
+            //Add you own values without modifying Abot's source code.
+            //These are accessible in CrawlContext.CrawlConfuration.ConfigurationException object throughout the crawl
+            config.ConfigurationExtensions.Add("Somekey1", "SomeValue1");
+            config.ConfigurationExtensions.Add("Somekey2", "SomeValue2");
+
+            //Initialize the crawler with custom configuration created above.
+            //This override the app.config file values
+            return new PoliteWebCrawler(config, null, null, null, null, null, null, null, null);
+        }
+
+        private static IWebCrawler GetCustomBehaviorUsingLambdaWebCrawler()
+        {
+            IWebCrawler crawler = GetDefaultWebCrawler();
+
+            //Register a lambda expression that will make Abot not crawl any url that has the word "ghost" in it.
+            //For example http://a.com/ghost, would not get crawled if the link were found during the crawl.
+            //If you set the log4net log level to "DEBUG" you will see a log message when any page is not allowed to be crawled.
+            //NOTE: This is lambda is run after the regular ICrawlDecsionMaker.ShouldCrawlPage method is run.
+            crawler.ShouldCrawlPage((pageToCrawl, crawlContext) =>
+            {
+                if (pageToCrawl.Uri.AbsoluteUri.Contains("ghost"))
+                    return new CrawlDecision { Allow = false, Reason = "Scared of ghosts" };
+
+                return new CrawlDecision { Allow = true };
+            });
+
+            //Register a lambda expression that will tell Abot to not download the page content for any page after 5th.
+            //Abot will still make the http request but will not read the raw content from the stream
+            //NOTE: This lambda is run after the regular ICrawlDecsionMaker.ShouldDownloadPageContent method is run
+            crawler.ShouldDownloadPageContent((crawledPage, crawlContext) =>
+            {
+                if (crawlContext.CrawledUrls.Count >= 5)
+                    return new CrawlDecision { Allow = false, Reason = "We already downloaded the raw page content for 5 pages" };
+
+                return new CrawlDecision { Allow = true };
+            });
+
+            //Register a lambda expression that will tell Abot to not crawl links on any page that is not internal to the root uri.
+            //NOTE: This lambda is run after the regular ICrawlDecsionMaker.ShouldCrawlPageLinks method is run
+            crawler.ShouldCrawlPageLinks((crawledPage, crawlContext) =>
+            {
+                if (!crawledPage.IsInternal)
+                    return new CrawlDecision { Allow = false, Reason = "We dont crawl links of external pages" };
+
+                return new CrawlDecision { Allow = true };
+            });
+
+            return crawler;
+        }
+
+        private static Uri GetSiteToCrawl(string[] args)
+        {
+            string userInput = "";
+            if (args.Length < 1)
+            {
+                System.Console.WriteLine("Please enter ABSOLUTE url to crawl:");
+                userInput = System.Console.ReadLine();
+            }
             else
-                Console.WriteLine("Crawl of {0} completed without error.", result.RootUri.AbsoluteUri);
+            {
+                userInput = args[0];
+            }
 
-            Console.WriteLine("Completed in {0}", result.Elapsed);
+            if (string.IsNullOrWhiteSpace(userInput))
+                throw new ApplicationException("Site url to crawl is as a required parameter");
+
+            return new Uri(userInput);
+        }
+
+        private static void PrintDisclaimer()
+        {
+            PrintAttentionText("The demo is configured to only crawl a total of 10 pages and will wait 1 second in between http requests. This is to avoid getting you blocked by your isp or the sites you are trying to crawl. You can change these values in the app.config or Abot.Console.exe.config file.");
+        }
+
+        private static void PrintAttentionText(string text)
+        {
+            ConsoleColor originalColor = System.Console.ForegroundColor;
+            System.Console.ForegroundColor = ConsoleColor.Yellow;
+            System.Console.WriteLine(text);
+            System.Console.ForegroundColor = originalColor;
         }
 
         static void crawler_ProcessPageCrawlStarting(object sender, PageCrawlStartingArgs e)
         {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            Console.WriteLine("About to crawl link {0} which was found on page {1}", pageToCrawl.Uri.AbsoluteUri, pageToCrawl.ParentUri.AbsoluteUri);
+            //Process data
         }
 
         static void crawler_ProcessPageCrawlCompleted(object sender, PageCrawlCompletedArgs e)
         {
-            CrawledPage crawledPage = e.CrawledPage;
-
-            if (crawledPage.WebException != null || crawledPage.HttpWebResponse.StatusCode != HttpStatusCode.OK)
-                Console.WriteLine("Crawl of page failed {0}", crawledPage.Uri.AbsoluteUri);
-            else
-                Console.WriteLine("Crawl of page succeeded {0}", crawledPage.Uri.AbsoluteUri);
-
-            if (string.IsNullOrEmpty(crawledPage.RawContent))
-                Console.WriteLine("Page had no content {0}", crawledPage.Uri.AbsoluteUri);
+            //Process data
         }
 
         static void crawler_PageLinksCrawlDisallowed(object sender, PageLinksCrawlDisallowedArgs e)
         {
-            CrawledPage crawledPage = e.CrawledPage;
-            Console.WriteLine("Did not crawl the links on page {0} due to {1}", crawledPage.Uri.AbsoluteUri, e.DisallowedReason);
+            //Process data
         }
 
         static void crawler_PageCrawlDisallowed(object sender, PageCrawlDisallowedArgs e)
         {
-            PageToCrawl pageToCrawl = e.PageToCrawl;
-            Console.WriteLine("Did not crawl page {0} due to {1}", pageToCrawl.Uri.AbsoluteUri, e.DisallowedReason);
+            //Process data
         }
     }
 }

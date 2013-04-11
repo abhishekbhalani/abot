@@ -6,7 +6,6 @@ namespace Abot.Poco
     {
         public CrawlResult()
         {
-            ErrorMessage = "";
         }
 
         /// <summary>
@@ -22,11 +21,22 @@ namespace Abot.Poco
         /// <summary>
         /// Whether or not an error occurred during the crawl that caused it to end prematurely
         /// </summary>
-        public bool ErrorOccurred { get; set; }
+        public bool ErrorOccurred 
+        {
+            get
+            {
+                return (ErrorException != null);
+            }
+        }
 
         /// <summary>
-        /// The error message which describes the condition that prematurely ended the crawl
+        /// The exception that caused the crawl to end prematurely
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public Exception ErrorException { get; set; }
+
+        /// <summary>
+        /// The context of the crawl
+        /// </summary>
+        public CrawlContext CrawlContext { get; set; }
     }
 }
