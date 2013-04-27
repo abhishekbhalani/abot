@@ -64,11 +64,9 @@
   <ItemGroup>
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
     <Compile Include="Core\CachedMemoryMonitor.cs" />
-    <Compile Include="Core\ManualNonBlockingThreadManager.cs" />
     <Compile Include="Core\GcMemoryMonitor.cs" />
     <Compile Include="Core\ManualThreadManager.cs" />
     <Compile Include="Core\MemoryManager.cs" />
-    <Compile Include="Core\ProducerConsumerThreadManager.cs" />
     <Compile Include="Core\HapHyperLinkParser.cs" />
     <Compile Include="Core\CsQueryHyperLinkParser.cs" />
     <Compile Include="Core\CrawlDecisionMaker.cs" />

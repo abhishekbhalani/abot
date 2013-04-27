@@ -4,19 +4,48 @@ using System.Threading;
 
 namespace Abot.Core
 {
+    /// <summary>
+    /// Handles the multithreading implementation details
+    /// </summary>
+    public interface IThreadManager : IDisposable
+    {
+        /// <summary>
+        /// Max number of threads to use.
+        /// </summary>
+        int MaxThreads { get; }
+
+        /// <summary>
+        /// Will perform the action asynchrously on a seperate thread
+        /// </summary>
+        /// <param name="action">The action to perform</param>
+        void DoWork(Action action);
+
+        /// <summary>
+        /// Whether there are running threads
+        /// </summary>
+        bool HasRunningThreads();
+
+        /// <summary>
+        /// Abort all running threads
+        /// </summary>
+        void AbortAll();
+    }
+
     public class ManualThreadManager : IThreadManager
     {
         static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);
-        object _lock = new object();
-        Thread[] _threads = new Thread[10];
         bool _abortAllCalled = false;
+        int _numberOfRunningThreads = 0;
+        int _maxThreads = 0;
+        ManualResetEvent _resetEvent = new ManualResetEvent(true);
+        Object _locker = new Object();
 
         public ManualThreadManager(int maxThreads)
         {
             if ((maxThreads > 100) || (maxThreads < 1))
                 throw new ArgumentException("MaxThreads must be from 1 to 100");
-            else
-                _threads = new Thread[maxThreads];
+
+            _maxThreads = maxThreads;
         }
 
         /// <summary>
@@ -26,7 +55,7 @@ namespace Abot.Core
         {
             get
             {
-                return _threads.Length;
+                return _maxThreads;
             }
         }
 
@@ -41,25 +70,33 @@ namespace Abot.Core
             if (_abortAllCalled)
                 throw new InvalidOperationException("Cannot call DoWork() after AbortAll() or Dispose() have been called.");
 
-            lock (_lock)
+            if (MaxThreads > 1)
             {
-                int freeThreadIndex = GetFreeThreadIndex();
-                while (freeThreadIndex < 0)
+                _resetEvent.WaitOne();
+                lock (_locker)
                 {
-                    _logger.Debug("Waiting for a free thread to do work, sleeping 100 millisec");
-                    System.Threading.Thread.Sleep(100);
-                    freeThreadIndex = GetFreeThreadIndex();
-                }
+                    _numberOfRunningThreads++;
+                    if (_numberOfRunningThreads >= MaxThreads)
+                    {
+                        _logger.DebugFormat("Starting another thread, increasing running threads to [{0}].", _numberOfRunningThreads);
+                        _resetEvent.Reset();
+                    }
 
-                if (MaxThreads > 1)
-                {
-                    _threads[freeThreadIndex] = new Thread(new ThreadStart(action));
-                    _logger.DebugFormat("Doing work on thread Index:[{0}] Id[{1}]", freeThreadIndex, _threads[freeThreadIndex].ManagedThreadId);
-                    _threads[freeThreadIndex].Start();
+                    _logger.DebugFormat("Starting another thread, increasing running threads to [{0}].", _numberOfRunningThreads);
+                    new Thread(() => RunActionOnAThread(action)).Start();
                 }
-                else
+            }
+            else
+            {
+                try
                 {
                     action.Invoke();
+                    _logger.Debug("Action completed successfully.");
+                }
+                catch (Exception e)
+                {
+                    _logger.Error("Error occurred while running action.");
+                    _logger.Error(e);
                 }
             }
         }
@@ -75,58 +112,33 @@ namespace Abot.Core
             AbortAll();
         }
 
-        private object DoNothing()
-        {
-            return null;
-        }
-
-        /// <summary>
-        /// Whether there are running threads
-        /// </summary>
         public bool HasRunningThreads()
         {
-            lock (_lock)
-            {
-                for (int i = 0; i < _threads.Length; i++)
-                {
-                    if (_threads[i] == null)
-                    {
-                        _logger.DebugFormat("Thread Null Index:[{0}]", i);
-                    }
-                    else if (_threads[i].IsAlive)
-                    {
-                        _logger.DebugFormat("Thread Is Running Index:[{0}] Id:[{1}] State:[{2}]", i, _threads[i].ManagedThreadId, _threads[i].ThreadState);
-                        return true;
-                    }
-                    else
-                    {
-                        _logger.DebugFormat("Thread Not Running Index:[{0}] Id:[{1}] State:[{2}]", i, _threads[i].ManagedThreadId, _threads[i].ThreadState);
-                    }
-                }
-            }
-
-            _logger.DebugFormat("No Threads Running!!");
-            return false;
+            return _numberOfRunningThreads > 0;
         }
 
-        private int GetFreeThreadIndex()
+        private void RunActionOnAThread(Action action)
         {
-            int freeThreadIndex = -1;
-            int currentIndex = 0;
-            lock (_lock)
+            try
             {
-                foreach (Thread thread in _threads)
+                action.Invoke();
+                _logger.Debug("Action completed successfully.");
+            }
+            catch (Exception e)
+            {
+                _logger.Error("Error occurred while running action.");
+                _logger.Error(e);
+            }
+            finally
+            {
+                lock (_locker)
                 {
-                    if ((thread == null) || !thread.IsAlive)
-                    {
-                        freeThreadIndex = currentIndex;
-                        break;
-                    }
-
-                    currentIndex++;
+                    _numberOfRunningThreads--;
+                    _logger.DebugFormat("[{0}] threads are running.", _numberOfRunningThreads);
+                    if (_numberOfRunningThreads < MaxThreads)
+                        _resetEvent.Set();
                 }
             }
-            return freeThreadIndex; ;
         }
     }
 }
