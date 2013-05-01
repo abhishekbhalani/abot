@@ -678,8 +678,8 @@ namespace Abot.Crawler
 
         protected virtual void SchedulePageLinks(CrawledPage crawledPage)
         {
-            IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
-            foreach (Uri uri in crawledPageLinks)
+            IEnumerable<Uri> linksToCrawl = _hyperLinkParser.GetLinks(crawledPage);
+            foreach (Uri uri in linksToCrawl)
             {
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
                 try
@@ -693,6 +693,7 @@ namespace Abot.Crawler
                 }
                 catch{}
             }
+            crawledPage.ParsedLinks = linksToCrawl;
         }
 
         protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
