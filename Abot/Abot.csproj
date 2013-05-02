@@ -75,6 +75,7 @@
     <Compile Include="Core\RobotsDotText.cs" />
     <Compile Include="Core\RobotsDotTextFinder.cs" />
     <Compile Include="Core\TaskThreadManager.cs" />
+    <Compile Include="Core\ThreadManager.cs" />
     <Compile Include="Crawler\CrawlArgs.cs" />
     <Compile Include="Crawler\PageLinksCrawlDisallowedArgs.cs" />
     <Compile Include="Crawler\PageCrawlDisallowedArgs.cs" />
