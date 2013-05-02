@@ -579,11 +579,11 @@ namespace Abot.Crawler
                 if (PageSizeIsAboveMax(crawledPage))
                     return;
 
-                FirePageCrawlCompletedEventAsync(crawledPage);
-                FirePageCrawlCompletedEvent(crawledPage);
-
                 if (ShouldCrawlPageLinks(crawledPage))
                     SchedulePageLinks(crawledPage);
+
+                FirePageCrawlCompletedEventAsync(crawledPage);
+                FirePageCrawlCompletedEvent(crawledPage);
             }
             catch(Exception e)
             {
