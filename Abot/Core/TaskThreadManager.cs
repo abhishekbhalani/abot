@@ -12,8 +12,14 @@ namespace Abot.Core
         readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public TaskThreadManager(int maxConcurrentTasks)
-            :base(maxConcurrentTasks)
+            :this(maxConcurrentTasks, null)
         {
+        }
+
+        public TaskThreadManager(int maxConcurrentTasks, CancellationTokenSource cancellationTokenSource)
+            : base(maxConcurrentTasks)
+        {
+            _cancellationTokenSource = cancellationTokenSource ?? new CancellationTokenSource();
         }
 
         public override void AbortAll()

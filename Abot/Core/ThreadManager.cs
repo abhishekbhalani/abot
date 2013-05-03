@@ -59,7 +59,7 @@ namespace Abot.Core
         /// <summary>
         /// Will perform the action asynchrously on a seperate thread
         /// </summary>
-        public void DoWork(Action action)
+        public virtual void DoWork(Action action)
         {
             if (action == null)
                 throw new ArgumentNullException("action");
