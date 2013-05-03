@@ -66,7 +66,7 @@ namespace Abot.Poco
         public long PageSizeInBytes { get; set; }
 
         /// <summary>
-        /// Links parsed from page. This value if set by the WebCrawler.SchedulePageLinks() method only If the "ShouldCrawlPageLinks" rules return true.
+        /// Links parsed from page. This value is set by the WebCrawler.SchedulePageLinks() method only If the "ShouldCrawlPageLinks" rules return true or if the IsForcedLinkParsingEnabled config value is set to true.
         /// </summary>
         public IEnumerable<Uri> ParsedLinks { get; set; }
 
