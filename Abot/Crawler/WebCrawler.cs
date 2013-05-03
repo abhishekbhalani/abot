@@ -2,7 +2,6 @@
 using Abot.Poco;
 using log4net;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Timers;
@@ -160,7 +159,7 @@ namespace Abot.Crawler
             IMemoryManager memoryManager)
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
             CrawlBag = _crawlContext.CrawlBag;
 
             _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
@@ -447,14 +446,10 @@ namespace Abot.Crawler
 
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
-            AbotConfigurationSectionHandler configFromFile = null;
-            try{ configFromFile = AbotConfigurationSectionHandler.LoadFromXml(); } catch {}
+            AbotConfigurationSectionHandler configFromFile = AbotConfigurationSectionHandler.LoadFromXml();
 
             if (configFromFile == null)
-            {
-                _logger.DebugFormat("abot config section was NOT found");
-                return null;
-            }
+                throw new InvalidOperationException("abot config section was NOT found");
 
             _logger.DebugFormat("abot config section was found");
             return configFromFile.Convert();
@@ -579,7 +574,11 @@ namespace Abot.Crawler
                 if (PageSizeIsAboveMax(crawledPage))
                     return;
 
-                if (ShouldCrawlPageLinks(crawledPage))
+                bool shouldCrawlPageLinks = ShouldCrawlPageLinks(crawledPage);
+                if (shouldCrawlPageLinks || _crawlContext.CrawlConfiguration.IsForcedLinkParsingEnabled)
+                    ParsePageLinks(crawledPage);
+
+                if (shouldCrawlPageLinks)
                     SchedulePageLinks(crawledPage);
 
                 FirePageCrawlCompletedEventAsync(crawledPage);
@@ -676,10 +675,14 @@ namespace Abot.Crawler
             }
         }
 
+        protected virtual void ParsePageLinks(CrawledPage crawledPage)
+        {
+            crawledPage.ParsedLinks = _hyperLinkParser.GetLinks(crawledPage);            
+        }
+
         protected virtual void SchedulePageLinks(CrawledPage crawledPage)
         {
-            IEnumerable<Uri> linksToCrawl = _hyperLinkParser.GetLinks(crawledPage);
-            foreach (Uri uri in linksToCrawl)
+            foreach (Uri uri in crawledPage.ParsedLinks)
             {
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
                 try
@@ -693,7 +696,6 @@ namespace Abot.Crawler
                 }
                 catch{}
             }
-            crawledPage.ParsedLinks = linksToCrawl;
         }
 
         protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
