@@ -7,6 +7,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Abot.Tests.Unit.Crawler
 {
@@ -853,6 +854,56 @@ namespace Abot.Tests.Unit.Crawler
             Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
             Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
+
+        [Test]
+        public void Crawl_CancellationRequested_CrawlIsStoppedBeforeCompletion()
+        {
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            System.Timers.Timer timer = new System.Timers.Timer(10);
+            timer.Elapsed += (o, e) =>
+            {
+                cancellationTokenSource.Cancel();
+                timer.Stop();
+                timer.Dispose();
+            };
+            timer.Start();
+
+            PageToCrawl pageToReturn = new PageToCrawl(_rootUri);
+            for (int i = 0; i < 100; i++)
+                _dummyScheduler.Add(pageToReturn);
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri, cancellationTokenSource);
+
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
+            Assert.IsTrue(result.CrawlContext.CancellationTokenSource.IsCancellationRequested);
+        }
+
+        [Test]
+        public void Crawl_CancellationRequestedThroughCrawlDecisionCall_CrawlIsStoppedBeforeCompletion()
+        {
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            PageToCrawl pageToReturn = new PageToCrawl(_rootUri);
+            for (int i = 0; i < 100; i++)
+                _dummyScheduler.Add(pageToReturn);
+
+            _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
+            .Callback<PageToCrawl, CrawlContext>((p, c) =>
+            {
+                c.CancellationTokenSource.Cancel();
+                System.Threading.Thread.Sleep(500);
+            })
+            .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter." });
+
+            CrawlResult result = _unitUnderTest.Crawl(_rootUri, cancellationTokenSource);
+
+            Assert.AreEqual(0, _dummyScheduler.Count);
+            Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
+            Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
+            Assert.IsTrue(result.CrawlContext.CancellationTokenSource.IsCancellationRequested);
+        }
+
 
         [Test]
         public void Crawl_OverCrawlTimeoutSeconds_CrawlIsStoppedBeforeCompletion()

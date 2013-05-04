@@ -4,7 +4,7 @@ using log4net;
 using System;
 using System.Diagnostics;
 using System.Reflection;
-using System.Timers;
+using System.Threading;
 
 namespace Abot.Crawler
 {
@@ -79,6 +79,11 @@ namespace Abot.Crawler
         CrawlResult Crawl(Uri uri);
 
         /// <summary>
+        /// Begins a crawl using the uri param, and can be cancelled using the CancellationToken
+        /// </summary>
+        CrawlResult Crawl(Uri uri, CancellationTokenSource tokenSource);
+
+        /// <summary>
         /// Dynamic object that can hold any value that needs to be available in the crawl context
         /// </summary>
         dynamic CrawlBag { get; set; }
@@ -89,7 +94,8 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         protected bool _crawlComplete = false;
         protected bool _crawlStopReported = false;
-        protected Timer _timeoutTimer;
+        protected bool _crawlCancellationReported = false;
+        protected System.Timers.Timer _timeoutTimer;
         protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
         protected IThreadManager _threadManager;
@@ -183,10 +189,21 @@ namespace Abot.Crawler
         /// </summary>
         public virtual CrawlResult Crawl(Uri uri)
         {
+            return Crawl(uri, null);
+        }
+
+        /// <summary>
+        /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
+        /// </summary>
+        public virtual CrawlResult Crawl(Uri uri, CancellationTokenSource cancellationTokenSource)
+        {
             if (uri == null)
                 throw new ArgumentNullException("uri");
 
             _crawlContext.RootUri = uri;
+
+            if (cancellationTokenSource != null)
+                _crawlContext.CancellationTokenSource = cancellationTokenSource;
 
             _crawlResult = new CrawlResult();
             _crawlResult.RootUri = _crawlContext.RootUri;
@@ -210,7 +227,7 @@ namespace Abot.Crawler
 
             if (_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
             {
-                _timeoutTimer = new Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
+                _timeoutTimer = new System.Timers.Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
                 _timeoutTimer.Elapsed += HandleCrawlTimeout;
                 _timeoutTimer.Start();
             }
@@ -489,6 +506,8 @@ namespace Abot.Crawler
         protected virtual void RunPreWorkChecks()
         {
             CheckMemoryUsage();
+            CheckForCancellationRequest();
+            CheckForHardStopRequest();
             CheckForStopRequest();
         }
 
@@ -516,24 +535,32 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void CheckForStopRequest()
+        protected virtual void CheckForCancellationRequest()
         {
-            if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
+            if (_crawlContext.CancellationTokenSource.IsCancellationRequested)
+            {
+                if (!_crawlCancellationReported)
+                {
+                    string message = string.Format("Crawl cancellation requested for site [{0}]!", _crawlContext.RootUri);
+                    _logger.Fatal(message);
+                    _crawlResult.ErrorException = new OperationCanceledException(message, _crawlContext.CancellationTokenSource.Token);
+                    _crawlContext.IsCrawlHardStopRequested = true;
+                    _crawlCancellationReported = true;
+                }
+            }
+        }
+
+        protected virtual void CheckForHardStopRequest()
+        {
+            if (_crawlContext.IsCrawlHardStopRequested)
             {
                 if (!_crawlStopReported)
                 {
-                    if(_crawlContext.IsCrawlHardStopRequested)
-                        _logger.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
-                    else
-                        _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
-
+                    _logger.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
                     _crawlStopReported = true;
                 }
-                _scheduler.Clear(); 
-            }
 
-            if (_crawlContext.IsCrawlHardStopRequested)
-            {
+                _scheduler.Clear();
                 _threadManager.AbortAll();
                 _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
 
@@ -549,9 +576,22 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
+        protected virtual void CheckForStopRequest()
         {
-            Timer elapsedTimer = sender as Timer;
+            if (_crawlContext.IsCrawlStopRequested)
+            {
+                if (!_crawlStopReported)
+                {
+                    _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
+                    _crawlStopReported = true;
+                }
+                _scheduler.Clear();
+            }
+        }
+
+        protected virtual void HandleCrawlTimeout(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            System.Timers.Timer elapsedTimer = sender as System.Timers.Timer;
             if (elapsedTimer != null)
                 elapsedTimer.Stop();
 
