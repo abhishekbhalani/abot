@@ -1,6 +1,5 @@
 ﻿using Abot.Core;
 using NUnit.Framework;
-using System;
 using System.Threading;
 
 namespace Abot.Tests.Unit.Core
@@ -47,8 +46,8 @@ namespace Abot.Tests.Unit.Core
 
             cancellationTokenSource.Cancel();
 
-            System.Threading.Thread.Sleep(250);
-            Assert.IsTrue(count <= 2);
+            System.Threading.Thread.Sleep(500);
+            Assert.IsTrue(count < 5);
         }
     }
 }
