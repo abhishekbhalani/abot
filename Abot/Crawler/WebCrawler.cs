@@ -659,6 +659,7 @@ namespace Abot.Crawler
                 FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
             }
 
+            SignalCrawlStopIfNeeded(shouldCrawlPageLinksDecision);
             return shouldCrawlPageLinksDecision.Allow;
         }
 
@@ -679,6 +680,7 @@ namespace Abot.Crawler
                 FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
             }
 
+            SignalCrawlStopIfNeeded(shouldCrawlPageDecision);
             return shouldCrawlPageDecision.Allow;
         }
 
@@ -744,6 +746,7 @@ namespace Abot.Crawler
             if (decision.Allow)
                 decision = (_shouldDownloadPageContentDecisionMaker != null) ? _shouldDownloadPageContentDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
 
+            SignalCrawlStopIfNeeded(decision);
             return decision;
         }
 
@@ -761,6 +764,20 @@ namespace Abot.Crawler
             foreach (string key in config.ConfigurationExtensions.Keys)
             {
                 _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
+            }
+        }
+
+        protected virtual void SignalCrawlStopIfNeeded(CrawlDecision decision)
+        {
+            if (decision.ShouldHardStopCrawl)
+            {
+                _logger.InfoFormat("Decision marked crawl [Hard Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                _crawlContext.IsCrawlHardStopRequested = decision.ShouldHardStopCrawl;
+            }
+            else if (decision.ShouldStopCrawl)
+            {
+                _logger.InfoFormat("Decision marked crawl [Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                _crawlContext.IsCrawlStopRequested = decision.ShouldStopCrawl;
             }
         }
     }

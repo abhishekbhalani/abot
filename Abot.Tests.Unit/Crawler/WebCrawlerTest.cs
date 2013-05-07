@@ -50,6 +50,12 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
+        public void Constructor_LoadsConfigFromFile()
+        {
+            new PoliteWebCrawler();
+        }
+
+        [Test]
         public void Crawl_CallsDependencies()
         {
             Uri uri1 = new Uri(_rootUri.AbsoluteUri + "a.html");
@@ -819,10 +825,9 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
                 .Callback<PageToCrawl, CrawlContext>((p, c) =>
                 {
-                    c.IsCrawlStopRequested = true;
                     System.Threading.Thread.Sleep(500);
                 })
-                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter." });
+                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter.", ShouldStopCrawl = true });
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
@@ -842,10 +847,9 @@ namespace Abot.Tests.Unit.Crawler
             _fakeCrawlDecisionMaker.Setup(f => f.ShouldCrawlPage(It.IsAny<PageToCrawl>(), It.IsAny<CrawlContext>()))
                 .Callback<PageToCrawl, CrawlContext>((p, c) =>
                 {
-                    c.IsCrawlHardStopRequested = true;
                     System.Threading.Thread.Sleep(500);
                 })
-                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter." });
+                .Returns(new CrawlDecision { Allow = false, Reason = "Should have timed out so this crawl decision doesn't matter.", ShouldHardStopCrawl = true });
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri);
 
