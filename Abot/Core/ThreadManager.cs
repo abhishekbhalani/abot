@@ -33,7 +33,7 @@ namespace Abot.Core
 
     public abstract class ThreadManager : IThreadManager
     {
-        static ILog _logger = LogManager.GetLogger(typeof(ManualThreadManager).FullName);
+        static ILog _logger = LogManager.GetLogger(typeof(ThreadManager).FullName);
         protected bool _abortAllCalled = false;
         protected int _numberOfRunningThreads = 0;
         protected ManualResetEvent _resetEvent = new ManualResetEvent(true);
@@ -108,20 +108,27 @@ namespace Abot.Core
                 action.Invoke();
                 _logger.Debug("Action completed successfully.");
             }
+            catch (OperationCanceledException oce)
+            {
+                _logger.DebugFormat("Thread cancelled.");
+                throw;
+            }
             catch (Exception e)
             {
                 _logger.Error("Error occurred while running action.");
                 _logger.Error(e);
             }
-
-            if (decrementRunningThreadCountOnCompletion)
+            finally
             {
-                lock (_locker)
+                if (decrementRunningThreadCountOnCompletion)
                 {
-                    _numberOfRunningThreads--;
-                    _logger.DebugFormat("[{0}] threads are running.", _numberOfRunningThreads);
-                    if (_numberOfRunningThreads < MaxThreads)
-                        _resetEvent.Set();
+                    lock (_locker)
+                    {
+                        _numberOfRunningThreads--;
+                        _logger.DebugFormat("[{0}] threads are running.", _numberOfRunningThreads);
+                        if (_numberOfRunningThreads < MaxThreads)
+                            _resetEvent.Set();
+                    }
                 }
             }
         }

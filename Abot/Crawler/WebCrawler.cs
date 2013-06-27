@@ -168,7 +168,7 @@ namespace Abot.Crawler
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
             CrawlBag = _crawlContext.CrawlBag;
 
-            _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            _threadManager = threadManager ?? new TaskThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
@@ -609,20 +609,33 @@ namespace Abot.Crawler
                 if (!ShouldCrawlPage(pageToCrawl))
                     return;
 
+                ThrowIfCancellationRequested();
+
                 CrawledPage crawledPage = CrawlThePage(pageToCrawl);
 
                 if (PageSizeIsAboveMax(crawledPage))
                     return;
 
+                ThrowIfCancellationRequested();
+
                 bool shouldCrawlPageLinks = ShouldCrawlPageLinks(crawledPage);
                 if (shouldCrawlPageLinks || _crawlContext.CrawlConfiguration.IsForcedLinkParsingEnabled)
                     ParsePageLinks(crawledPage);
 
+                ThrowIfCancellationRequested();
+
                 if (shouldCrawlPageLinks)
                     SchedulePageLinks(crawledPage);
 
+                ThrowIfCancellationRequested();
+
                 FirePageCrawlCompletedEventAsync(crawledPage);
                 FirePageCrawlCompletedEvent(crawledPage);
+            }
+            catch(OperationCanceledException oce)
+            {
+                _logger.DebugFormat("Thread cancelled while crawling/processing page [{0}]", pageToCrawl.Uri);
+                throw;
             }
             catch(Exception e)
             {
@@ -632,6 +645,12 @@ namespace Abot.Crawler
 
                 _crawlContext.IsCrawlHardStopRequested = true;
             }
+        }
+
+        protected virtual void ThrowIfCancellationRequested()
+        {
+            if (_crawlContext.CancellationTokenSource != null && _crawlContext.CancellationTokenSource.IsCancellationRequested)
+                _crawlContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
         protected virtual bool PageSizeIsAboveMax(CrawledPage crawledPage)

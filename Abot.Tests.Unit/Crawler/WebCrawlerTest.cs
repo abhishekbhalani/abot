@@ -877,6 +877,8 @@ namespace Abot.Tests.Unit.Crawler
                 _dummyScheduler.Add(pageToReturn);
 
             CrawlResult result = _unitUnderTest.Crawl(_rootUri, cancellationTokenSource);
+            
+            System.Threading.Thread.Sleep(30);
 
             Assert.AreEqual(0, _dummyScheduler.Count);
             Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);

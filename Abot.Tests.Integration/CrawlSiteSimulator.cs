@@ -84,7 +84,7 @@ namespace Abot.Tests.Integration
         public void Crawl_Synchronous_CancellationTokenCancelled_StopsCrawl()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            System.Timers.Timer timer = new System.Timers.Timer(10);
+            System.Timers.Timer timer = new System.Timers.Timer(800);
             timer.Elapsed += (o, e) =>
             {
                 cancellationTokenSource.Cancel();
@@ -104,7 +104,7 @@ namespace Abot.Tests.Integration
         public void Crawl_Asynchronous_CancellationTokenCancelled_StopsCrawl()
         {
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            System.Timers.Timer timer = new System.Timers.Timer(10);
+            System.Timers.Timer timer = new System.Timers.Timer(800);
             timer.Elapsed += (o, e) =>
             {
                 cancellationTokenSource.Cancel();
