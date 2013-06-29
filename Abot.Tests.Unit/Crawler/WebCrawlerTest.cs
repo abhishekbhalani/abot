@@ -56,6 +56,13 @@ namespace Abot.Tests.Unit.Crawler
         }
 
         [Test]
+        public void Constructor_ConfigValueMaxConcurrentThreadsIsZero_DoesNotThrowException()
+        {
+            _dummyConfiguration.MaxConcurrentThreads = 0;
+            _unitUnderTest = new PoliteWebCrawler(_dummyConfiguration, _fakeCrawlDecisionMaker.Object, null, _dummyScheduler, _fakeHttpRequester.Object, _fakeHyperLinkParser.Object, _fakeMemoryManager.Object, _fakeDomainRateLimiter.Object, _fakeRobotsDotTextFinder.Object);
+        }
+
+        [Test]
         public void Crawl_CallsDependencies()
         {
             Uri uri1 = new Uri(_rootUri.AbsoluteUri + "a.html");
@@ -994,6 +1001,8 @@ namespace Abot.Tests.Unit.Crawler
             Assert.IsFalse(result.CrawlContext.IsCrawlStopRequested);
             Assert.IsTrue(result.CrawlContext.IsCrawlHardStopRequested);
         }
+
+
 
         private void ThrowExceptionWhen_PageCrawlStarting(object sender, PageCrawlStartingArgs e)
         {
