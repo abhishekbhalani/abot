@@ -13,16 +13,18 @@ namespace Abot.Core
         string filePath = "urlRepository";
         int totalFiles = 0;
         static readonly object filelocker = new object();
+        static readonly object WritingRepoLocker = new object();
         JavaScriptSerializer serializer = new JavaScriptSerializer();
         MemoryPageToCrawlRepository pagesToCrawlMemoryRepositroy = new MemoryPageToCrawlRepository();
         MemoryPageToCrawlRepository pagesToCrawlMemoryRepositroyForWriting = new MemoryPageToCrawlRepository();
-        int maxObjectsForMemory = 5000;
+        int maxObjectsForMemory = 10000;
         Thread memoryLoader = null;
         Thread memoryFlusher = null;
         bool initialFilled = false;
         bool ensureFifo = true;
         int threadSleep = 5000;
-        public FilePagesToCrawlRepository(int maxPagesForMemory = 5000, int watcherDelayInMS = 5000, bool Fifo = true)
+        int pagesPerFile = 1000;
+        public FilePagesToCrawlRepository(int maxPagesForMemory = 10000, int watcherDelayInMS = 5000, bool Fifo = true)
         {
             ensureFifo = Fifo;
             maxObjectsForMemory = maxPagesForMemory;
@@ -67,22 +69,35 @@ namespace Abot.Core
             {
                 try
                 {
-                    for (int x = 0; x < pagesToCrawlMemoryRepositroyForWriting.Count(); x++)
+                    if (pagesToCrawlMemoryRepositroyForWriting.Count() > pagesPerFile)
                     {
-                        var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
-                        if (page != null)
+                        lock (WritingRepoLocker)
                         {
-                            Interlocked.Increment(ref totalFiles);
+                            int loopAmt = Convert.ToInt32(Math.Floor(Convert.ToDouble(pagesToCrawlMemoryRepositroyForWriting.Count()) / Convert.ToDouble(pagesPerFile)));
 
-                            var json = serializer.Serialize(page);
-                            //Filenames use ticks to be able to be sorted and combine with guid at end to ensure uniqueness if written at same tick.
-                            lock (filelocker)
+                            for (int y = 0; y < loopAmt; y++)
                             {
-                                using (StreamWriter file = new StreamWriter(filePath + DateTime.Now.Ticks + Guid.NewGuid().ToString("N").Substring(0, 12)))
+                                List<PageToCrawl> pages = new List<PageToCrawl>();
+                                for (int x = 0; x < pagesPerFile; x++)
                                 {
-                                    file.WriteLine(json);
-                                    file.Close();
+                                    var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                                    if (page != null)
+                                    {
+                                        pages.Add(page);
+                                    }
                                 }
+                                var json = serializer.Serialize(pages);
+                                //Filenames use ticks to be able to be sorted and combine with guid at end to ensure uniqueness if written at same tick.
+                                lock (filelocker)
+                                {
+                                    using (StreamWriter file = new StreamWriter(filePath + DateTime.Now.Ticks + Guid.NewGuid().ToString("N").Substring(0, 12)))
+                                    {
+                                        file.WriteLine(json);
+                                        file.Close();
+                                    }
+                                }
+
+                                Interlocked.Increment(ref totalFiles);
                             }
                         }
                     }
@@ -113,17 +128,20 @@ namespace Abot.Core
                     }
                     else
                     {
-                        var memWriteAmt = pagesToCrawlMemoryRepositroyForWriting.Count();
-                        if (memWriteAmt < loopAmt)
+                        lock (WritingRepoLocker)
                         {
-                            loopAmt = memWriteAmt;
-                        }
-                        for (int x = 0; x < loopAmt; x++)
-                        {
-                            var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
-                            if (page != null)
+                            var memWriteAmt = pagesToCrawlMemoryRepositroyForWriting.Count();
+                            if (memWriteAmt < loopAmt)
                             {
-                                pagesToCrawlMemoryRepositroy.Add(page);
+                                loopAmt = memWriteAmt;
+                            }
+                            for (int x = 0; x < loopAmt; x++)
+                            {
+                                var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                                if (page != null)
+                                {
+                                    pagesToCrawlMemoryRepositroy.Add(page);
+                                }
                             }
                         }
                         loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
@@ -144,25 +162,30 @@ namespace Abot.Core
         public PageToCrawl GetNext()
         {
             PageToCrawl rPage = null;
-            if (maxObjectsForMemory > 0)
+            rPage = pagesToCrawlMemoryRepositroy.GetNext();
+            if (rPage != null)
             {
-                rPage = pagesToCrawlMemoryRepositroy.GetNext();
-                if (rPage != null)
-                {
-                    return rPage;
-                }
+                return rPage;
             }
             if (ensureFifo)
             {
                 rPage = GetNextDisk();
                 if (rPage == null)
                 {
-                    rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+
+                    lock (WritingRepoLocker)
+                    {
+                        rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                    }
                 }
             }
             else
             {
-                rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+
+                lock (WritingRepoLocker)
+                {
+                    rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                }
                 if (rPage == null)
                 {
                     rPage = GetNextDisk();
@@ -178,6 +201,7 @@ namespace Abot.Core
             {
                 var fNames = (from f in Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly) orderby f select f).ToList();
 
+                numberToFill = Convert.ToInt32(Math.Ceiling(Convert.ToDouble(numberToFill) / Convert.ToDouble(pagesPerFile)));
                 if (fNames.Count() < numberToFill)
                 {
                     numberToFill = fNames.Count();
@@ -186,11 +210,20 @@ namespace Abot.Core
                 {
                     try
                     {
+                        List<PageToCrawl> pages = null;
                         using (StreamReader file = new StreamReader(fNames[x]))
                         {
-                            pagesToCrawlMemoryRepositroy.Add(serializer.Deserialize<PageToCrawl>(file.ReadToEnd()));
+                            pages = serializer.Deserialize<List<PageToCrawl>>(file.ReadToEnd());
                         }
                         File.Delete(fNames[x]);
+                        if (pages != null && pages.Count() > 0)
+                        {
+                            foreach (var p in pages)
+                            {
+                                pagesToCrawlMemoryRepositroy.Add(p);
+                            }
+                        }
+
                         Interlocked.Decrement(ref totalFiles);
                     }
                     catch
@@ -207,12 +240,23 @@ namespace Abot.Core
                 string fName = (from f in Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly) orderby f select f).FirstOrDefault();
                 if (fName != null && fName != "")
                 {
+                    List<PageToCrawl> pages = null;
                     using (StreamReader file = new StreamReader(fName))
                     {
-                        page = serializer.Deserialize<PageToCrawl>(file.ReadToEnd());
+                        pages = serializer.Deserialize<List<PageToCrawl>>(file.ReadToEnd());
                     }
                     File.Delete(fName);
+
                     Interlocked.Decrement(ref totalFiles);
+                    if (pages != null && pages.Count() > 0)
+                    {
+                        page = pages[0];
+                        pages.RemoveAt(0);
+                        foreach (var p in pages)
+                        {
+                            pagesToCrawlMemoryRepositroy.Add(p);
+                        }
+                    }
                 }
             }
             return page;
@@ -229,12 +273,8 @@ namespace Abot.Core
 
         public int Count()
         {
-            return totalFiles + pagesToCrawlMemoryRepositroy.Count() + pagesToCrawlMemoryRepositroyForWriting.Count();
+            return totalFiles * pagesPerFile + pagesToCrawlMemoryRepositroy.Count() + pagesToCrawlMemoryRepositroyForWriting.Count();
         }
 
-        protected int FullCount()
-        {
-            return Directory.GetFiles(filePath, "*.*", SearchOption.TopDirectoryOnly).Length;
-        }
     }
 }
