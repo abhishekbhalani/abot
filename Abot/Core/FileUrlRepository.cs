@@ -11,7 +11,7 @@ namespace Abot.Core
     public class FileUrlRepository : ICrawledUrlRepository, IDisposable
     {
         MD5 md5 = MD5.Create();
-        volatile bool creatingFile = false;
+        volatile bool creatingDirectory = false;
         static readonly object directoryLocker = new object();
         public FileUrlRepository()
         {
@@ -38,16 +38,16 @@ namespace Abot.Core
         }
         protected bool Contains(string path)
         {
-            while (creatingFile == true)
+            while (creatingDirectory == true)
             {
                 Thread.Sleep(100);
             }
-            return File.Exists(path);
+            return Directory.Exists(path);
         }
         public bool AddIfNew(Uri uri)
         {
-            var fileName = filePath(uri);
-            if (Contains(fileName))
+            var directoryName = filePath(uri);
+            if (Contains(directoryName))
             {
                 return false;
             }
@@ -55,8 +55,8 @@ namespace Abot.Core
             {
                 try
                 {
-                    creatingFile = true;
-                    File.Create(fileName);
+                    creatingDirectory = true;
+                    Directory.CreateDirectory(directoryName);
 
                 }
                 catch (Exception e)
@@ -64,7 +64,7 @@ namespace Abot.Core
                 }
                 finally
                 {
-                    creatingFile = false;
+                    creatingDirectory = false;
                 }
                 return true;
             }
@@ -72,10 +72,9 @@ namespace Abot.Core
         }
         protected string filePath(Uri uri)
         {
-            var fileName = BitConverter.ToString(md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(uri.AbsoluteUri))).Replace("-", string.Empty);
+            var directoryName = BitConverter.ToString(md5.ComputeHash(ASCIIEncoding.ASCII.GetBytes(uri.AbsoluteUri))).Replace("-", string.Empty);
 
-            Directory.CreateDirectory("crawledURLS\\" + uri.Authority + "\\" + fileName.Substring(0, 4) + "\\");
-            return "crawledURLS\\" + uri.Authority + "\\" + fileName.Substring(0, 4) + "\\" + fileName;
+            return "crawledURLS\\" + uri.Authority + "\\" + directoryName.Substring(0, 4) + "\\" + directoryName;
         }
 
     }
