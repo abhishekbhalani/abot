@@ -748,7 +748,7 @@ namespace Abot.Crawler
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
                 try
                 {
-                    PageToCrawl page = new CrawledPage(uri);
+                    PageToCrawl page = new PageToCrawl(uri);
                     page.ParentUri = crawledPage.Uri;
                     page.CrawlDepth = crawledPage.CrawlDepth + 1;
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);

@@ -18,6 +18,7 @@ namespace Abot.Core
         MemoryPageToCrawlRepository pagesToCrawlMemoryRepositroyForWriting = new MemoryPageToCrawlRepository();
         int maxObjectsForMemory = 5000;
         Thread memoryLoader = null;
+        Thread memoryFlusher = null;
         bool initialFilled = false;
         int threadSleep = 5000;
         public FilePagesToCrawlRepository(int maxPagesForMemory = 5000, int watcherDelayInMS = 5000)
@@ -29,6 +30,9 @@ namespace Abot.Core
             memoryLoader = new Thread(new ThreadStart(monitorDisk));
             memoryLoader.IsBackground = true;
             memoryLoader.Start();
+            memoryFlusher = new Thread(new ThreadStart(monitorMemory));
+            memoryFlusher.IsBackground = true;
+            memoryFlusher.Start();
         }
         ~FilePagesToCrawlRepository()
         {
@@ -54,26 +58,13 @@ namespace Abot.Core
                 pagesToCrawlMemoryRepositroyForWriting.Add(page);
             }
         }
-        protected void monitorDisk()
+        protected void monitorMemory()
         {
 
             while (1 == 1)
             {
                 try
                 {
-                    int loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
-                    if (totalFiles < loopAmt)
-                    {
-                        loopAmt = totalFiles;
-                    }
-                    for (int x = 0; x < loopAmt; x++)
-                    {
-                        var item = GetNextDisk();
-                        if (item != null)
-                        {
-                            pagesToCrawlMemoryRepositroy.Add(item);
-                        }
-                    }
                     for (int x = 0; x < pagesToCrawlMemoryRepositroyForWriting.Count(); x++)
                     {
                         var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
@@ -101,6 +92,28 @@ namespace Abot.Core
                 Thread.Sleep(threadSleep);
             }
         }
+        protected void monitorDisk()
+        {
+
+            while (1 == 1)
+            {
+                Console.WriteLine(pagesToCrawlMemoryRepositroy.Count() + " : " + totalFiles + " : " + pagesToCrawlMemoryRepositroyForWriting.Count());
+                try
+                {
+                    int loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
+                    if (totalFiles < loopAmt)
+                    {
+                        loopAmt = totalFiles;
+                    }
+                    FillMemoryFromDisk(loopAmt);
+                }
+                catch (Exception e)
+                {
+
+                }
+                Thread.Sleep(threadSleep);
+            }
+        }
         public PageToCrawl GetNext()
         {
             PageToCrawl rPage = null;
@@ -113,20 +126,46 @@ namespace Abot.Core
                 }
             }
             rPage = GetNextDisk();
-            if (rPage == null )
+            if (rPage == null)
             {
                 rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
             }
             return rPage;
 
         }
+        protected void FillMemoryFromDisk(int numberToFill)
+        {
+            lock (filelocker)
+            {
+                var fNames = (from f in Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly) orderby f select f).ToList();
 
+                if (fNames.Count() < numberToFill)
+                {
+                    numberToFill = fNames.Count();
+                }
+                for(int x=0;x<numberToFill;x++)
+                {
+                    try
+                    {
+                        using (StreamReader file = new StreamReader(fNames[x]))
+                        {
+                            pagesToCrawlMemoryRepositroy.Add(serializer.Deserialize<PageToCrawl>(file.ReadToEnd()));
+                        }
+                        File.Delete(fNames[x]);
+                        Interlocked.Decrement(ref totalFiles);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        }
         protected PageToCrawl GetNextDisk()
         {
             PageToCrawl page = null;
             lock (filelocker)
             {
-                string fName = (from f in Directory.GetFiles(filePath, "*.*", SearchOption.TopDirectoryOnly) orderby f select f).FirstOrDefault();
+                string fName = (from f in Directory.EnumerateFiles(filePath, "*.*", SearchOption.TopDirectoryOnly) orderby f select f).FirstOrDefault();
                 if (fName != null && fName != "")
                 {
                     using (StreamReader file = new StreamReader(fName))
