@@ -20,9 +20,11 @@ namespace Abot.Core
         Thread memoryLoader = null;
         Thread memoryFlusher = null;
         bool initialFilled = false;
+        bool ensureFifo = true;
         int threadSleep = 5000;
-        public FilePagesToCrawlRepository(int maxPagesForMemory = 5000, int watcherDelayInMS = 5000)
+        public FilePagesToCrawlRepository(int maxPagesForMemory = 5000, int watcherDelayInMS = 5000, bool Fifo = true)
         {
+            ensureFifo = Fifo;
             maxObjectsForMemory = maxPagesForMemory;
             threadSleep = watcherDelayInMS;
             filePath += "\\" + Guid.NewGuid().ToString("N").Substring(0, 6) + "\\";
@@ -101,11 +103,36 @@ namespace Abot.Core
                 try
                 {
                     int loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
-                    if (totalFiles < loopAmt)
+                    if (ensureFifo)
                     {
-                        loopAmt = totalFiles;
+                        if (totalFiles < loopAmt)
+                        {
+                            loopAmt = totalFiles;
+                        }
+                        FillMemoryFromDisk(loopAmt);
                     }
-                    FillMemoryFromDisk(loopAmt);
+                    else
+                    {
+                        var memWriteAmt = pagesToCrawlMemoryRepositroyForWriting.Count();
+                        if (memWriteAmt < loopAmt)
+                        {
+                            loopAmt = memWriteAmt;
+                        }
+                        for (int x = 0; x < loopAmt; x++)
+                        {
+                            var page = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                            if (page != null)
+                            {
+                                pagesToCrawlMemoryRepositroy.Add(page);
+                            }
+                        }
+                        loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
+                        if (totalFiles < loopAmt)
+                        {
+                            loopAmt = totalFiles;
+                        }
+                        FillMemoryFromDisk(loopAmt);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -125,11 +152,23 @@ namespace Abot.Core
                     return rPage;
                 }
             }
-            rPage = GetNextDisk();
-            if (rPage == null)
+            if (ensureFifo)
+            {
+                rPage = GetNextDisk();
+                if (rPage == null)
+                {
+                    rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                }
+            }
+            else
             {
                 rPage = pagesToCrawlMemoryRepositroyForWriting.GetNext();
+                if (rPage == null)
+                {
+                    rPage = GetNextDisk();
+                }
             }
+
             return rPage;
 
         }
@@ -143,7 +182,7 @@ namespace Abot.Core
                 {
                     numberToFill = fNames.Count();
                 }
-                for(int x=0;x<numberToFill;x++)
+                for (int x = 0; x < numberToFill; x++)
                 {
                     try
                     {
