@@ -13,6 +13,10 @@ namespace Abot.Poco
             Uri = uri;
             PageBag = new ExpandoObject();
         }
+        //Needed for serialization
+        public PageToCrawl()
+        {
+        }
 
         /// <summary>
         /// The uri of the page

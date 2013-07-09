@@ -1,4 +1,5 @@
 ﻿
+using Abot.Core;
 using Abot.Crawler;
 using Abot.Poco;
 using System;
@@ -41,7 +42,7 @@ namespace Abot.Demo
 
         private static IWebCrawler GetDefaultWebCrawler()
         {
-            return new PoliteWebCrawler();
+            return new PoliteWebCrawler(null,null,null,new FifoScheduler(false,new FileUrlRepository(), new FilePagesToCrawlRepository()),null,new Core.CSQueryHyperlinkParser(),null,null,null);
         }
 
         private static IWebCrawler GetManuallyConfiguredWebCrawler()
