@@ -156,24 +156,24 @@ namespace Abot.Crawler
         /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
         /// <param name="crawlConfiguration">Configurable crawl values</param>
         public WebCrawler(
-            CrawlConfiguration crawlConfiguration, 
-            ICrawlDecisionMaker crawlDecisionMaker, 
-            IThreadManager threadManager, 
-            IScheduler scheduler, 
-            IPageRequester httpRequester, 
-            IHyperLinkParser hyperLinkParser, 
+            CrawlConfiguration crawlConfiguration,
+            ICrawlDecisionMaker crawlDecisionMaker,
+            IThreadManager threadManager,
+            IScheduler scheduler,
+            IPageRequester httpRequester,
+            IHyperLinkParser hyperLinkParser,
             IMemoryManager memoryManager)
         {
             _crawlContext = new CrawlContext();
             _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
             CrawlBag = _crawlContext.CrawlBag;
 
-            _threadManager = threadManager ?? new TaskThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads > 0 ? _crawlContext.CrawlConfiguration.MaxConcurrentThreads: System.Environment.ProcessorCount);
+            _threadManager = threadManager ?? new TaskThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads > 0 ? _crawlContext.CrawlConfiguration.MaxConcurrentThreads : System.Environment.ProcessorCount);
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
-            if(_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb > 0
+            if (_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb > 0
                 || _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb > 0)
                 _memoryManager = memoryManager ?? new MemoryManager(new CachedMemoryMonitor(new GcMemoryMonitor(), _crawlContext.CrawlConfiguration.MaxMemoryUsageCacheTimeInSeconds));
 
@@ -245,11 +245,11 @@ namespace Abot.Crawler
             }
             finally
             {
-                if(_threadManager != null)
+                if (_threadManager != null)
                     _threadManager.Dispose();
             }
 
-            if(_timeoutTimer != null)
+            if (_timeoutTimer != null)
                 _timeoutTimer.Stop();
 
             timer.Stop();
@@ -259,7 +259,7 @@ namespace Abot.Crawler
                 _crawlContext.MemoryUsageAfterCrawlInMb = _memoryManager.GetCurrentUsageInMb();
                 _logger.InfoFormat("Ending memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
             }
-           
+
             _crawlResult.Elapsed = timer.Elapsed;
             _logger.InfoFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
@@ -513,7 +513,7 @@ namespace Abot.Crawler
 
         protected virtual void CheckMemoryUsage()
         {
-            if (_memoryManager == null 
+            if (_memoryManager == null
                 || _crawlContext.IsCrawlHardStopRequested
                 || _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb < 1)
                 return;
@@ -632,12 +632,12 @@ namespace Abot.Crawler
                 FirePageCrawlCompletedEventAsync(crawledPage);
                 FirePageCrawlCompletedEvent(crawledPage);
             }
-            catch(OperationCanceledException oce)
+            catch (OperationCanceledException oce)
             {
                 _logger.DebugFormat("Thread cancelled while crawling/processing page [{0}]", pageToCrawl.Uri);
                 throw;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 _crawlResult.ErrorException = e;
                 _logger.FatalFormat("Error occurred during processing of page [{0}]", pageToCrawl.Uri);
@@ -738,7 +738,7 @@ namespace Abot.Crawler
 
         protected virtual void ParsePageLinks(CrawledPage crawledPage)
         {
-            crawledPage.ParsedLinks = _hyperLinkParser.GetLinks(crawledPage);            
+            crawledPage.ParsedLinks = _hyperLinkParser.GetLinks(crawledPage);
         }
 
         protected virtual void SchedulePageLinks(CrawledPage crawledPage)
@@ -753,9 +753,12 @@ namespace Abot.Crawler
                     page.CrawlDepth = crawledPage.CrawlDepth + 1;
                     page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
                     page.IsRoot = false;
-                    _scheduler.Add(page);
+                    if (page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true)
+                    {
+                        _scheduler.Add(page);
+                    }
                 }
-                catch{}
+                catch { }
             }
         }
 
