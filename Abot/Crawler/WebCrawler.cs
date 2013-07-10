@@ -104,6 +104,7 @@ namespace Abot.Crawler
         protected IHyperLinkParser _hyperLinkParser;
         protected ICrawlDecisionMaker _crawlDecisionMaker;
         protected IMemoryManager _memoryManager;
+        protected Func<Uri, CrawledPage, CrawlContext, bool> _shouldScheduleToCrawlURIDecisionMaker;
         protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
@@ -426,6 +427,15 @@ namespace Abot.Crawler
 
         #endregion
 
+
+        /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
+        /// </summary>
+        public void ShouldScheduleToCrawlURI(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker)
+        {
+            _shouldScheduleToCrawlURIDecisionMaker = decisionMaker;
+        }
+
         /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
         /// </summary>
@@ -433,7 +443,6 @@ namespace Abot.Crawler
         {
             _shouldCrawlPageDecisionMaker = decisionMaker;
         }
-
         /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether the page's content should be dowloaded
         /// </summary>
@@ -746,19 +755,22 @@ namespace Abot.Crawler
             foreach (Uri uri in crawledPage.ParsedLinks)
             {
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
-                try
+                if (_shouldScheduleToCrawlURIDecisionMaker == null || _shouldScheduleToCrawlURIDecisionMaker.Invoke(uri, crawledPage, _crawlContext))
                 {
-                    PageToCrawl page = new PageToCrawl(uri);
-                    page.ParentUri = crawledPage.Uri;
-                    page.CrawlDepth = crawledPage.CrawlDepth + 1;
-                    page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
-                    page.IsRoot = false;
-                    if (page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true)
+                    try
                     {
-                        _scheduler.Add(page);
+                        PageToCrawl page = new PageToCrawl(uri);
+                        page.ParentUri = crawledPage.Uri;
+                        page.CrawlDepth = crawledPage.CrawlDepth + 1;
+                        page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
+                        page.IsRoot = false;
+                        if (page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true)
+                        {
+                            _scheduler.Add(page);
+                        }
                     }
+                    catch { }
                 }
-                catch { }
             }
         }
 
