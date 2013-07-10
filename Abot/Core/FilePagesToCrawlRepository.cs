@@ -226,7 +226,7 @@ namespace Abot.Core
 
                         Interlocked.Decrement(ref totalFiles);
                     }
-                    catch
+                    catch(Exception e)
                     {
                     }
                 }

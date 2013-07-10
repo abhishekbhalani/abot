@@ -108,6 +108,12 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MurMur3\MurMur3.csproj">
+      <Project>{0c22331e-8121-40ca-bb50-4fd97a608bf1}</Project>
+      <Name>MurMur3</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
