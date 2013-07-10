@@ -68,6 +68,11 @@ namespace Abot.Crawler
         void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker);
 
         /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether a cerain link on a page should be scheduled to be crawled
+        /// </summary>
+        void ShouldScheduleLink(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker);
+
+        /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
         /// </summary>
         /// <param name="decisionMaker delegate"></param>
@@ -104,10 +109,10 @@ namespace Abot.Crawler
         protected IHyperLinkParser _hyperLinkParser;
         protected ICrawlDecisionMaker _crawlDecisionMaker;
         protected IMemoryManager _memoryManager;
-        protected Func<Uri, CrawledPage, CrawlContext, bool> _shouldScheduleToCrawlURIDecisionMaker;
         protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
+        protected Func<Uri, CrawledPage, CrawlContext, bool> _shouldScheduleLinkDecisionMaker;
         protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
 
         /// <summary>
@@ -431,18 +436,11 @@ namespace Abot.Crawler
         /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
         /// </summary>
-        public void ShouldScheduleToCrawlURI(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker)
-        {
-            _shouldScheduleToCrawlURIDecisionMaker = decisionMaker;
-        }
-
-        /// <summary>
-        /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
-        /// </summary>
         public void ShouldCrawlPage(Func<PageToCrawl, CrawlContext, CrawlDecision> decisionMaker)
         {
             _shouldCrawlPageDecisionMaker = decisionMaker;
         }
+
         /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether the page's content should be dowloaded
         /// </summary>
@@ -459,6 +457,14 @@ namespace Abot.Crawler
         public void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker)
         {
             _shouldCrawlPageLinksDecisionMaker = decisionMaker;
+        }
+
+        /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether a cerain link on a page should be scheduled to be crawled
+        /// </summary>
+        public void ShouldScheduleLink(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker)
+        {
+            _shouldScheduleLinkDecisionMaker = decisionMaker;
         }
 
         /// <summary>
@@ -615,9 +621,6 @@ namespace Abot.Crawler
                 if (pageToCrawl == null)
                     return;
 
-                if (!ShouldCrawlPage(pageToCrawl))
-                    return;
-
                 ThrowIfCancellationRequested();
 
                 CrawledPage crawledPage = CrawlThePage(pageToCrawl);
@@ -755,7 +758,7 @@ namespace Abot.Crawler
             foreach (Uri uri in crawledPage.ParsedLinks)
             {
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
-                if (_shouldScheduleToCrawlURIDecisionMaker == null || _shouldScheduleToCrawlURIDecisionMaker.Invoke(uri, crawledPage, _crawlContext))
+                if (_shouldScheduleLinkDecisionMaker == null || _shouldScheduleLinkDecisionMaker.Invoke(uri, crawledPage, _crawlContext))
                 {
                     try
                     {
@@ -764,14 +767,21 @@ namespace Abot.Crawler
                         page.CrawlDepth = crawledPage.CrawlDepth + 1;
                         page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
                         page.IsRoot = false;
-                        if (page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true)
-                        {
+
+                        if (ShouldSchedulePageLink(page))
                             _scheduler.Add(page);
-                        }
                     }
                     catch { }
                 }
             }
+        }
+
+        protected virtual bool ShouldSchedulePageLink(PageToCrawl page)
+        {
+            if ((page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true) && (ShouldCrawlPage(page)))
+                return true;
+
+            return false;   
         }
 
         protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
