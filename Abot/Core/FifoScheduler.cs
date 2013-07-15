@@ -16,6 +16,7 @@ namespace Abot.Core
         /// </summary>
         int Count { get; }
 
+
         /// <summary>
         /// Schedules the param to be crawled
         /// </summary>
@@ -35,6 +36,7 @@ namespace Abot.Core
         /// Clear all currently scheduled pages
         /// </summary>
         void Clear();
+
     }
 
     public class FifoScheduler : IScheduler
@@ -43,7 +45,8 @@ namespace Abot.Core
         ICrawledUrlRepository _urlRepository;
         IPagesToCrawlRepository _pagesToCrawlRepository;
         bool _allowUriRecrawling = false;
-
+        
+        
         public FifoScheduler(bool allowUriRecrawling = false, ICrawledUrlRepository urlRepository = null, IPagesToCrawlRepository pagesRespository = null)
         {
 

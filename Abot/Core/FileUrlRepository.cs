@@ -13,12 +13,19 @@ namespace Abot.Core
 
         volatile bool creatingDirectory = false;
         static readonly object directoryLocker = new object();
+        MemoryBloomUrlRepository memoryURLRepositoryCache = null;
         ConcurrentQueue<Uri> memoryURLRepositoryForWriting = new ConcurrentQueue<Uri>();
         Thread memoryFlusher = null;
         int threadSleep = 5000;
+        bool useBloom = true;
 
-        public FileUrlRepository(int watcherDelayInMS = 5000)
+        public FileUrlRepository(int watcherDelayInMS = 5000, bool useBloomFilterCache = true, double falsePositiveProbability = .0001, int expectedElements = 100000000)
         {
+            if (useBloomFilterCache)
+            {
+                useBloom = true;
+                memoryURLRepositoryCache = new MemoryBloomUrlRepository(falsePositiveProbability, expectedElements);
+            }
             if (Directory.Exists("crawledURLS"))
             {
                 Directory.Delete("crawledURLS", true);
@@ -43,11 +50,26 @@ namespace Abot.Core
         }
         public bool Contains(Uri uri)
         {
-            if (memoryURLRepositoryForWriting.Contains(uri))
+            if (useBloom)
             {
-                return true;
+                if (memoryURLRepositoryCache.Contains(uri))
+                {
+                    if (memoryURLRepositoryForWriting.Contains(uri))
+                    {
+                        return true;
+                    }
+                    return Contains(filePath(uri));
+                }
             }
-            return Contains(filePath(uri));
+            else
+            {
+                if (memoryURLRepositoryForWriting.Contains(uri))
+                {
+                    return true;
+                }
+                return Contains(filePath(uri));
+            }
+            return false;
         }
         protected bool Contains(string path)
         {
@@ -65,6 +87,7 @@ namespace Abot.Core
             }
             else
             {
+                memoryURLRepositoryCache.AddIfNew(uri);
                 memoryURLRepositoryForWriting.Enqueue(uri);
                 return true;
             }

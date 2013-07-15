@@ -491,20 +491,26 @@ namespace Abot.Crawler
         {
             while (!_crawlComplete)
             {
-                RunPreWorkChecks();
+                try
+                {
+                    RunPreWorkChecks();
 
-                if (_scheduler.Count > 0)
-                {
-                    _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
+                    if (_scheduler.Count > 0)
+                    {
+                        _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
+                    }
+                    else if (!_threadManager.HasRunningThreads())
+                    {
+                        _crawlComplete = true;
+                    }
+                    else
+                    {
+                        _logger.DebugFormat("Waiting for links to be scheduled...");
+                        System.Threading.Thread.Sleep(2500);
+                    }
                 }
-                else if (!_threadManager.HasRunningThreads())
+                catch (Exception e)
                 {
-                    _crawlComplete = true;
-                }
-                else
-                {
-                    _logger.DebugFormat("Waiting for links to be scheduled...");
-                    System.Threading.Thread.Sleep(2500);
                 }
             }
         }
@@ -736,9 +742,8 @@ namespace Abot.Crawler
 
         protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
         {
-            _crawlContext.CrawledUrls.TryAdd(pageToCrawl.Uri.AbsoluteUri, 0);
-
             int domainCount = 0;
+            Interlocked.Increment(ref _crawlContext.CrawledCount);
             lock (_crawlContext.CrawlCountByDomain)
             {
                 if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
