@@ -1,5 +1,6 @@
 ﻿using Abot.Poco;
 using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 
 namespace Abot.Core
@@ -9,11 +10,18 @@ namespace Abot.Core
     /// </summary>
     public class HapHyperLinkParser : HyperLinkParser
     {
+        Func<string, string> _cleanURLFunc;
         protected override string ParserType
         {
             get { return "HtmlAgilityPack"; }
         }
-
+        public HapHyperLinkParser()
+        {
+        }
+        public HapHyperLinkParser(Func<string, string> cleanURLFunc)
+        {
+            _cleanURLFunc = cleanURLFunc;
+        }
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
         {
             List<string> hrefValues = new List<string>();
@@ -49,7 +57,7 @@ namespace Abot.Core
             string hrefValue = "";
             foreach (HtmlNode node in nodes)
             {
-                hrefValue = node.Attributes["href"].Value;
+                hrefValue = _cleanURLFunc != null ? _cleanURLFunc(node.Attributes["href"].Value) : node.Attributes["href"].Value;
                 if (!string.IsNullOrWhiteSpace(hrefValue))
                     hrefs.Add(hrefValue);
             }
