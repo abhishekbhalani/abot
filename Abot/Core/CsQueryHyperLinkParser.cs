@@ -25,6 +25,14 @@ namespace Abot.Core
 
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
         {
+            if (1 == 2)
+            {
+                var robotsMeta = crawledPage.CsQueryDocument["meta[name=robots]"].Attr("content");
+                if (robotsMeta != null && robotsMeta.ToLower() == "nofollow")
+                {
+                    return null;
+                }
+            }
             IEnumerable<string> hrefValues = crawledPage.CsQueryDocument.Select("a, area")
             .Elements
             .Select(y => _cleanURLFunc != null ? _cleanURLFunc(y.GetAttribute("href")) : y.GetAttribute("href"))

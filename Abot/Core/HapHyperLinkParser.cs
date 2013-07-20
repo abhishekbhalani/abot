@@ -25,7 +25,19 @@ namespace Abot.Core
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
         {
             List<string> hrefValues = new List<string>();
-
+            if (1 == 2)
+            {
+                HtmlNode robotsNode = crawledPage.HtmlDocument.DocumentNode.SelectSingleNode("//meta[@name='robots']");
+                if (robotsNode != null)
+                {
+                    var robotContent = robotsNode.GetAttributeValue("content", "");
+                    // TODO: write desc somewhere
+                    if (robotContent != null && robotContent.ToLower() == "nofollow")
+                    {
+                        return hrefValues;
+                    }
+                }
+            }
             HtmlNodeCollection aTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//a[@href]");
             HtmlNodeCollection areaTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//area[@href]");
 
