@@ -11,21 +11,35 @@ namespace Abot.Core
     public class HapHyperLinkParser : HyperLinkParser
     {
         Func<string, string> _cleanURLFunc;
+        bool _isRespectMetaRobotsNoFollowEnabled;
+        bool _isRespectAnchorRelNoFollowEnabled;
+
         protected override string ParserType
         {
             get { return "HtmlAgilityPack"; }
         }
+
         public HapHyperLinkParser()
+            :this(false, false)
         {
         }
-        public HapHyperLinkParser(Func<string, string> cleanURLFunc)
+
+        public HapHyperLinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled)
+            :this(isRespectMetaRobotsNoFollowEnabled, isRespectAnchorRelNoFollowEnabled, null)
         {
+        }
+
+        public HapHyperLinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled, Func<string, string> cleanURLFunc)
+        {
+            _isRespectMetaRobotsNoFollowEnabled = isRespectMetaRobotsNoFollowEnabled;
+            _isRespectAnchorRelNoFollowEnabled = isRespectAnchorRelNoFollowEnabled;
             _cleanURLFunc = cleanURLFunc;
         }
+
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
         {
             List<string> hrefValues = new List<string>();
-            if (1 == 2)
+            if (_isRespectMetaRobotsNoFollowEnabled)
             {
                 HtmlNode robotsNode = crawledPage.HtmlDocument.DocumentNode.SelectSingleNode("//meta[@name='robots']");
                 if (robotsNode != null)
