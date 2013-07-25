@@ -92,7 +92,7 @@ namespace Abot.Demo
             //NOTE: This lambda is run after the regular ICrawlDecsionMaker.ShouldDownloadPageContent method is run
             crawler.ShouldDownloadPageContent((crawledPage, crawlContext) =>
             {
-                if (crawlContext.CrawledUrls.Count >= 5)
+                if (crawlContext.CrawledCount >= 5)
                     return new CrawlDecision { Allow = false, Reason = "We already downloaded the raw page content for 5 pages" };
 
                 return new CrawlDecision { Allow = true };
