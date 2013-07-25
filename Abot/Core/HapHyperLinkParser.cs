@@ -1,5 +1,6 @@
 ﻿using Abot.Poco;
 using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
 
 namespace Abot.Core
@@ -9,15 +10,48 @@ namespace Abot.Core
     /// </summary>
     public class HapHyperLinkParser : HyperLinkParser
     {
+        Func<string, string> _cleanURLFunc;
+        bool _isRespectMetaRobotsNoFollowEnabled;
+        bool _isRespectAnchorRelNoFollowEnabled;
+
         protected override string ParserType
         {
             get { return "HtmlAgilityPack"; }
         }
 
+        public HapHyperLinkParser()
+            :this(false, false)
+        {
+        }
+
+        public HapHyperLinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled)
+            :this(isRespectMetaRobotsNoFollowEnabled, isRespectAnchorRelNoFollowEnabled, null)
+        {
+        }
+
+        public HapHyperLinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled, Func<string, string> cleanURLFunc)
+        {
+            _isRespectMetaRobotsNoFollowEnabled = isRespectMetaRobotsNoFollowEnabled;
+            _isRespectAnchorRelNoFollowEnabled = isRespectAnchorRelNoFollowEnabled;
+            _cleanURLFunc = cleanURLFunc;
+        }
+
         protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
         {
             List<string> hrefValues = new List<string>();
-
+            if (_isRespectMetaRobotsNoFollowEnabled)
+            {
+                HtmlNode robotsNode = crawledPage.HtmlDocument.DocumentNode.SelectSingleNode("//meta[@name='robots']");
+                if (robotsNode != null)
+                {
+                    var robotContent = robotsNode.GetAttributeValue("content", "");
+                    // TODO: write desc somewhere
+                    if (robotContent != null && robotContent.ToLower() == "nofollow")
+                    {
+                        return hrefValues;
+                    }
+                }
+            }
             HtmlNodeCollection aTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//a[@href]");
             HtmlNodeCollection areaTags = crawledPage.HtmlDocument.DocumentNode.SelectNodes("//area[@href]");
 
@@ -49,7 +83,7 @@ namespace Abot.Core
             string hrefValue = "";
             foreach (HtmlNode node in nodes)
             {
-                hrefValue = node.Attributes["href"].Value;
+                hrefValue = _cleanURLFunc != null ? _cleanURLFunc(node.Attributes["href"].Value) : node.Attributes["href"].Value;
                 if (!string.IsNullOrWhiteSpace(hrefValue))
                     hrefs.Add(hrefValue);
             }

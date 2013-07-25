@@ -2,10 +2,9 @@
 using Abot.Poco;
 using log4net;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Timers;
+using System.Threading;
 
 namespace Abot.Crawler
 {
@@ -69,6 +68,11 @@ namespace Abot.Crawler
         void ShouldCrawlPageLinks(Func<CrawledPage, CrawlContext, CrawlDecision> decisionMaker);
 
         /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether a cerain link on a page should be scheduled to be crawled
+        /// </summary>
+        void ShouldScheduleLink(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker);
+
+        /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
         /// </summary>
         /// <param name="decisionMaker delegate"></param>
@@ -78,6 +82,11 @@ namespace Abot.Crawler
         /// Begins a crawl using the uri param
         /// </summary>
         CrawlResult Crawl(Uri uri);
+
+        /// <summary>
+        /// Begins a crawl using the uri param, and can be cancelled using the CancellationToken
+        /// </summary>
+        CrawlResult Crawl(Uri uri, CancellationTokenSource tokenSource);
 
         /// <summary>
         /// Dynamic object that can hold any value that needs to be available in the crawl context
@@ -90,7 +99,8 @@ namespace Abot.Crawler
         static ILog _logger = LogManager.GetLogger(typeof(WebCrawler).FullName);
         protected bool _crawlComplete = false;
         protected bool _crawlStopReported = false;
-        protected Timer _timeoutTimer;
+        protected bool _crawlCancellationReported = false;
+        protected System.Timers.Timer _timeoutTimer;
         protected CrawlResult _crawlResult = null;
         protected CrawlContext _crawlContext;
         protected IThreadManager _threadManager;
@@ -102,6 +112,7 @@ namespace Abot.Crawler
         protected Func<PageToCrawl, CrawlContext, CrawlDecision> _shouldCrawlPageDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldDownloadPageContentDecisionMaker;
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
+        protected Func<Uri, CrawledPage, CrawlContext, bool> _shouldScheduleLinkDecisionMaker;
         protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
 
         /// <summary>
@@ -151,28 +162,28 @@ namespace Abot.Crawler
         /// <param name="crawlDecisionMaker">Decides whether or not to crawl a page or that page's links</param>
         /// <param name="crawlConfiguration">Configurable crawl values</param>
         public WebCrawler(
-            CrawlConfiguration crawlConfiguration, 
-            ICrawlDecisionMaker crawlDecisionMaker, 
-            IThreadManager threadManager, 
-            IScheduler scheduler, 
-            IPageRequester httpRequester, 
-            IHyperLinkParser hyperLinkParser, 
+            CrawlConfiguration crawlConfiguration,
+            ICrawlDecisionMaker crawlDecisionMaker,
+            IThreadManager threadManager,
+            IScheduler scheduler,
+            IPageRequester httpRequester,
+            IHyperLinkParser hyperLinkParser,
             IMemoryManager memoryManager)
         {
             _crawlContext = new CrawlContext();
-            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile() ?? new CrawlConfiguration();
+            _crawlContext.CrawlConfiguration = crawlConfiguration ?? GetCrawlConfigurationFromConfigFile();
             CrawlBag = _crawlContext.CrawlBag;
 
-            _threadManager = threadManager ?? new ManualThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            _threadManager = threadManager ?? new TaskThreadManager(_crawlContext.CrawlConfiguration.MaxConcurrentThreads > 0 ? _crawlContext.CrawlConfiguration.MaxConcurrentThreads : System.Environment.ProcessorCount);
             _scheduler = scheduler ?? new FifoScheduler(_crawlContext.CrawlConfiguration.IsUriRecrawlingEnabled);
             _httpRequester = httpRequester ?? new PageRequester(_crawlContext.CrawlConfiguration);
             _crawlDecisionMaker = crawlDecisionMaker ?? new CrawlDecisionMaker();
 
-            if(_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb > 0
+            if (_crawlContext.CrawlConfiguration.MaxMemoryUsageInMb > 0
                 || _crawlContext.CrawlConfiguration.MinAvailableMemoryRequiredInMb > 0)
                 _memoryManager = memoryManager ?? new MemoryManager(new CachedMemoryMonitor(new GcMemoryMonitor(), _crawlContext.CrawlConfiguration.MaxMemoryUsageCacheTimeInSeconds));
 
-            _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser();
+            _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser(_crawlContext.CrawlConfiguration.IsRespectMetaRobotsNoFollowEnabled, _crawlContext.CrawlConfiguration.IsRespectAnchorRelNoFollowEnabled);
 
             _crawlContext.Scheduler = _scheduler;
         }
@@ -184,10 +195,21 @@ namespace Abot.Crawler
         /// </summary>
         public virtual CrawlResult Crawl(Uri uri)
         {
+            return Crawl(uri, null);
+        }
+
+        /// <summary>
+        /// Begins a synchronous crawl using the uri param, subscribe to events to process data as it becomes available
+        /// </summary>
+        public virtual CrawlResult Crawl(Uri uri, CancellationTokenSource cancellationTokenSource)
+        {
             if (uri == null)
                 throw new ArgumentNullException("uri");
 
             _crawlContext.RootUri = uri;
+
+            if (cancellationTokenSource != null)
+                _crawlContext.CancellationTokenSource = cancellationTokenSource;
 
             _crawlResult = new CrawlResult();
             _crawlResult.RootUri = _crawlContext.RootUri;
@@ -211,7 +233,7 @@ namespace Abot.Crawler
 
             if (_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds > 0)
             {
-                _timeoutTimer = new Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
+                _timeoutTimer = new System.Timers.Timer(_crawlContext.CrawlConfiguration.CrawlTimeoutSeconds * 1000);
                 _timeoutTimer.Elapsed += HandleCrawlTimeout;
                 _timeoutTimer.Start();
             }
@@ -229,11 +251,11 @@ namespace Abot.Crawler
             }
             finally
             {
-                if(_threadManager != null)
+                if (_threadManager != null)
                     _threadManager.Dispose();
             }
 
-            if(_timeoutTimer != null)
+            if (_timeoutTimer != null)
                 _timeoutTimer.Stop();
 
             timer.Stop();
@@ -243,7 +265,7 @@ namespace Abot.Crawler
                 _crawlContext.MemoryUsageAfterCrawlInMb = _memoryManager.GetCurrentUsageInMb();
                 _logger.InfoFormat("Ending memory usage for site [{0}] is [{1}mb]", uri.AbsoluteUri, _crawlContext.MemoryUsageAfterCrawlInMb);
             }
-           
+
             _crawlResult.Elapsed = timer.Elapsed;
             _logger.InfoFormat("Crawl complete for site [{0}]: [{1}]", _crawlResult.RootUri.AbsoluteUri, _crawlResult.Elapsed);
 
@@ -410,6 +432,7 @@ namespace Abot.Crawler
 
         #endregion
 
+
         /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether a page should be crawled or not
         /// </summary>
@@ -437,6 +460,14 @@ namespace Abot.Crawler
         }
 
         /// <summary>
+        /// Synchronous method that registers a delegate to be called to determine whether a cerain link on a page should be scheduled to be crawled
+        /// </summary>
+        public void ShouldScheduleLink(Func<Uri, CrawledPage, CrawlContext, bool> decisionMaker)
+        {
+            _shouldScheduleLinkDecisionMaker = decisionMaker;
+        }
+
+        /// <summary>
         /// Synchronous method that registers a delegate to be called to determine whether the 1st uri param is considered an internal uri to the second uri param
         /// </summary>
         /// <param name="decisionMaker delegate"></param>     
@@ -447,14 +478,10 @@ namespace Abot.Crawler
 
         private CrawlConfiguration GetCrawlConfigurationFromConfigFile()
         {
-            AbotConfigurationSectionHandler configFromFile = null;
-            try{ configFromFile = AbotConfigurationSectionHandler.LoadFromXml(); } catch {}
+            AbotConfigurationSectionHandler configFromFile = AbotConfigurationSectionHandler.LoadFromXml();
 
             if (configFromFile == null)
-            {
-                _logger.DebugFormat("abot config section was NOT found");
-                return null;
-            }
+                throw new InvalidOperationException("abot config section was NOT found");
 
             _logger.DebugFormat("abot config section was found");
             return configFromFile.Convert();
@@ -464,20 +491,26 @@ namespace Abot.Crawler
         {
             while (!_crawlComplete)
             {
-                RunPreWorkChecks();
+                try
+                {
+                    RunPreWorkChecks();
 
-                if (_scheduler.Count > 0)
-                {
-                    _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
+                    if (_scheduler.Count > 0)
+                    {
+                        _threadManager.DoWork(() => ProcessPage(_scheduler.GetNext()));
+                    }
+                    else if (!_threadManager.HasRunningThreads())
+                    {
+                        _crawlComplete = true;
+                    }
+                    else
+                    {
+                        _logger.DebugFormat("Waiting for links to be scheduled...");
+                        System.Threading.Thread.Sleep(2500);
+                    }
                 }
-                else if (!_threadManager.HasRunningThreads())
+                catch (Exception e)
                 {
-                    _crawlComplete = true;
-                }
-                else
-                {
-                    _logger.DebugFormat("Waiting for links to be scheduled...");
-                    System.Threading.Thread.Sleep(2500);
                 }
             }
         }
@@ -494,12 +527,14 @@ namespace Abot.Crawler
         protected virtual void RunPreWorkChecks()
         {
             CheckMemoryUsage();
+            CheckForCancellationRequest();
+            CheckForHardStopRequest();
             CheckForStopRequest();
         }
 
         protected virtual void CheckMemoryUsage()
         {
-            if (_memoryManager == null 
+            if (_memoryManager == null
                 || _crawlContext.IsCrawlHardStopRequested
                 || _crawlContext.CrawlConfiguration.MaxMemoryUsageInMb < 1)
                 return;
@@ -521,24 +556,32 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void CheckForStopRequest()
+        protected virtual void CheckForCancellationRequest()
         {
-            if (_crawlContext.IsCrawlStopRequested || _crawlContext.IsCrawlHardStopRequested)
+            if (_crawlContext.CancellationTokenSource.IsCancellationRequested)
+            {
+                if (!_crawlCancellationReported)
+                {
+                    string message = string.Format("Crawl cancellation requested for site [{0}]!", _crawlContext.RootUri);
+                    _logger.Fatal(message);
+                    _crawlResult.ErrorException = new OperationCanceledException(message, _crawlContext.CancellationTokenSource.Token);
+                    _crawlContext.IsCrawlHardStopRequested = true;
+                    _crawlCancellationReported = true;
+                }
+            }
+        }
+
+        protected virtual void CheckForHardStopRequest()
+        {
+            if (_crawlContext.IsCrawlHardStopRequested)
             {
                 if (!_crawlStopReported)
                 {
-                    if(_crawlContext.IsCrawlHardStopRequested)
-                        _logger.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
-                    else
-                        _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
-
+                    _logger.InfoFormat("Hard crawl stop requested for site [{0}]!", _crawlContext.RootUri);
                     _crawlStopReported = true;
                 }
-                _scheduler.Clear(); 
-            }
 
-            if (_crawlContext.IsCrawlHardStopRequested)
-            {
+                _scheduler.Clear();
                 _threadManager.AbortAll();
                 _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
 
@@ -554,9 +597,22 @@ namespace Abot.Crawler
             }
         }
 
-        protected virtual void HandleCrawlTimeout(object sender, ElapsedEventArgs e)
+        protected virtual void CheckForStopRequest()
         {
-            Timer elapsedTimer = sender as Timer;
+            if (_crawlContext.IsCrawlStopRequested)
+            {
+                if (!_crawlStopReported)
+                {
+                    _logger.InfoFormat("Crawl stop requested for site [{0}]!", _crawlContext.RootUri);
+                    _crawlStopReported = true;
+                }
+                _scheduler.Clear();
+            }
+        }
+
+        protected virtual void HandleCrawlTimeout(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            System.Timers.Timer elapsedTimer = sender as System.Timers.Timer;
             if (elapsedTimer != null)
                 elapsedTimer.Stop();
 
@@ -571,21 +627,35 @@ namespace Abot.Crawler
                 if (pageToCrawl == null)
                     return;
 
-                if (!ShouldCrawlPage(pageToCrawl))
-                    return;
+                ThrowIfCancellationRequested();
 
                 CrawledPage crawledPage = CrawlThePage(pageToCrawl);
 
                 if (PageSizeIsAboveMax(crawledPage))
                     return;
 
+                ThrowIfCancellationRequested();
+
+                bool shouldCrawlPageLinks = ShouldCrawlPageLinks(crawledPage);
+                if (shouldCrawlPageLinks || _crawlContext.CrawlConfiguration.IsForcedLinkParsingEnabled)
+                    ParsePageLinks(crawledPage);
+
+                ThrowIfCancellationRequested();
+
+                if (shouldCrawlPageLinks)
+                    SchedulePageLinks(crawledPage);
+
+                ThrowIfCancellationRequested();
+
                 FirePageCrawlCompletedEventAsync(crawledPage);
                 FirePageCrawlCompletedEvent(crawledPage);
-
-                if (ShouldCrawlPageLinks(crawledPage))
-                    SchedulePageLinks(crawledPage);
             }
-            catch(Exception e)
+            catch (OperationCanceledException oce)
+            {
+                _logger.DebugFormat("Thread cancelled while crawling/processing page [{0}]", pageToCrawl.Uri);
+                throw;
+            }
+            catch (Exception e)
             {
                 _crawlResult.ErrorException = e;
                 _logger.FatalFormat("Error occurred during processing of page [{0}]", pageToCrawl.Uri);
@@ -593,6 +663,12 @@ namespace Abot.Crawler
 
                 _crawlContext.IsCrawlHardStopRequested = true;
             }
+        }
+
+        protected virtual void ThrowIfCancellationRequested()
+        {
+            if (_crawlContext.CancellationTokenSource != null && _crawlContext.CancellationTokenSource.IsCancellationRequested)
+                _crawlContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
         }
 
         protected virtual bool PageSizeIsAboveMax(CrawledPage crawledPage)
@@ -620,6 +696,7 @@ namespace Abot.Crawler
                 FirePageLinksCrawlDisallowedEvent(crawledPage, shouldCrawlPageLinksDecision.Reason);
             }
 
+            SignalCrawlStopIfNeeded(shouldCrawlPageLinksDecision);
             return shouldCrawlPageLinksDecision.Allow;
         }
 
@@ -640,6 +717,7 @@ namespace Abot.Crawler
                 FirePageCrawlDisallowedEvent(pageToCrawl, shouldCrawlPageDecision.Reason);
             }
 
+            SignalCrawlStopIfNeeded(shouldCrawlPageDecision);
             return shouldCrawlPageDecision.Allow;
         }
 
@@ -664,9 +742,8 @@ namespace Abot.Crawler
 
         protected virtual void AddPageToContext(PageToCrawl pageToCrawl)
         {
-            _crawlContext.CrawledUrls.TryAdd(pageToCrawl.Uri.AbsoluteUri, 0);
-
             int domainCount = 0;
+            Interlocked.Increment(ref _crawlContext.CrawledCount);
             lock (_crawlContext.CrawlCountByDomain)
             {
                 if (_crawlContext.CrawlCountByDomain.TryGetValue(pageToCrawl.Uri.Authority, out domainCount))
@@ -676,23 +753,40 @@ namespace Abot.Crawler
             }
         }
 
+        protected virtual void ParsePageLinks(CrawledPage crawledPage)
+        {
+            crawledPage.ParsedLinks = _hyperLinkParser.GetLinks(crawledPage);
+        }
+
         protected virtual void SchedulePageLinks(CrawledPage crawledPage)
         {
-            IEnumerable<Uri> crawledPageLinks = _hyperLinkParser.GetLinks(crawledPage);
-            foreach (Uri uri in crawledPageLinks)
+            foreach (Uri uri in crawledPage.ParsedLinks)
             {
                 //Added due to a bug in the Uri class related to this (http://stackoverflow.com/questions/2814951/system-uriformatexception-invalid-uri-the-hostname-could-not-be-parsed)
-                try
+                if (_shouldScheduleLinkDecisionMaker == null || _shouldScheduleLinkDecisionMaker.Invoke(uri, crawledPage, _crawlContext))
                 {
-                    PageToCrawl page = new CrawledPage(uri);
-                    page.ParentUri = crawledPage.Uri;
-                    page.CrawlDepth = crawledPage.CrawlDepth + 1;
-                    page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
-                    page.IsRoot = false;
-                    _scheduler.Add(page);
+                    try
+                    {
+                        PageToCrawl page = new PageToCrawl(uri);
+                        page.ParentUri = crawledPage.Uri;
+                        page.CrawlDepth = crawledPage.CrawlDepth + 1;
+                        page.IsInternal = _isInternalDecisionMaker(uri, _crawlContext.RootUri);
+                        page.IsRoot = false;
+
+                        if (ShouldSchedulePageLink(page))
+                            _scheduler.Add(page);
+                    }
+                    catch { }
                 }
-                catch{}
             }
+        }
+
+        protected virtual bool ShouldSchedulePageLink(PageToCrawl page)
+        {
+            if ((page.IsInternal == true || _crawlContext.CrawlConfiguration.IsExternalPageCrawlingEnabled == true) && (ShouldCrawlPage(page)))
+                return true;
+
+            return false;   
         }
 
         protected virtual CrawlDecision ShouldDownloadPageContentWrapper(CrawledPage crawledPage)
@@ -701,6 +795,7 @@ namespace Abot.Crawler
             if (decision.Allow)
                 decision = (_shouldDownloadPageContentDecisionMaker != null) ? _shouldDownloadPageContentDecisionMaker.Invoke(crawledPage, _crawlContext) : new CrawlDecision { Allow = true };
 
+            SignalCrawlStopIfNeeded(decision);
             return decision;
         }
 
@@ -718,6 +813,20 @@ namespace Abot.Crawler
             foreach (string key in config.ConfigurationExtensions.Keys)
             {
                 _logger.InfoFormat("{0}{1}: {2}", indentString, key, config.ConfigurationExtensions[key]);
+            }
+        }
+
+        protected virtual void SignalCrawlStopIfNeeded(CrawlDecision decision)
+        {
+            if (decision.ShouldHardStopCrawl)
+            {
+                _logger.InfoFormat("Decision marked crawl [Hard Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                _crawlContext.IsCrawlHardStopRequested = decision.ShouldHardStopCrawl;
+            }
+            else if (decision.ShouldStopCrawl)
+            {
+                _logger.InfoFormat("Decision marked crawl [Stop] for site [{0}], [{1}]", _crawlContext.RootUri, decision.Reason);
+                _crawlContext.IsCrawlStopRequested = decision.ShouldStopCrawl;
             }
         }
     }

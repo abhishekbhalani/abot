@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Dynamic;
+using System.Threading;
 
 namespace Abot.Poco
 {
@@ -9,9 +10,9 @@ namespace Abot.Poco
     {
         public CrawlContext()
         {
-            CrawledUrls = new ConcurrentDictionary<string, byte>();
             CrawlCountByDomain = new ConcurrentDictionary<string, int>();
             CrawlBag = new ExpandoObject();
+            CancellationTokenSource = new CancellationTokenSource();
         }
 
         /// <summary>
@@ -20,14 +21,13 @@ namespace Abot.Poco
         public Uri RootUri { get; set; }
 
         /// <summary>
+        /// total number of pages that have been crawled
+        /// </summary>
+        public int CrawledCount = 0;
+        /// <summary>
         /// The datetime of the last unsuccessful http status (non 200) was requested
         /// </summary>
         public DateTime CrawlStartDate { get; set; }
-
-        /// <summary>
-        /// Threadsafe collection of urls that have been crawled
-        /// </summary>
-        public ConcurrentDictionary<string, byte> CrawledUrls { get; set; }
         
         /// <summary>
         /// Threadsafe dictionary of domains and how many pages were crawled in that domain
@@ -50,12 +50,12 @@ namespace Abot.Poco
         public dynamic CrawlBag { get; set; }
 
         /// <summary>
-        /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages but will allow any threads that are currently crawling to complete.
+        /// Whether a request to stop the crawl has happened. Will clear all scheduled pages but will allow any threads that are currently crawling to complete.
         /// </summary>
         public bool IsCrawlStopRequested { get; set; }
 
         /// <summary>
-        /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages and abort any threads that are currently crawling.
+        /// Whether a request to hard stop the crawl has happened. Will clear all scheduled pages and cancel any threads that are currently crawling.
         /// </summary>
         public bool IsCrawlHardStopRequested { get; set; }
 
@@ -68,5 +68,10 @@ namespace Abot.Poco
         /// The memory usage in mb at the end of the crawl
         /// </summary>
         public int MemoryUsageAfterCrawlInMb { get; set; }
+
+        /// <summary>
+        /// Cancellation token used to hard stop the crawl. Will clear all scheduled pages and abort any threads that are currently crawling.
+        /// </summary>
+        public CancellationTokenSource CancellationTokenSource { get; set; }
     }
 }

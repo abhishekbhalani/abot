@@ -59,6 +59,18 @@ namespace Abot.Core
             get { return (bool)this["isRespectRobotsDotTextEnabled"]; }
         }
 
+        [ConfigurationProperty("isRespectMetaRobotsNoFollowEnabled", IsRequired = true)]
+        public bool IsRespectMetaRobotsNoFollowEnabled
+        {
+            get { return (bool)this["isRespectMetaRobotsNoFollowEnabled"]; }
+        }
+
+        [ConfigurationProperty("isRespectAnchorRelNoFollowEnabled", IsRequired = true)]
+        public bool IsRespectAnchorRelNoFollowEnabled
+        {
+            get { return (bool)this["isRespectAnchorRelNoFollowEnabled"]; }
+        }
+
         [ConfigurationProperty("robotsDotTextUserAgentString", IsRequired = true)]
         public string RobotsDotTextUserAgentString
         {
@@ -192,6 +204,12 @@ namespace Abot.Core
         public int MaxCrawlDepth
         {
             get { return (int)this["maxCrawlDepth"]; }
+        }
+
+        [ConfigurationProperty("isForcedLinkParsingEnabled", IsRequired = true)]
+        public bool IsForcedLinkParsingEnabled
+        {
+            get { return (bool)this["isForcedLinkParsingEnabled"]; }
         }
     }
 
