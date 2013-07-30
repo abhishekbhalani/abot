@@ -16,28 +16,29 @@ namespace Abot.Crawler
         protected IRobotsDotText _robotsDotText;
 
         public PoliteWebCrawler()
-            : this(null, null, null, null, null, null, null, null, null)
+            : this(null, null, null, null, null, null, null, null)
         {
         }
 
         public PoliteWebCrawler(
             CrawlConfiguration crawlConfiguration,
             ICrawlDecisionMaker crawlDecisionMaker,
-            IThreadManager threadManager,
             IScheduler scheduler,
             IPageRequester httpRequester,
             IHyperLinkParser hyperLinkParser,
             IMemoryManager memoryManager,
             IDomainRateLimiter domainRateLimiter,
             IRobotsDotTextFinder robotsDotTextFinder)
-            : base(crawlConfiguration, crawlDecisionMaker, threadManager, scheduler, httpRequester, hyperLinkParser, memoryManager)
+            : base(crawlConfiguration, crawlDecisionMaker,  scheduler, httpRequester, hyperLinkParser, memoryManager)
         {
+            
             _domainRateLimiter = domainRateLimiter ?? new DomainRateLimiter(_crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds);
-            _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(new PageRequester(_crawlContext.CrawlConfiguration));
+            _robotsDotTextFinder = robotsDotTextFinder ?? new RobotsDotTextFinder(base._httpRequester);
         }
 
         public override CrawlResult Crawl(Uri uri)
         {
+
             int robotsDotTextCrawlDelayInSecs = 0;
             int robotsDotTextCrawlDelayInMillisecs = 0;
 
@@ -71,7 +72,7 @@ namespace Abot.Crawler
                 _domainRateLimiter.AddDomain(uri, robotsDotTextCrawlDelayInMillisecs);
             }
 
-            if(robotsDotTextCrawlDelayInSecs > 0 || _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
+            if (robotsDotTextCrawlDelayInSecs > 0 || _crawlContext.CrawlConfiguration.MinCrawlDelayPerDomainMilliSeconds > 0)
                 PageCrawlStarting += (s, e) => _domainRateLimiter.RateLimit(e.PageToCrawl.Uri);
 
             return base.Crawl(uri);

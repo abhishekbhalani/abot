@@ -39,7 +39,7 @@ namespace Abot.Core
                 throw new ArgumentNullException("rootUri");
 
             Uri robotsUri = new Uri(rootUri, "/robots.txt");
-            CrawledPage page = _pageRequester.MakeRequest(robotsUri);
+            CrawledPage page = null;// _pageRequester.MakeRequest(robotsUri);
             if (page == null || page.WebException != null || page.HttpWebResponse == null || page.HttpWebResponse.StatusCode != HttpStatusCode.OK)
             {
                 _logger.DebugFormat("Did not find robots.txt file at [{0}]", robotsUri);
