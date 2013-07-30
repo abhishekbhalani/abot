@@ -114,7 +114,7 @@ namespace Abot.Core
 
             while (1 == 1)
             {
-                Console.WriteLine(pagesToCrawlMemoryRepositroy.Count() + " : " + totalFiles + " : " + pagesToCrawlMemoryRepositroyForWriting.Count());
+                Console.WriteLine("PagesToCrawl Memory Report: " + pagesToCrawlMemoryRepositroy.Count() + " : " + totalFiles + " : " + pagesToCrawlMemoryRepositroyForWriting.Count());
                 try
                 {
                     int loopAmt = maxObjectsForMemory - pagesToCrawlMemoryRepositroy.Count();
@@ -226,7 +226,7 @@ namespace Abot.Core
 
                         Interlocked.Decrement(ref totalFiles);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                     }
                 }
