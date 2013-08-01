@@ -17,13 +17,13 @@ namespace Abot.Core
         
         public CSQueryHyperlinkParser()
         {
-            CsQuery.Config.DomIndexProvider = DomIndexProviders.Simple;
+          //  CsQuery.Config.DomIndexProvider = DomIndexProviders.Simple;
         }
 
         public CSQueryHyperlinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled)
             :this(isRespectMetaRobotsNoFollowEnabled, isRespectAnchorRelNoFollowEnabled, null)
         {
-            CsQuery.Config.DomIndexProvider = DomIndexProviders.Simple;
+          //  CsQuery.Config.DomIndexProvider = DomIndexProviders.Simple;
         }
 
         public CSQueryHyperlinkParser(bool isRespectMetaRobotsNoFollowEnabled, bool isRespectAnchorRelNoFollowEnabled, Func<string, string> cleanURLFunc)
@@ -39,7 +39,7 @@ namespace Abot.Core
             get { return "CsQuery"; }
         }
 
-        protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
+        protected override string[] GetHrefValues(CrawledPage crawledPage)
         {
             if (_isRespectMetaRobotsNoFollowEnabled)
             {
@@ -59,10 +59,10 @@ namespace Abot.Core
             //            hrefs.Add(tString);
             //        }
             //    });
-            IEnumerable<string> hrefValues = crawledPage.CsQueryDocument.Select("a, area")
+            string[] hrefValues = crawledPage.CsQueryDocument.Select("a, area")
             .Elements
             .Select(y => _cleanURLFunc != null ? _cleanURLFunc(y.GetAttribute("href")) : y.GetAttribute("href"))
-            .Where(a => !string.IsNullOrWhiteSpace(a));
+            .Where(a => !string.IsNullOrWhiteSpace(a)).ToArray();
 
             return hrefValues;
         }

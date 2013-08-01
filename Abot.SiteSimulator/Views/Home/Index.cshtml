@@ -5,9 +5,11 @@
 
 <h2>Site Simulator</h2>
 <!-- 61 pages expected -->
-<a href="/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=1">Page1</a>
-<a href="/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=2">Page2</a>
-<a href="/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=3">Page3</a>
-<a href="/PageGenerator/Generate?Status200Count=5&Status403Count=1&Status404Count=2&Status500Count=3&Status503Count=4&Page=4">Page4</a>
-<a href="http://yahoo.com/">Yahoo</a>
-<a href="http://zoogle.com/">Zoogle</a>
+@{
+    for (int x = 0; x < 50000; x++)
+    {
+        <a href="/PageGenerator/Generate?Status200Count=50000&Status403Count=0&Status404Count=0&Status500Count=0&Status503Count=0&Page=@x">Page @x</a>
+    }
+}
+
+

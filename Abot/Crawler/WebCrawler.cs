@@ -115,9 +115,10 @@ namespace Abot.Crawler
         protected Func<CrawledPage, CrawlContext, CrawlDecision> _shouldCrawlPageLinksDecisionMaker;
         protected Func<Uri, CrawledPage, CrawlContext, bool> _shouldScheduleLinkDecisionMaker;
         protected Func<Uri, Uri, bool> _isInternalDecisionMaker = (uriInQuestion, rootUri) => uriInQuestion.Authority == rootUri.Authority;
-        protected Amib.Threading.SmartThreadPool _processingPool;
-        protected ConcurrentQueue<CrawledPage> _pagesToProcess; 
 
+        protected Amib.Threading.SmartThreadPool _processingPool;
+        protected ConcurrentQueue<CrawledPage> _pagesToProcess;
+        Thread pThread;
         protected volatile int _pagesProcessed;
         protected DateTime _startTime;
         /// <summary>
@@ -159,6 +160,7 @@ namespace Abot.Crawler
         {
         }
 
+
         /// <summary>
         /// Creates a crawler instance with custom settings or implementation. Passing in null for all params is the equivalent of the empty constructor.
         /// </summary>
@@ -191,11 +193,13 @@ namespace Abot.Crawler
             _hyperLinkParser = hyperLinkParser ?? new HapHyperLinkParser(_crawlContext.CrawlConfiguration.IsRespectMetaRobotsNoFollowEnabled, _crawlContext.CrawlConfiguration.IsRespectAnchorRelNoFollowEnabled);
 
             _crawlContext.Scheduler = _scheduler;
-            _pagesToProcess= new ConcurrentQueue<CrawledPage>();
             _pagesProcessed = 0;
             _startTime = DateTime.Now;
-            _processingPool = new Amib.Threading.SmartThreadPool(60000, _crawlContext.CrawlConfiguration.MaxConcurrentThreads);
-            _processingPool.Start();
+            // _processingPool = new Amib.Threading.SmartThreadPool(60000, _crawlContext.CrawlConfiguration.MaxConcurrentThreads);
+            // _processingPool.Start();
+            _pagesToProcess = new ConcurrentQueue<CrawledPage>();
+            pThread = new Thread(new ThreadStart(PageProcess));
+            pThread.Start();
         }
 
         #endregion Constructors
@@ -506,13 +510,13 @@ namespace Abot.Crawler
                 try
                 {
                     RunPreWorkChecks();
-                    if (_processingPool.WaitingCallbacks > 10000)
+                    //if (_processingPool.WaitingCallbacks > 10000)
+                    //{
+                    //    shouldScheule = false;
+                    //}
+                    if (_scheduler.Count > 0 )
                     {
-                        shouldScheule = false;
-                    }
-                     if (_scheduler.Count > 0 && shouldScheule)
-                    {
-                        if (_httpRequester.RunningRequests() < _crawlContext.CrawlConfiguration.HttpServicePointConnectionLimit * 3)// && _processingPool.WaitingCallbacks<500)
+                        if (_httpRequester.RunningRequests() < _crawlContext.CrawlConfiguration.HttpServicePointConnectionLimit * 3 && _pagesToProcess.Count < _crawlContext.CrawlConfiguration.HttpServicePointConnectionLimit * 10)// && _processingPool.WaitingCallbacks<500)
                         {
                             ProcessPage(_scheduler.GetNext());
                             //ProcessPage(testPage);
@@ -521,11 +525,11 @@ namespace Abot.Crawler
                         else
                         {
 
-                            Console.WriteLine("Page Processing Report: " + _processingPool.WaitingCallbacks + " : " + Convert.ToDouble(_pagesProcessed) / (DateTime.Now - _startTime).TotalSeconds);
+                            Console.WriteLine("Page Processing Report: " + _pagesToProcess.Count + " : " + Convert.ToDouble(_pagesProcessed) / (DateTime.Now - _startTime).TotalSeconds);
                             System.Threading.Thread.Sleep(2500);
                         }
                     }
-                    else if (_processingPool.ActiveThreads == 0 && _processingPool.InUseThreads == 0 && _processingPool.WaitingCallbacks == 0 && _httpRequester.RunningRequests() == 0 && _httpRequester.IncompleteRequests() == 0)
+                    else if (_pagesToProcess.Count > 0 && _httpRequester.RunningRequests() == 0 && _httpRequester.IncompleteRequests() == 0)
                     {
                         _crawlComplete = true;
                     }
@@ -533,7 +537,7 @@ namespace Abot.Crawler
                     {
                         _logger.DebugFormat("Waiting for links to be scheduled...");
 
-                        Console.WriteLine("Page Processing Report: " + _processingPool.WaitingCallbacks + " : " + Convert.ToDouble(_pagesProcessed) / (DateTime.Now - _startTime).TotalSeconds);
+                        Console.WriteLine("Page Processing Report: " + _pagesToProcess.Count + " : " + Convert.ToDouble(_pagesProcessed) / (DateTime.Now - _startTime).TotalSeconds);
                         System.Threading.Thread.Sleep(2500);
                     }
                 }
@@ -610,7 +614,6 @@ namespace Abot.Crawler
                 }
 
                 _scheduler.Clear();
-                _processingPool.Cancel(true);
                 _scheduler.Clear();//to be sure nothing was scheduled since first call to clear()
 
                 //Set all events to null so no more events are fired
@@ -647,7 +650,43 @@ namespace Abot.Crawler
             _logger.InfoFormat("Crawl timeout of [{0}] seconds has been reached for [{1}]", _crawlContext.CrawlConfiguration.CrawlTimeoutSeconds, _crawlContext.RootUri);
             _crawlContext.IsCrawlHardStopRequested = true;
         }
+        protected void PageProcess()
+        {
+            System.Threading.Tasks.Parallel.For(0, 10, x =>
+                {
 
+                    CrawledPage crawledPage = null;
+                    while (1 == 1)
+                    {
+                        if (_pagesToProcess.TryDequeue(out crawledPage))
+                        {
+                            if (PageSizeIsAboveMax(crawledPage))
+                                return;
+
+                            ThrowIfCancellationRequested();
+
+                            bool shouldCrawlPageLinks = ShouldCrawlPageLinks(crawledPage);
+                            if (shouldCrawlPageLinks || _crawlContext.CrawlConfiguration.IsForcedLinkParsingEnabled)
+                                ParsePageLinks(crawledPage);
+
+                            ThrowIfCancellationRequested();
+                            if (shouldCrawlPageLinks)
+                                SchedulePageLinks(crawledPage);
+
+                            ThrowIfCancellationRequested();
+
+                            FirePageCrawlCompletedEventAsync(crawledPage);
+                            FirePageCrawlCompletedEvent(crawledPage);
+                            Interlocked.Increment(ref _pagesProcessed);
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                });
+
+        }
         protected virtual void ProcessPage(PageToCrawl pageToCrawl)
         {
             try
@@ -663,28 +702,12 @@ namespace Abot.Crawler
                 }
                 CrawlThePage(pageToCrawl, (crawledPage) =>
                     {
-                        _processingPool.QueueWorkItem(() =>
-                            {
-                                if (PageSizeIsAboveMax(crawledPage))
-                                    return;
+                        _pagesToProcess.Enqueue(crawledPage);
+                        //_processingPool.QueueWorkItem(() =>
+                        //   {
 
-                                ThrowIfCancellationRequested();
 
-                                bool shouldCrawlPageLinks = ShouldCrawlPageLinks(crawledPage);
-                                if (shouldCrawlPageLinks || _crawlContext.CrawlConfiguration.IsForcedLinkParsingEnabled)
-                                    ParsePageLinks(crawledPage);
-
-                                ThrowIfCancellationRequested();
-
-                                if (shouldCrawlPageLinks)
-                                    SchedulePageLinks(crawledPage);
-
-                                ThrowIfCancellationRequested();
-
-                                FirePageCrawlCompletedEventAsync(crawledPage);
-                                FirePageCrawlCompletedEvent(crawledPage);
-                                Interlocked.Increment(ref _pagesProcessed);
-                            });
+                        //   });
                     });
             }
             catch (OperationCanceledException oce)
@@ -701,7 +724,6 @@ namespace Abot.Crawler
                 _crawlContext.IsCrawlHardStopRequested = true;
             }
         }
-
         protected virtual void ThrowIfCancellationRequested()
         {
             if (_crawlContext.CancellationTokenSource != null && _crawlContext.CancellationTokenSource.IsCancellationRequested)

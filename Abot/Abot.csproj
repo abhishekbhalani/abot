@@ -42,10 +42,6 @@
     <Reference Include="AutoMapper">
       <HintPath>..\packages\AutoMapper.2.2.1\lib\net40\AutoMapper.dll</HintPath>
     </Reference>
-    <Reference Include="CsQuery, Version=1.3.3.249, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\ResultlyThirdParty\ThirdPartyLibraries\CsQuery.dll</HintPath>
-    </Reference>
     <Reference Include="HtmlAgilityPack, Version=1.4.7.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ExternalLib\HtmlAgilityPack.dll</HintPath>
@@ -72,6 +68,8 @@
   <ItemGroup>
     <Compile Include="Core\AbotConfigurationSectionHandler.cs" />
     <Compile Include="Core\CachedMemoryMonitor.cs" />
+    <Compile Include="Core\IPagesToParseRepository.cs" />
+    <Compile Include="Core\MemoryPageToParseRepository.cs" />
     <Compile Include="Core\MemoryBloomUrlRepository.cs" />
     <Compile Include="Core\FilePagesToCrawlRepository.cs" />
     <Compile Include="Core\FileUrlRepository.cs" />
@@ -112,6 +110,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\CsQuery-master\source\CsQuery\CsQuery.csproj">
+      <Project>{c38dffe9-321b-4941-b031-29d718ab5c31}</Project>
+      <Name>CsQuery</Name>
+    </ProjectReference>
     <ProjectReference Include="..\BloomFilterLib\BloomFilterLib.csproj">
       <Project>{078a6bbb-5f13-4120-a200-33f9cd5d9f30}</Project>
       <Name>BloomFilterLib</Name>

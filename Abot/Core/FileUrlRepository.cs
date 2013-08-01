@@ -17,7 +17,7 @@ namespace Abot.Core
         ConcurrentQueue<Uri> memoryURLRepositoryForWriting = new ConcurrentQueue<Uri>();
         Thread memoryFlusher = null;
         int threadSleep = 5000;
-        bool useBloom = true;
+        bool useBloom = false;
 
         public FileUrlRepository(int watcherDelayInMS = 5000, bool useBloomFilterCache = true, double falsePositiveProbability = .0001, int expectedElements = 100000000)
         {
@@ -87,7 +87,10 @@ namespace Abot.Core
             }
             else
             {
-                memoryURLRepositoryCache.AddIfNew(uri);
+                if (useBloom)
+                {
+                    memoryURLRepositoryCache.AddIfNew(uri);
+                }
                 memoryURLRepositoryForWriting.Enqueue(uri);
                 return true;
             }

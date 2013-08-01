@@ -36,7 +36,7 @@ namespace Abot.Core
             _cleanURLFunc = cleanURLFunc;
         }
 
-        protected override IEnumerable<string> GetHrefValues(CrawledPage crawledPage)
+        protected override string[] GetHrefValues(CrawledPage crawledPage)
         {
             List<string> hrefValues = new List<string>();
             if (_isRespectMetaRobotsNoFollowEnabled)
@@ -48,7 +48,7 @@ namespace Abot.Core
                     // TODO: write desc somewhere
                     if (robotContent != null && robotContent.ToLower() == "nofollow")
                     {
-                        return hrefValues;
+                        return hrefValues.ToArray();
                     }
                 }
             }
@@ -58,7 +58,7 @@ namespace Abot.Core
             hrefValues.AddRange(GetLinks(aTags));
             hrefValues.AddRange(GetLinks(areaTags));
 
-            return hrefValues;
+            return hrefValues.ToArray();
         }
 
         protected override string GetBaseHrefValue(CrawledPage crawledPage)

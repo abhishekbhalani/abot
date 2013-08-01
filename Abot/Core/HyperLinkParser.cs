@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security;
 
 namespace Abot.Core
 {
@@ -29,12 +30,11 @@ namespace Abot.Core
         {
             CheckParams(crawledPage);
 
-            Stopwatch timer = Stopwatch.StartNew();
+            //Stopwatch timer = Stopwatch.StartNew();
+            var uris = GetUris(crawledPage, GetHrefValues(crawledPage));
 
-            List<Uri> uris = GetUris(crawledPage, GetHrefValues(crawledPage));
-            
-            timer.Stop();
-            _logger.DebugFormat("{0} parsed links from [{1}] in [{2}] milliseconds", ParserType, crawledPage.Uri, timer.ElapsedMilliseconds);
+            // timer.Stop();
+            //            _logger.DebugFormat("{0} parsed links from [{1}] in [{2}] milliseconds", ParserType, crawledPage.Uri, timer.ElapsedMilliseconds);
 
             return uris;
         }
@@ -43,7 +43,7 @@ namespace Abot.Core
 
         protected abstract string ParserType { get; }
 
-        protected abstract IEnumerable<string> GetHrefValues(CrawledPage crawledPage);
+        protected abstract string[] GetHrefValues(CrawledPage crawledPage);
 
         protected abstract string GetBaseHrefValue(CrawledPage crawledPage);
 
@@ -54,8 +54,7 @@ namespace Abot.Core
             if (crawledPage == null)
                 throw new ArgumentNullException("crawledPage");
         }
-
-        protected virtual List<Uri> GetUris(CrawledPage crawledPage, IEnumerable<string> hrefValues)
+        protected virtual IEnumerable<Uri> GetUris(CrawledPage crawledPage, string[] hrefValues)
         {
             List<Uri> uris = new List<Uri>();
             if (hrefValues == null || hrefValues.Count() < 1)
@@ -63,7 +62,7 @@ namespace Abot.Core
 
             //Use the uri of the page that actually responded to the request instead of crawledPage.Uri (Issue 82).
             //Using HttpWebRequest.Address instead of HttpWebResonse.ResponseUri since this is the best practice and mentioned on http://msdn.microsoft.com/en-us/library/system.net.httpwebresponse.responseuri.aspx
-            
+
             Uri uriToUse = crawledPage.HttpWebRequest.RequestUri ?? crawledPage.Uri;
 
             //If html base tag exists use it instead of page uri for relative links
@@ -77,25 +76,27 @@ namespace Abot.Core
                 catch { }
             }
 
-            string href = "";
-            foreach (string hrefValue in hrefValues)
+            for (int x = 0; x < hrefValues.Count(); x++)
             {
                 try
                 {
-                    href = hrefValue.Split('#')[0];
-                    Uri newUri = new Uri(uriToUse, href);
+                    if (hrefValues[x].Contains('#'))
+                    {
+                        hrefValues[x] = hrefValues[x].Substring(0, hrefValues[x].IndexOf('#'));
+                    }
+                    Uri newUri = new Uri(uriToUse, hrefValues[x]);
 
-                    if (!uris.Contains(newUri))
+                   // if (!uris.Contains(newUri))
                         uris.Add(newUri);
                 }
                 catch (Exception e)
                 {
-                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValue, crawledPage.Uri);
+                    _logger.DebugFormat("Could not parse link [{0}] on page [{1}]", hrefValues[x], crawledPage.Uri);
                     _logger.Debug(e);
                 }
             }
 
-            return uris;
+            return uris.Distinct();
         }
     }
 }
