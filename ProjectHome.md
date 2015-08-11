@@ -1,0 +1,1 @@
+This project has moved to github: http://github.com/sjdirect/abot/
